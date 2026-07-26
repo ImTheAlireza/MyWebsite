@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alireza Shabanzadeh — Motion Graphics Designer</title>
+  <meta name="description" content="Motion Graphics Designer specializing in explainer videos, social media content, and UI animations. Based in Rasht, Iran.">
+  <meta name="keywords" content="motion graphics, animation, after effects, explainer video, UI animation, social media content">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Alireza Shabanzadeh — Motion Graphics Designer">
+  <meta property="og:description" content="Motion Graphics Designer specializing in explainer videos, social media content, and UI animations.">
+  <meta property="og:type" content="website">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Favicon (inline SVG) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>▶</text></svg>">
+</head>
+<body>
+  <!-- Page Loader -->
+  <div class="page-loader" id="pageLoader">
+    <div class="loader-content">
+      <div class="loader-name">
+        <span class="loader-char" data-char="A">A</span>
+        <span class="loader-char" data-char="L">L</span>
+        <span class="loader-char" data-char="I">I</span>
+        <span class="loader-char" data-char="R">R</span>
+        <span class="loader-char" data-char="E">E</span>
+        <span class="loader-char" data-char="Z">Z</span>
+        <span class="loader-char" data-char="A">A</span>
+      </div>
+      <div class="loader-line"></div>
+      <div class="loader-sub">Motion Graphics Designer</div>
+    </div>
+  </div>
+
+  <!-- Custom Cursor -->
+  <div class="cursor" id="cursor">
+    <div class="cursor-dot"></div>
+    <div class="cursor-ring"></div>
+    <span class="cursor-text"></span>
+  </div>
+
+  <!-- Header -->
+  <header class="header" id="header">
+    <a href="#" class="header-logo">Alireza Shabanzadeh</a>
+    <nav class="header-nav">
+      <a href="#about" class="header-link" data-cursor="link">About</a>
+      <a href="#timeline" class="header-link" data-cursor="link">Experience</a>
+      <a href="#work" class="header-link" data-cursor="link">Work</a>
+      <a href="#contact" class="header-link" data-cursor="link">Contact</a>
+      <button class="theme-toggle" id="themeToggle" data-cursor="link" aria-label="Toggle theme">
+        <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+    </nav>
+  </header>
+
+  <!-- Mobile Menu Toggle -->
+  <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">
+    <span></span>
+    <span></span>
+  </button>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <nav class="mobile-menu-nav">
+      <a href="#about" class="mobile-menu-link">About</a>
+      <a href="#timeline" class="mobile-menu-link">Experience</a>
+      <a href="#work" class="mobile-menu-link">Work</a>
+      <a href="#contact" class="mobile-menu-link">Contact</a>
+      <button class="theme-toggle-mobile" id="themeToggleMobile">
+        <span class="theme-label">Switch Theme</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <div class="hero-mesh"></div>
+      <div class="hero-grid-overlay"></div>
+      <img class="hero-portrait hero-portrait-dark" id="heroPortraitDark" alt="" />
+      <img class="hero-portrait hero-portrait-light" id="heroPortraitLight" alt="" />
+      <div class="hero-fade-overlay" id="heroFadeOverlay"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-top-bar">
+        <div class="availability-badge">
+          <span class="availability-dot"></span>
+          <span data-setting="heroAvailability">Available for work</span>
+        </div>
+        <p class="hero-eyebrow" data-setting="heroEyebrow">Motion Graphics Designer</p>
+      </div>
+      <div class="hero-main">
+        <div class="hero-name-block">
+          <span class="hero-name-line hero-name-first" data-setting="heroFirstName" data-split="Alireza">Alireza</span>
+          <span class="hero-name-line hero-name-last" data-setting="heroLastName" data-split="Shabanzadeh">Shabanzadeh</span>
+        </div>
+        <div class="hero-side">
+          <div class="hero-accent-line"></div>
+          <div class="hero-side-content">
+            <p class="hero-subtitle" data-setting="heroSubtitle">Crafting motion that communicates, engages, and inspires.</p>
+            <div class="hero-actions">
+              <a data-setting="heroCtaLink" href="#work" class="btn btn-primary" data-cursor="link">
+                <span data-setting="heroCtaText">View Projects</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </a>
+              <a data-setting="aboutResumeUrl" href="assets/resume.pdf" class="btn btn-ghost" download data-cursor="link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Download Resume</span>
+              </a>
+            </div>
+            <div class="hero-stats">
+              <div class="hero-stat">
+                <span class="hero-stat-value" data-setting="heroStat1Value">5+</span>
+                <span class="hero-stat-label" data-setting="heroStat1Label">Years Exp.</span>
+              </div>
+              <div class="hero-stat">
+                <span class="hero-stat-value" data-setting="heroStat2Value">50+</span>
+                <span class="hero-stat-label" data-setting="heroStat2Label">Projects</span>
+              </div>
+              <div class="hero-stat">
+                <span class="hero-stat-value" data-setting="heroStat3Value">Rasht</span>
+                <span class="hero-stat-label" data-setting="heroStat3Label">Based in</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <span>Scroll</span>
+      <div class="hero-scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section class="section about" id="about">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-number">01</span>
+        <h2 class="section-title">About</h2>
+      </div>
+      <div class="about-grid">
+        <div class="about-image">
+          <div class="about-image-frame">
+            <img class="about-image-img" id="aboutImage" data-setting="aboutImage" src="" alt="" />
+            <div class="about-image-placeholder" id="aboutImagePlaceholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="about-content">
+          <div class="about-text" data-setting="aboutText">
+            I'm a motion graphics designer with a passion for transforming complex ideas into
+            clear, compelling visual stories. With expertise in After Effects and a keen eye for
+            timing and composition, I create animations that don't just look good — they communicate.
+          </div>
+          <div class="skills-constellation">
+            <svg class="constellation-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <line class="constellation-line" x1="15" y1="20" x2="58" y2="10" />
+              <line class="constellation-line" x1="58" y1="10" x2="82" y2="38" />
+              <line class="constellation-line" x1="82" y1="38" x2="68" y2="73" />
+              <line class="constellation-line" x1="68" y1="73" x2="18" y2="68" />
+              <line class="constellation-line" x1="18" y1="68" x2="15" y2="20" />
+              <line class="constellation-line" x1="15" y1="20" x2="82" y2="38" />
+              <line class="constellation-line" x1="58" y1="10" x2="68" y2="73" />
+            </svg>
+            <div class="constellation-nodes" data-setting="aboutSkills"></div>
+          </div>
+
+          <div class="about-apps">
+            <span class="about-apps-label">Tools I Use</span>
+            <div class="about-apps-grid">
+              <div class="app-card" data-cursor="link">
+                <svg class="app-card-icon" viewBox="0 0 48 48" fill="none">
+                  <circle cx="24" cy="24" r="24" fill="#00005B"/>
+                  <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="#9999FF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="16" font-weight="700">Ae</text>
+                </svg>
+                <span class="app-card-name">After Effects</span>
+              </div>
+              <div class="app-card" data-cursor="link">
+                <svg class="app-card-icon" viewBox="0 0 48 48" fill="none">
+                  <circle cx="24" cy="24" r="24" fill="#001E36"/>
+                  <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="#31A8FF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="16" font-weight="700">Ps</text>
+                </svg>
+                <span class="app-card-name">Photoshop</span>
+              </div>
+              <div class="app-card" data-cursor="link">
+                <svg class="app-card-icon" viewBox="0 0 48 48" fill="none">
+                  <circle cx="24" cy="24" r="24" fill="#00005B"/>
+                  <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="#9999FF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="16" font-weight="700">Pr</text>
+                </svg>
+                <span class="app-card-name">Premiere Pro</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Experience & Education -->
+  <section class="section timeline-section" id="timeline">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-number">02</span>
+        <h2 class="section-title">Experience & Education</h2>
+      </div>
+      <div class="timeline-controls">
+        <div class="timeline-tabs">
+          <button class="timeline-tab active" data-tab="experience" data-cursor="link">
+            <span class="timeline-tab-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+            </span>
+            Experience
+          </button>
+          <button class="timeline-tab" data-tab="education" data-cursor="link">
+            <span class="timeline-tab-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c0 2 4 3 6 3s6-1 6-3v-5"></path></svg>
+            </span>
+            Education
+          </button>
+          <div class="timeline-tab-indicator"></div>
+        </div>
+        <div class="timeline-count" id="timelineCount"></div>
+      </div>
+      <div class="timeline-panels">
+        <div class="timeline-track"></div>
+        <div class="timeline-panel active" data-panel="experience" data-setting="experience"></div>
+        <div class="timeline-panel" data-panel="education" data-setting="education"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Work Section -->
+  <section class="section work" id="work">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-number">03</span>
+        <h2 class="section-title">Selected Work</h2>
+      </div>
+      <div class="work-filters" id="workFilters">
+        <button class="filter-btn active" data-filter="all" data-cursor="link">All</button>
+        <button class="filter-btn" data-filter="explainer" data-cursor="link">Explainer</button>
+        <button class="filter-btn" data-filter="social" data-cursor="link">Social</button>
+        <button class="filter-btn" data-filter="ui" data-cursor="link">UI Motion</button>
+      </div>
+      <div class="work-grid" id="workGrid">
+        <!-- Projects loaded dynamically from data.json -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Horizontal Scroll Gallery -->
+  <section class="section horizontal-gallery" id="gallery">
+    <div class="hscroll-header">
+      <span class="section-number">04</span>
+      <h2 class="section-title">Featured Work</h2>
+      <p class="hscroll-hint">Scroll to explore</p>
+    </div>
+    <div class="hscroll-wrapper">
+      <div class="hscroll-track" id="hscrollTrack">
+        <!-- Populated dynamically from projects -->
+      </div>
+    </div>
+    <div class="hscroll-progress" id="hscrollProgress">
+      <div class="hscroll-progress-bar"></div>
+    </div>
+  </section>
+
+  <!-- Project Modal -->
+  <div class="project-modal" id="projectModal">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-content">
+      <button class="modal-close" id="modalClose" data-cursor="link" aria-label="Close project">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="modal-video" id="modalVideo"></div>
+      <div class="modal-info">
+        <div class="modal-meta">
+          <span class="modal-category" id="modalCategory"></span>
+          <span class="modal-year" id="modalYear"></span>
+        </div>
+        <h3 class="modal-title" id="modalTitle"></h3>
+        <p class="modal-description" id="modalDescription"></p>
+        <div class="modal-tools" id="modalTools"></div>
+        <div class="modal-role">
+          <span class="modal-role-label">Role</span>
+          <span class="modal-role-value" id="modalRole"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Section -->
+  <section class="section contact" id="contact">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-number">05</span>
+        <h2 class="section-title">Get in Touch</h2>
+      </div>
+      <div class="contact-grid">
+        <form class="contact-form" id="contactForm">
+          <div class="form-group">
+            <label for="contactName">Name</label>
+            <input type="text" id="contactName" name="name" required placeholder="Your name" data-cursor="text">
+          </div>
+          <div class="form-group">
+            <label for="contactEmail">Email</label>
+            <input type="email" id="contactEmail" name="email" required placeholder="your@email.com" data-cursor="text">
+          </div>
+          <div class="form-group">
+            <label for="contactMessage">Message</label>
+            <textarea id="contactMessage" name="message" rows="5" required placeholder="Tell me about your project..." data-cursor="text"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" data-cursor="link">
+            <span>Send Message</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </form>
+        <div class="contact-info">
+          <div class="contact-info-item">
+            <span class="contact-info-label">Location</span>
+            <span class="contact-info-value" data-setting="location">Rasht, Guilan, Iran</span>
+          </div>
+          <div class="contact-info-item">
+            <span class="contact-info-label">Phone</span>
+            <a href="tel:+989116947375" class="contact-info-value" data-setting="phone" data-cursor="link">+98 911 694 7375</a>
+          </div>
+          <div class="contact-info-item">
+            <span class="contact-info-label">Email</span>
+            <a href="mailto:alirezashabanzadeh01@gmail.com" class="contact-info-value" data-setting="email" data-cursor="link">alirezashabanzadeh01@gmail.com</a>
+          </div>
+          <div class="contact-social">
+            <a href="#" class="social-link" data-setting="linkedin" data-cursor="link" aria-label="LinkedIn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                <rect x="2" y="9" width="4" height="12"></rect>
+                <circle cx="4" cy="4" r="2"></circle>
+              </svg>
+            </a>
+            <a href="#" class="social-link" data-setting="behance" data-cursor="link" aria-label="Behance">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M1 12.5h6.592c1.158 0 2.18-.547 2.745-1.447.566-.9.566-1.988 0-2.888C9.74 7.22 8.718 6.673 7.56 6.673H1v5.827zm0 7h7.17c1.2 0 2.272-.563 2.88-1.474.608-.912.608-2.043 0-2.955C10.442 16.991 9.37 16.428 8.17 16.428H1v3.072zM15.5 18.5c0-2.485 2.015-4.5 4.5-4.5s4.5 2.015 4.5 4.5-2.015 4.5-4.5 4.5-4.5-2.015-4.5-4.5zm7 0c0-1.381-1.119-2.5-2.5-2.5s-2.5 1.119-2.5 2.5 1.119 2.5 2.5 2.5 2.5-1.119 2.5-2.5zM15.5 6.5h7v-1.5h-7v1.5z"></path>
+              </svg>
+            </a>
+            <a href="#" class="social-link" data-setting="instagram" data-cursor="link" aria-label="Instagram">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="backToTop" data-cursor="link" aria-label="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+  </button>
+
+  <!-- Scroll Progress -->
+  <div class="scroll-progress" id="scrollProgress">
+    <div class="scroll-progress-fill"></div>
+    <div class="scroll-progress-dots">
+      <a href="#hero" class="scroll-dot active" data-section="hero" data-cursor="link"></a>
+      <a href="#about" class="scroll-dot" data-section="about" data-cursor="link"></a>
+      <a href="#timeline" class="scroll-dot" data-section="timeline" data-cursor="link"></a>
+      <a href="#work" class="scroll-dot" data-section="work" data-cursor="link"></a>
+      <a href="#gallery" class="scroll-dot" data-section="gallery" data-cursor="link"></a>
+      <a href="#contact" class="scroll-dot" data-section="contact" data-cursor="link"></a>
+    </div>
+  </div>
+
+  <!-- Noise Toggle -->
+  <button class="noise-toggle" id="noiseToggle" data-cursor="link" aria-label="Toggle grain effect">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M12 2a10 10 0 0 1 0 20"></path>
+    </svg>
+  </button>
+
+  <!-- Noise Filter SVG -->
+  <svg class="noise-svg" id="noiseSvg">
+    <filter id="noiseFilter">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#noiseFilter)" opacity="0.04"/>
+  </svg>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy" data-setting="footerCopy">&copy; 2026 Alireza Shabanzadeh</span>
+      <span class="footer-note" data-setting="footerNote">Crafted with motion & care</span>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script type="module" src="js/data.js"></script>
+  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/animations.js"></script>
+  <script src="js/tracking.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{
+  "siteName": "Alireza Shabanzadeh",
+  "siteTitle": "Motion Graphics Designer",
+  "tagline": "",
+  "email": "alirezashabanzadeh01@gmail.com",
+  "phone": "+98 911 694 7375",
+  "location": "Rasht, Guilan, Iran",
+  "linkedin": "",
+  "behance": "",
+  "instagram": "",
+  "heroEyebrow": "",
+  "heroFirstName": "",
+  "heroLastName": "",
+  "heroSubtitle": "I bring creativity to life online!",
+  "heroAvailability": "",
+  "heroStat1Value": "",
+  "heroStat1Label": "",
+  "heroStat2Value": "",
+  "heroStat2Label": "",
+  "heroStat3Value": "",
+  "heroStat3Label": "",
+  "heroCtaText": "",
+  "heroCtaLink": "",
+  "heroShowreelUrl": "",
+  "heroPortraitDark": "/uploads/d2aff920-68bf-49ab-a2a3-998c104dcf63.png",
+  "heroPortraitDarkOpacity": 0.89,
+  "heroPortraitDarkScale": 0.91,
+  "heroPortraitLight": "/uploads/508f5db4-590c-4208-90b5-9f116edf96f5.png",
+  "heroPortraitLightOpacity": 0.87,
+  "heroPortraitLightScale": 0.91,
+  "aboutImage": "/uploads/90c91f5d-491f-45db-905a-cf5f65bc120a.jpeg",
+  "aboutText": "Hey there! I'm **Alireza Shabanzadeh**, a motion graphics specialist hailing from the beautiful **Guilan province in Iran**. At the young **age of 25**, I already have **seven years of experience** under my belt and love creating effective advertising strategies using **Adobe Photoshop, After Effects, and Illustrator.**",
+  "aboutSkills": "Motion Design, Explainer Videos, Social Content, UI Animation, After Effects",
+  "aboutResumeUrl": "/uploads/2a1a31a3-c828-4b9e-9fa7-623887db5924.pdf",
+  "categories": [],
+  "projectLayout": "2col",
+  "footerCopy": "© 2026 Alireza Shabanzadeh",
+  "footerNote": "I created this website completely with AI (GitHub)",
+  "experience": [
+    {
+      "date": "2019 — 2022",
+      "title": "Junior Motion Designer",
+      "subtitle": "Studio X",
+      "desc": "Produced animated advertisements and brand content. Collaborated with art directors on campaign visual identity."
+    },
+    {
+      "date": "2022 — Present",
+      "title": "Motion Graphics Designer",
+      "subtitle": "Freelance",
+      "desc": "Creating explainer videos, social media content, and UI animations for clients across tech, education, and e-commerce industries."
+    }
+  ],
+  "education": [
+    {
+      "date": "2015 — 2019",
+      "title": "BA Visual Communication",
+      "subtitle": "University of Guilan",
+      "desc": "Focused on graphic design, typography, and visual storytelling. Graduated with honors."
+    },
+    {
+      "date": "2018",
+      "title": "Motion Design Certificate",
+      "subtitle": "Online Program",
+      "desc": "Intensive course covering After Effects, character animation, and motion principles."
+    }
+  ]
+}

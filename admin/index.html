@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Portfolio CMS</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
+        <h1>Portfolio CMS</h1>
+        <p>Sign in to manage your portfolio</p>
+      </div>
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="loginUsername">Username</label>
+          <input type="text" id="loginUsername" autocomplete="username" required placeholder="admin">
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" autocomplete="current-password" required placeholder="Password">
+        </div>
+        <div id="loginError" class="form-error"></div>
+        <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div id="dashboard" class="dashboard hidden">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+          <path d="M2 17l10 5 10-5"></path>
+          <path d="M2 12l10 5 10-5"></path>
+        </svg>
+        <span>CMS</span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Portfolio</div>
+        <button class="nav-item active" data-view="projects">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+          </svg>
+          Projects
+        </button>
+        <button class="nav-item" data-view="hero">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          Hero
+        </button>
+        <button class="nav-item" data-view="about">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          About
+        </button>
+        <button class="nav-item" data-view="timeline">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          Timeline
+        </button>
+        <div class="nav-section-label">Analytics</div>
+        <button class="nav-item" data-view="statistics">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          Statistics
+        </button>
+        <button class="nav-item" data-view="messages">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Messages
+          <span class="nav-badge hidden" id="messagesBadge">0</span>
+        </button>
+        <div class="nav-section-label">System</div>
+        <button class="nav-item" data-view="assets">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Assets
+        </button>
+        <button class="nav-item" data-view="settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          General
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/" target="_blank" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+          View Site
+        </a>
+        <button id="logoutBtn" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <div class="main-topbar">
+        <div class="topbar-breadcrumb" id="topbarBreadcrumb">Projects</div>
+        <div class="topbar-actions">
+          <button id="previewBtn" class="btn btn-ghost btn-sm" title="Preview site (Ctrl+P)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            Preview
+          </button>
+        </div>
+      </div>
+
+      <!-- Projects View -->
+      <div id="projectsView" class="view active">
+        <div class="view-header">
+          <div>
+            <h2>Projects</h2>
+            <p class="view-subtitle">Manage your portfolio projects</p>
+          </div>
+          <button id="addProjectBtn" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Project
+          </button>
+        </div>
+        <div id="projectWarnings" class="hidden"></div>
+        <div class="projects-toolbar">
+          <div class="projects-filters">
+            <div class="search-bar projects-search">
+              <svg class="search-bar-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="projectSearch" placeholder="Search projects… (Ctrl+K)" autocomplete="off">
+            </div>
+            <select id="projectStatusFilter" class="filter-select" title="Filter by status">
+              <option value="all">All status</option>
+              <option value="published">Published</option>
+              <option value="draft">Drafts</option>
+              <option value="featured">Featured</option>
+              <option value="uncategorized">No category</option>
+            </select>
+          </div>
+          <div class="layout-switcher" id="layoutSwitcher">
+            <button class="layout-btn active" data-layout="2col" title="2 Columns" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18"></rect><rect x="14" y="3" width="7" height="18"></rect></svg>
+            </button>
+            <button class="layout-btn" data-layout="3col" title="3 Columns" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="4" height="18"></rect><rect x="10" y="3" width="4" height="18"></rect><rect x="17" y="3" width="4" height="18"></rect></svg>
+            </button>
+            <button class="layout-btn" data-layout="list" title="List View" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+        <p class="projects-hint">Drag cards to reorder · Featured projects appear first on the site · Drafts stay hidden</p>
+        <div class="categories-section">
+          <div class="categories-header">
+            <span class="categories-label">Categories</span>
+            <button type="button" class="btn btn-ghost btn-sm" id="toggleCategoriesBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+          </div>
+          <div class="categories-body" id="categoriesBody">
+            <div class="categories-list" id="categoriesList"></div>
+            <div class="categories-add">
+              <input type="text" id="newCategoryInput" placeholder="Add new category...">
+              <button type="button" id="addCategoryBtn" class="btn btn-primary btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="projectsList" class="projects-grid"></div>
+        <div id="emptyState" class="empty-state hidden">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="12" y1="8" x2="12" y2="16"></line>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+          <h3>No projects yet</h3>
+          <p>Add your first project to get started</p>
+        </div>
+      </div>
+
+      <!-- Hero View -->
+      <div id="heroView" class="view">
+        <div class="view-header">
+          <div>
+            <h2>Hero</h2>
+            <p class="view-subtitle">Hero section text, images, and content</p>
+          </div>
+        </div>
+        <form id="heroForm" class="settings-form">
+          <!-- Text Content -->
+          <div class="settings-section">
+            <h3>Text Content</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="heroEyebrow">Eyebrow</label>
+                <input type="text" id="heroEyebrow" name="heroEyebrow" placeholder="Motion Graphics Designer">
+              </div>
+              <div class="form-group">
+                <label for="heroAvailability">Availability Badge</label>
+                <input type="text" id="heroAvailability" name="heroAvailability" placeholder="Available for work">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="heroFirstName">First Name</label>
+                <input type="text" id="heroFirstName" name="heroFirstName" placeholder="Alireza">
+              </div>
+              <div class="form-group">
+                <label for="heroLastName">Last Name</label>
+                <input type="text" id="heroLastName" name="heroLastName" placeholder="Shabanzadeh">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="heroSubtitle">Subtitle / Tagline</label>
+              <input type="text" id="heroSubtitle" name="heroSubtitle" placeholder="Crafting motion that communicates...">
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="settings-section">
+            <h3>Stats</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="heroStat1Value">Stat 1 Value</label>
+                <input type="text" id="heroStat1Value" name="heroStat1Value" placeholder="5+">
+              </div>
+              <div class="form-group">
+                <label for="heroStat1Label">Stat 1 Label</label>
+                <input type="text" id="heroStat1Label" name="heroStat1Label" placeholder="Years Exp.">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="heroStat2Value">Stat 2 Value</label>
+                <input type="text" id="heroStat2Value" name="heroStat2Value" placeholder="50+">
+              </div>
+              <div class="form-group">
+                <label for="heroStat2Label">Stat 2 Label</label>
+                <input type="text" id="heroStat2Label" name="heroStat2Label" placeholder="Projects">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="heroStat3Value">Stat 3 Value</label>
+                <input type="text" id="heroStat3Value" name="heroStat3Value" placeholder="Rasht">
+              </div>
+              <div class="form-group">
+                <label for="heroStat3Label">Stat 3 Label</label>
+                <input type="text" id="heroStat3Label" name="heroStat3Label" placeholder="Based in">
+              </div>
+            </div>
+          </div>
+
+          <!-- Buttons & Links -->
+          <div class="settings-section">
+            <h3>Buttons & Links</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="heroCtaText">CTA Button Text</label>
+                <input type="text" id="heroCtaText" name="heroCtaText" placeholder="View Projects">
+              </div>
+              <div class="form-group">
+                <label for="heroCtaLink">CTA Button Link</label>
+                <input type="text" id="heroCtaLink" name="heroCtaLink" placeholder="#work">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="heroShowreelUrl">Showreel Embed URL</label>
+              <input type="url" id="heroShowreelUrl" name="heroShowreelUrl" placeholder="https://www.youtube.com/embed/...">
+            </div>
+          </div>
+
+          <!-- Dark Theme Portrait -->
+          <div class="settings-section">
+            <h3>Portrait — Dark Theme</h3>
+            <div class="form-group">
+              <label>Image</label>
+              <div class="image-upload" id="portraitDarkUpload">
+                <div class="image-upload-dropzone" id="portraitDarkDropzone">
+                  <div class="image-upload-dropzone-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                      <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                  </div>
+                  <div class="image-upload-dropzone-text">Click to upload or drag & drop</div>
+                  <div class="image-upload-dropzone-hint">Images, Videos, PDFs, Documents — max 50MB</div>
+                  <button type="button" class="btn btn-ghost btn-sm image-upload-browse-btn" data-picker="portraitDark" style="margin-top:12px">Browse Existing</button>
+                </div>
+                <div class="image-upload-preview hidden" id="portraitDarkPreview">
+                  <img id="portraitDarkPreviewImg" src="" alt="Preview">
+                  <button type="button" class="image-upload-remove" id="portraitDarkRemoveBtn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Remove
+                  </button>
+                </div>
+                <input type="file" class="image-upload-input" id="portraitDarkFileInput" accept="image/*,video/*,.pdf,.doc,.docx,.txt">
+                <input type="hidden" id="heroPortraitDark" name="heroPortraitDark">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="heroPortraitDarkUrl">Or enter image URL</label>
+              <input type="url" id="heroPortraitDarkUrl" placeholder="https://...">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="heroPortraitDarkOpacity">Opacity</label>
+                <div class="range-group">
+                  <input type="range" id="heroPortraitDarkOpacity" name="heroPortraitDarkOpacity" min="0" max="1" step="0.01" value="0.18">
+                  <span class="range-value" id="heroPortraitDarkOpacityVal">0.18</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="heroPortraitDarkScale">Scale</label>
+                <div class="range-group">
+                  <input type="range" id="heroPortraitDarkScale" name="heroPortraitDarkScale" min="0.5" max="2" step="0.01" value="1">
+                  <span class="range-value" id="heroPortraitDarkScaleVal">1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Light Theme Portrait -->
+          <div class="settings-section">
+            <h3>Portrait — Light Theme</h3>
+            <div class="form-group">
+              <label>Image</label>
+              <div class="image-upload" id="portraitLightUpload">
+                <div class="image-upload-dropzone" id="portraitLightDropzone">
+                  <div class="image-upload-dropzone-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                      <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                  </div>
+                  <div class="image-upload-dropzone-text">Click to upload or drag & drop</div>
+                  <div class="image-upload-dropzone-hint">Images, Videos, PDFs, Documents — max 50MB</div>
+                  <button type="button" class="btn btn-ghost btn-sm image-upload-browse-btn" data-picker="portraitLight" style="margin-top:12px">Browse Existing</button>
+                </div>
+                <div class="image-upload-preview hidden" id="portraitLightPreview">
+                  <img id="portraitLightPreviewImg" src="" alt="Preview">
+                  <button type="button" class="image-upload-remove" id="portraitLightRemoveBtn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Remove
+                  </button>
+                </div>
+                <input type="file" class="image-upload-input" id="portraitLightFileInput" accept="image/*,video/*,.pdf,.doc,.docx,.txt">
+                <input type="hidden" id="heroPortraitLight" name="heroPortraitLight">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="heroPortraitLightUrl">Or enter image URL</label>
+              <input type="url" id="heroPortraitLightUrl" placeholder="https://...">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="heroPortraitLightOpacity">Opacity</label>
+                <div class="range-group">
+                  <input type="range" id="heroPortraitLightOpacity" name="heroPortraitLightOpacity" min="0" max="1" step="0.01" value="0.12">
+                  <span class="range-value" id="heroPortraitLightOpacityVal">0.12</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="heroPortraitLightScale">Scale</label>
+                <div class="range-group">
+                  <input type="range" id="heroPortraitLightScale" name="heroPortraitLightScale" min="0.5" max="2" step="0.01" value="1">
+                  <span class="range-value" id="heroPortraitLightScaleVal">1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Save Hero</button>
+          <div id="heroSuccess" class="form-success hidden">Hero settings saved!</div>
+        </form>
+      </div>
+
+      <!-- About View -->
+      <div id="aboutView" class="view">
+        <div class="view-header">
+          <div>
+            <h2>About</h2>
+            <p class="view-subtitle">About section image, text, and skills</p>
+          </div>
+        </div>
+        <form id="aboutForm" class="settings-form">
+          <div class="settings-section">
+            <h3>About Image</h3>
+            <div class="form-group">
+              <label>Image</label>
+              <div class="image-upload" id="aboutUpload">
+                <div class="image-upload-dropzone" id="aboutDropzone">
+                  <div class="image-upload-dropzone-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                      <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                  </div>
+                  <div class="image-upload-dropzone-text">Click to upload or drag & drop</div>
+                  <div class="image-upload-dropzone-hint">Images, Videos, PDFs, Documents — max 50MB</div>
+                  <button type="button" class="btn btn-ghost btn-sm image-upload-browse-btn" data-picker="about" style="margin-top:12px">Browse Existing</button>
+                </div>
+                <div class="image-upload-preview hidden" id="aboutPreview">
+                  <img id="aboutPreviewImg" src="" alt="Preview">
+                  <button type="button" class="image-upload-remove" id="aboutRemoveBtn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Remove
+                  </button>
+                </div>
+                <input type="file" class="image-upload-input" id="aboutFileInput" accept="image/*,video/*,.pdf,.doc,.docx,.txt">
+                <input type="hidden" id="aboutImage" name="aboutImage">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="aboutImageUrl">Or enter image URL</label>
+              <input type="url" id="aboutImageUrl" placeholder="https://...">
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>About Text</h3>
+            <div class="form-group">
+              <label for="aboutText">Content</label>
+              <div class="md-editor">
+                <div class="md-toolbar">
+                  <button type="button" class="md-btn" data-action="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+                  <button type="button" class="md-btn" data-action="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+                  <button type="button" class="md-btn" data-action="heading" title="Heading">H</button>
+                  <span class="md-sep"></span>
+                  <button type="button" class="md-btn" data-action="link" title="Link">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                  </button>
+                  <button type="button" class="md-btn" data-action="list" title="Bullet List">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                  </button>
+                  <button type="button" class="md-btn" data-action="code" title="Inline Code">&lt;&gt;</button>
+                  <span class="md-sep"></span>
+                  <button type="button" class="md-btn md-preview-toggle" id="mdPreviewToggle" data-active="false" title="Toggle Preview">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
+                <textarea id="aboutText" name="aboutText" rows="8" placeholder="Write about yourself using markdown..."></textarea>
+                <div class="md-preview" id="mdPreview"></div>
+              </div>
+              <div class="form-hint">Supports **bold**, *italic*, `code`, [links](url), # headings, - lists</div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Skills & Resume</h3>
+            <div class="form-group">
+              <label for="aboutSkills">Skills (comma separated)</label>
+              <input type="text" id="aboutSkills" name="aboutSkills" placeholder="Motion Design, Explainer Videos, ...">
+            </div>
+            <div class="form-group">
+              <label>Resume PDF</label>
+              <div class="image-upload" id="resumeUpload">
+                <div class="image-upload-dropzone" id="resumeDropzone">
+                  <div class="image-upload-dropzone-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="16" y1="13" x2="8" y2="13"></line>
+                      <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                  </div>
+                  <div class="image-upload-dropzone-text">Click to upload or drag & drop</div>
+                  <div class="image-upload-dropzone-hint">PDF, DOC, DOCX — max 50MB</div>
+                  <button type="button" class="btn btn-ghost btn-sm image-upload-browse-btn" data-picker="resume" style="margin-top:12px">Browse Existing</button>
+                </div>
+                <div class="image-upload-preview hidden" id="resumePreview">
+                  <div class="resume-preview-file" id="resumePreviewContent">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    <span id="resumeFileName">resume.pdf</span>
+                  </div>
+                  <button type="button" class="image-upload-remove" id="resumeRemoveBtn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Remove
+                  </button>
+                </div>
+                <input type="file" class="image-upload-input" id="resumeFileInput" accept=".pdf,.doc,.docx">
+                <input type="hidden" id="aboutResumeUrl" name="aboutResumeUrl">
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Save About</button>
+          <div id="aboutSuccess" class="form-success hidden">About section saved!</div>
+        </form>
+      </div>
+
+      <!-- Timeline View -->
+      <div id="timelineView" class="view">
+        <div class="view-header">
+          <div>
+            <h2>Timeline</h2>
+            <p class="view-subtitle">Manage experience and education entries</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="saveTimelineBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            Save Changes
+          </button>
+        </div>
+        <div id="timelineSuccess" class="form-success hidden">Timeline saved successfully!</div>
+
+        <!-- Experience Section -->
+        <div class="timeline-admin-section">
+          <div class="section-bar">
+            <div class="section-bar-left">
+              <h3>Experience</h3>
+              <span class="entry-count" id="expCount">0 entries</span>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="addExperienceBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Add Entry
+            </button>
+          </div>
+          <div id="experienceList" class="timeline-admin-list"></div>
+          <div id="expEmpty" class="empty-state-sm hidden">
+            <p>No experience entries yet. Click "Add Entry" to get started.</p>
+          </div>
+        </div>
+
+        <!-- Education Section -->
+        <div class="timeline-admin-section">
+          <div class="section-bar">
+            <div class="section-bar-left">
+              <h3>Education</h3>
+              <span class="entry-count" id="eduCount">0 entries</span>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="addEducationBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Add Entry
+            </button>
+          </div>
+          <div id="educationList" class="timeline-admin-list"></div>
+          <div id="eduEmpty" class="empty-state-sm hidden">
+            <p>No education entries yet. Click "Add Entry" to get started.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assets View -->
+      <div id="assetsView" class="view">
+        <div class="view-header">
+          <div>
+            <h2>Assets</h2>
+            <p class="view-subtitle">Browse and manage uploaded files</p>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button id="refreshAssetsBtn" class="btn btn-ghost">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+              Refresh
+            </button>
+            <button id="uploadAssetBtn" class="btn btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              Upload File
+            </button>
+          </div>
+          <input type="file" id="assetFileInput" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt,.zip,.rar" class="hidden">
+        </div>
+        <div id="assetsList" class="assets-grid"></div>
+        <div id="assetsEmptyState" class="empty-state hidden">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <h3>No assets yet</h3>
+          <p>Upload your first file to get started</p>
+        </div>
+      </div>
+
+      <!-- Statistics View -->
+      <div id="statisticsView" class="view">
+        <div class="view-header">
+          <div>
+            <h2>Statistics</h2>
+            <p class="view-subtitle">Overview of your portfolio</p>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button id="exportStatsBtn" class="btn btn-ghost">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Export
+            </button>
+            <button id="resetStatsBtn" class="btn btn-ghost" style="color:var(--danger)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+              Reset
+            </button>
+            <button id="refreshStatsBtn" class="btn btn-ghost">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:var(--accent-subtle);color:var(--accent)">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value" id="statProjects">0</span>
+              <span class="stat-label">Projects</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(34,197,94,0.1);color:#22c55e">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value" id="statViews">0</span>
+              <span class="stat-label">Total Views</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(168,85,247,0.1);color:#a855f7">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value" id="statVisitors">0</span>
+              <span class="stat-label">Unique Visitors</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(59,130,246,0.1);color:#3b82f6">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value" id="statAvgTime">0s</span>
+              <span class="stat-label">Avg. Time</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value" id="statDownloads">0</span>
+              <span class="stat-label">Resume Downloads</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(239,68,68,0.1);color:#ef4444">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"></path><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value" id="statLikes">0</span>
+              <span class="stat-label">Total Likes</span>
+            </div>
+          </div>
+        </div>
+        <div class="stats-row-2col">
+          <div class="stats-section">
+            <h3>Page Views</h3>
+            <div id="pageViewsList" class="stats-bars"></div>
+          </div>
+          <div class="stats-section">
+            <h3>Top Locations</h3>
+            <div id="topLocationsList" class="stats-bars"></div>
+          </div>
+        </div>
+        <div class="stats-row-2col">
+          <div class="stats-section">
+            <h3>Project Clicks</h3>
+            <div id="projectClicksList" class="stats-bars"></div>
+          </div>
+          <div class="stats-section">
+            <h3>Project Likes</h3>
+            <div id="projectLikesList" class="stats-bars"></div>
+          </div>
+        </div>
+        <div class="stats-section">
+          <h3>Recent Projects</h3>
+          <div id="recentProjectsList" class="stats-list"></div>
+        </div>
+        <div class="stats-section">
+          <h3>Categories Breakdown</h3>
+          <div id="categoryBreakdown" class="stats-bars"></div>
+        </div>
+      </div>
+
+      <!-- Messages View -->
+      <div id="messagesView" class="view">
+        <div class="view-header">
+          <div>
+            <h2>Messages</h2>
+            <p class="view-subtitle">Contact form submissions</p>
+          </div>
+          <button id="clearAllMessagesBtn" class="btn btn-ghost">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            Clear All
+          </button>
+        </div>
+        <div id="messagesList" class="messages-list"></div>
+        <div id="messagesEmptyState" class="empty-state hidden">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <h3>No messages yet</h3>
+          <p>Messages from the contact form will appear here</p>
+        </div>
+      </div>
+
+      <!-- Settings (General) View -->
+      <div id="settingsView" class="view">
+        <div class="view-header">
+          <div>
+            <h2>General</h2>
+            <p class="view-subtitle">Site information and contact details</p>
+          </div>
+        </div>
+        <form id="settingsForm" class="settings-form">
+          <div class="settings-section">
+            <h3>Site Info</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingSiteName">Your Name</label>
+                <input type="text" id="settingSiteName" name="siteName">
+              </div>
+              <div class="form-group">
+                <label for="settingSiteTitle">Title / Role</label>
+                <input type="text" id="settingSiteTitle" name="siteTitle">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="settingTagline">Tagline</label>
+              <input type="text" id="settingTagline" name="tagline">
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Contact</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingEmail">Email</label>
+                <input type="email" id="settingEmail" name="email">
+              </div>
+              <div class="form-group">
+                <label for="settingPhone">Phone</label>
+                <input type="tel" id="settingPhone" name="phone">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="settingLocation">Location</label>
+              <input type="text" id="settingLocation" name="location">
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Social Links</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingLinkedin">LinkedIn URL</label>
+                <input type="url" id="settingLinkedin" name="linkedin" placeholder="https://linkedin.com/in/...">
+              </div>
+              <div class="form-group">
+                <label for="settingBehance">Behance URL</label>
+                <input type="url" id="settingBehance" name="behance" placeholder="https://behance.net/...">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="settingInstagram">Instagram URL</label>
+              <input type="url" id="settingInstagram" name="instagram" placeholder="https://instagram.com/...">
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Footer</h3>
+            <div class="form-group">
+              <label for="settingFooterCopy">Copyright Text</label>
+              <input type="text" id="settingFooterCopy" name="footerCopy" placeholder="© 2026 Alireza Shabanzadeh">
+            </div>
+            <div class="form-group">
+              <label for="settingFooterNote">Footer Note</label>
+              <input type="text" id="settingFooterNote" name="footerNote" placeholder="Crafted with motion & care">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Settings</button>
+          <div id="settingsSuccess" class="form-success hidden">Settings saved successfully!</div>
+        </form>
+
+        <div class="settings-form" style="margin-top:32px">
+          <div class="settings-section">
+            <h3>Security</h3>
+            <p class="settings-help">Change your admin password. Minimum 8 characters. You stay signed in after updating.</p>
+            <form id="passwordForm">
+              <div class="form-group">
+                <label for="currentPassword">Current password</label>
+                <input type="password" id="currentPassword" autocomplete="current-password" required>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="newPassword">New password</label>
+                  <input type="password" id="newPassword" autocomplete="new-password" required minlength="8">
+                </div>
+                <div class="form-group">
+                  <label for="confirmPassword">Confirm new password</label>
+                  <input type="password" id="confirmPassword" autocomplete="new-password" required minlength="8">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Update Password</button>
+              <div id="passwordSuccess" class="form-success hidden">Password updated successfully!</div>
+              <div id="passwordError" class="form-error"></div>
+            </form>
+          </div>
+
+          <div class="settings-section">
+            <h3>Backup &amp; Restore</h3>
+            <p class="settings-help">Download a full content backup (projects, settings, messages, analytics). Uploads/media files are not included — keep a copy of the <code>uploads/</code> folder separately.</p>
+            <div class="btn-row">
+              <button type="button" id="downloadBackupBtn" class="btn btn-primary">Download Backup</button>
+              <button type="button" id="restoreBackupBtn" class="btn btn-ghost">Restore from File…</button>
+              <input type="file" id="restoreBackupInput" accept="application/json,.json" class="hidden">
+            </div>
+            <div id="backupStatus" class="form-success hidden"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Project Edit Modal -->
+  <div id="projectModal" class="modal hidden">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Add Project</h3>
+        <button id="modalClose" class="modal-close-btn" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <form id="projectForm" class="modal-form">
+        <input type="hidden" id="projectId">
+        <div class="form-group">
+          <label for="projectTitle">Project Title *</label>
+          <input type="text" id="projectTitle" required placeholder="e.g. Brand Explainer — TechFlow">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="projectCategory">Category *</label>
+            <select id="projectCategory" required>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="projectYear">Year *</label>
+            <input type="text" id="projectYear" required placeholder="2025" pattern="\d{4}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="projectDescription">Description</label>
+          <textarea id="projectDescription" rows="3" placeholder="Brief description of the project"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="projectRole">Your Role</label>
+            <input type="text" id="projectRole" placeholder="Motion Designer">
+          </div>
+          <div class="form-group">
+            <label for="projectTools">Tools (comma separated)</label>
+            <input type="text" id="projectTools" placeholder="After Effects, Figma">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="projectVideo">Video Embed URL</label>
+          <input type="url" id="projectVideo" placeholder="https://www.youtube.com/embed/VIDEO_ID">
+        </div>
+        <div class="form-row project-flags">
+          <label class="toggle-field">
+            <input type="checkbox" id="projectPublished" checked>
+            <span>Published</span>
+            <em>Visible on the public site</em>
+          </label>
+          <label class="toggle-field">
+            <input type="checkbox" id="projectFeatured">
+            <span>Featured</span>
+            <em>Pinned to the top of the grid</em>
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="projectGallery">Gallery URLs <span class="label-hint">(optional, one per line)</span></label>
+          <textarea id="projectGallery" rows="3" placeholder="/uploads/image1.jpg&#10;/uploads/image2.jpg"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Thumbnail Image</label>
+          <div class="image-upload" id="thumbUpload">
+            <div class="image-upload-dropzone" id="thumbDropzone">
+              <div class="image-upload-dropzone-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+              </div>
+              <div class="image-upload-dropzone-text">Click to upload or drag & drop</div>
+              <div class="image-upload-dropzone-hint">Images, Videos, PDFs, Documents — max 50MB</div>
+              <button type="button" class="btn btn-ghost btn-sm image-upload-browse-btn" data-picker="thumb" style="margin-top:12px">Browse Existing</button>
+            </div>
+            <div class="image-upload-preview hidden" id="thumbPreview">
+              <img id="thumbPreviewImg" src="" alt="Preview">
+              <button type="button" class="image-upload-remove" id="thumbRemoveBtn">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                Remove
+              </button>
+            </div>
+            <input type="file" class="image-upload-input" id="thumbFileInput" accept="image/*,video/*,.pdf,.doc,.docx,.txt">
+            <input type="hidden" id="projectThumbnailUrl">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="projectThumbUrl">Or enter image URL</label>
+          <input type="url" id="projectThumbUrl" placeholder="https://images.unsplash.com/...">
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="deleteProjectBtn" class="btn btn-danger hidden">Delete</button>
+          <div class="modal-actions-right">
+            <button type="button" id="cancelBtn" class="btn btn-ghost">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Project</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Command Palette -->
+  <div id="commandPalette" class="command-palette hidden">
+    <div class="command-backdrop" id="commandBackdrop"></div>
+    <div class="command-dialog">
+      <div class="command-input-wrap">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="commandInput" placeholder="Type a command or search…" autocomplete="off">
+        <kbd class="command-kbd">Esc</kbd>
+      </div>
+      <div class="command-results" id="commandResults"></div>
+    </div>
+  </div>
+
+  <!-- Confirm Dialog -->
+  <div id="confirmDialog" class="modal hidden">
+    <div class="modal-backdrop" id="confirmBackdrop"></div>
+    <div class="modal-content confirm-dialog">
+      <div class="modal-body">
+        <div class="confirm-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <h4 class="confirm-title" id="confirmTitle">Are you sure?</h4>
+        <p class="confirm-message" id="confirmMessage">This action cannot be undone.</p>
+      </div>
+      <div class="confirm-actions">
+        <button id="confirmCancel" class="btn btn-ghost">Cancel</button>
+        <button id="confirmOk" class="btn btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Asset Picker Modal -->
+  <div id="assetPickerModal" class="modal hidden">
+    <div class="modal-backdrop" id="assetPickerBackdrop"></div>
+    <div class="modal-content" style="max-width:720px">
+      <div class="modal-header">
+        <h3>Browse Assets</h3>
+        <button id="assetPickerClose" class="modal-close-btn" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div style="padding:16px">
+        <input type="text" id="assetPickerSearch" placeholder="Search assets..." style="width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);margin-bottom:16px;font-size:0.875rem">
+        <div id="assetPickerGrid" class="assets-grid" style="max-height:400px;overflow-y:auto"></div>
+        <div id="assetPickerEmpty" class="empty-state hidden" style="padding:40px 20px">
+          <p>No assets found. Upload files in the Assets tab first.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Preview -->
+  <div id="previewOverlay" class="preview-overlay hidden">
+    <div class="preview-toolbar">
+      <div class="preview-toolbar-left">
+        <span class="preview-label">Live Preview</span>
+        <div class="preview-device-toggle">
+          <button class="preview-device active" data-device="desktop" title="Desktop">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          </button>
+          <button class="preview-device" data-device="mobile" title="Mobile (375px)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+      <div class="preview-toolbar-right">
+        <button id="previewRefreshBtn" class="preview-action" title="Refresh">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        </button>
+        <button id="previewCloseBtn" class="preview-action" title="Close (Esc)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+    <div class="preview-frame-wrap">
+      <iframe id="previewFrame" src="/" class="preview-frame"></iframe>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Nav -->
+  <div id="mobileNav" class="mobile-nav hidden">
+    <button class="mobile-nav-item active" data-view="projects">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
+      Projects
+    </button>
+    <button class="mobile-nav-item" data-view="statistics">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+      Stats
+    </button>
+    <button class="mobile-nav-item" data-view="messages">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+      Messages
+    </button>
+    <button class="mobile-nav-item" data-view="timeline">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      Timeline
+    </button>
+    <button class="mobile-nav-item" data-view="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      Settings
+    </button>
+  </div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
