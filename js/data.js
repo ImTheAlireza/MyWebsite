@@ -23,17 +23,33 @@ function safeUrl(value, allowedProtocols = ['http:', 'https:', '/', '#']) {
   }
 }
 
+function safeDirectVideoUrl(value) {
+  const safe = safeUrl(value);
+  if (!safe) return '';
+  try {
+    const url = new URL(safe, window.location.origin);
+    return /\.(mp4|webm|mov|m4v|ogv|ogg|avi|mkv)$/i.test(url.pathname) ? safe : '';
+  } catch {
+    return '';
+  }
+}
+
 function safeEmbedUrl(value) {
   const raw = String(value || '').trim();
   if (!raw) return '';
   try {
     const url = new URL(raw, window.location.origin);
     const host = url.hostname.replace(/^www\./, '');
-    const allowedHosts = new Set(['youtube.com', 'youtube-nocookie.com', 'youtu.be', 'player.vimeo.com', window.location.hostname]);
+    const allowedHosts = new Set(['youtube.com', 'youtube-nocookie.com', 'youtu.be', 'vimeo.com', 'player.vimeo.com', window.location.hostname]);
     if (!allowedHosts.has(host)) return '';
     if (host === 'youtu.be') return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(url.pathname.slice(1))}`;
     if (host === 'youtube.com' && url.pathname === '/watch' && url.searchParams.get('v')) {
       return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(url.searchParams.get('v'))}`;
+    }
+    if (host === 'vimeo.com') {
+      const videoId = url.pathname.split('/').filter(Boolean).pop();
+      if (/^\d+$/.test(videoId || '')) return `https://player.vimeo.com/video/${videoId}`;
+      return '';
     }
     return url.href;
   } catch {
@@ -88,11 +104,36 @@ function createProjectCard(project) {
 
   const thumb = document.createElement('div');
   thumb.className = 'project-card-thumbnail';
-  const img = document.createElement('img');
-  img.src = safeUrl(project.thumbnail) || '';
-  img.alt = project.title || '';
-  img.loading = 'lazy';
-  thumb.appendChild(img);
+  const thumbnailUrl = safeUrl(project.thumbnail);
+  const directVideoUrl = safeDirectVideoUrl(project.video);
+
+  if (thumbnailUrl) {
+    const img = document.createElement('img');
+    img.src = thumbnailUrl;
+    img.alt = project.title || '';
+    img.loading = 'lazy';
+    thumb.appendChild(img);
+  } else if (directVideoUrl) {
+    const video = document.createElement('video');
+    video.src = directVideoUrl;
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    video.setAttribute('aria-label', (project.title || 'Project') + ' video preview');
+    thumb.appendChild(video);
+  } else {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'project-card-thumbnail-placeholder';
+    placeholder.innerHTML = '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="m9 9 6 3-6 3V9z"></path></svg>';
+    thumb.appendChild(placeholder);
+  }
+
+  if (project.video) {
+    const videoBadge = document.createElement('span');
+    videoBadge.className = 'project-card-video-badge';
+    videoBadge.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="7 3 21 12 7 21 7 3"></polygon></svg><span>Play</span>';
+    thumb.appendChild(videoBadge);
+  }
 
   if (project.featured) {
     const badge = document.createElement('span');
@@ -155,8 +196,20 @@ function openProjectModal(project) {
   const modalRole = document.getElementById('modalRole');
 
   modalVideo.innerHTML = '';
-  const embed = safeEmbedUrl(project.video);
-  if (embed) {
+  const directVideo = safeDirectVideoUrl(project.video);
+  const embed = directVideo ? '' : safeEmbedUrl(project.video);
+  if (directVideo) {
+    const video = document.createElement('video');
+    video.src = directVideo;
+    video.controls = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    const poster = safeUrl(project.thumbnail);
+    if (poster) video.poster = poster;
+    video.setAttribute('aria-label', (project.title || 'Project') + ' video');
+    video.appendChild(document.createTextNode('Your browser does not support this video.'));
+    modalVideo.appendChild(video);
+  } else if (embed) {
     const iframe = document.createElement('iframe');
     iframe.src = embed + (embed.includes('?') ? '&' : '?') + 'autoplay=0&rel=0';
     iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';

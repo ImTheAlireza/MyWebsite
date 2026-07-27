@@ -337,6 +337,64 @@
     return String(name || '').toLowerCase().replace(/\s+/g, '');
   }
 
+  function isDirectVideoUrl(value) {
+    const clean = String(value || '').trim().split(/[?#]/)[0];
+    return /\.(mp4|webm|mov|m4v|ogv|ogg|avi|mkv)$/i.test(clean);
+  }
+
+  function mediaFilename(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    try {
+      const url = new URL(raw, window.location.origin);
+      return decodeURIComponent(url.pathname.split('/').pop() || raw);
+    } catch {
+      return raw;
+    }
+  }
+
+  function updateProjectVideoPreview(value, displayName) {
+    const preview = $('#projectVideoPreview');
+    const player = $('#projectVideoPreviewPlayer');
+    const name = $('#projectVideoPreviewName');
+    if (!preview || !player || !name) return;
+
+    const url = String(value || '').trim();
+    if (!url) {
+      player.pause();
+      player.removeAttribute('src');
+      player.load();
+      player.classList.add('hidden');
+      preview.classList.add('hidden');
+      name.textContent = '';
+      return;
+    }
+
+    const directVideo = isDirectVideoUrl(url);
+    name.textContent = displayName || (directVideo ? mediaFilename(url) : url);
+    if (directVideo) {
+      if (player.getAttribute('src') !== url) {
+        player.src = url;
+        player.load();
+      }
+      player.classList.remove('hidden');
+    } else {
+      player.pause();
+      player.removeAttribute('src');
+      player.load();
+      player.classList.add('hidden');
+    }
+    preview.classList.remove('hidden');
+  }
+
+  function setProjectVideo(value, displayName) {
+    const input = $('#projectVideo');
+    if (!input) return;
+    input.value = value || '';
+    updateProjectVideoPreview(input.value, displayName);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
   async function loadProjects() {
     try {
       const d = await api('projects');
@@ -390,13 +448,17 @@
     if (isDraft) badges.push('<span class="status-badge status-draft">Draft</span>');
     else badges.push('<span class="status-badge status-live">Live</span>');
     if (isFeatured) badges.push('<span class="status-badge status-featured">Featured</span>');
+    if (p.video) badges.push('<span class="status-badge status-video">Video</span>');
+    const thumbMedia = p.thumbnail
+      ? '<img src="' + esc(p.thumbnail) + '" alt="' + esc(p.title) + '" loading="lazy">'
+      : (isDirectVideoUrl(p.video)
+          ? '<video src="' + esc(p.video) + '" muted playsinline preload="metadata" aria-label="' + esc(p.title) + ' video"></video>'
+          : '<div class="project-thumb-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg></div>');
     return '<div class="project-card' + (hasCat ? '' : ' project-card-warning') + (isDraft ? ' is-draft' : '') + (isFeatured ? ' is-featured' : '') + '" data-id="' + esc(String(p.id)) + '" draggable="true">' +
       '<div class="project-drag-handle" title="Drag to reorder" aria-hidden="true">' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>' +
       '</div>' +
-      '<div class="project-thumb">' +
-        (p.thumbnail ? '<img src="' + esc(p.thumbnail) + '" alt="' + esc(p.title) + '" loading="lazy">' : '<div class="project-thumb-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg></div>') +
-      '</div>' +
+      '<div class="project-thumb">' + thumbMedia + '</div>' +
       '<div class="project-info">' +
         '<div class="project-badges">' + badges.join('') + '</div>' +
         '<div class="project-category">' + (hasCat ? esc(getCategoryLabel(p.category)) : '<em style="color:var(--danger)">No category</em>') + '</div>' +
@@ -518,6 +580,7 @@
     $('#modalTitle').textContent = 'Add Project';
     $('#projectForm').reset();
     uploads.thumb.clearImage();
+    setProjectVideo('');
     if ($('#projectPublished')) $('#projectPublished').checked = true;
     if ($('#projectFeatured')) $('#projectFeatured').checked = false;
     if ($('#projectGallery')) $('#projectGallery').value = '';
@@ -542,6 +605,7 @@
     $('#projectRole').value = p.role || '';
     $('#projectTools').value = (p.tools || []).join(', ');
     $('#projectVideo').value = p.video || '';
+    updateProjectVideoPreview(p.video || '');
     $('#projectThumbUrl').value = p.thumbnail || '';
     if ($('#projectPublished')) $('#projectPublished').checked = p.published !== false;
     if ($('#projectFeatured')) $('#projectFeatured').checked = p.featured === true;
@@ -568,7 +632,17 @@
   $('#modalClose').addEventListener('click', closeModal);
   $('#modalBackdrop').addEventListener('click', closeModal);
   $('#cancelBtn').addEventListener('click', closeModal);
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#projectModal').classList.contains('hidden')) closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' &&
+        $('#assetPickerModal').classList.contains('hidden') &&
+        !$('#projectModal').classList.contains('hidden')) closeModal();
+  });
+
+  $('#projectVideo').addEventListener('input', e => updateProjectVideoPreview(e.target.value));
+  $('#browseProjectVideoBtn').addEventListener('click', () => {
+    openAssetPicker((url, name) => setProjectVideo(url, name), 'video');
+  });
+  $('#clearProjectVideoBtn').addEventListener('click', () => setProjectVideo(''));
 
   $('#projectForm').addEventListener('submit', async e => {
     e.preventDefault();
@@ -852,11 +926,16 @@
 
   function renderAssets() {
     const list = $('#assetsList'), empty = $('#assetsEmptyState');
+    const orphanBar = $('#orphanAssetsBar');
     if (!list || !empty) return;
 
     if (!assets.length) {
       list.innerHTML = '';
       empty.classList.remove('hidden');
+      if (orphanBar) {
+        orphanBar.classList.add('hidden');
+        orphanBar.innerHTML = '';
+      }
       return;
     }
 
@@ -878,7 +957,6 @@
     };
 
     const orphanCount = assets.filter(f => f.orphan).length;
-    const orphanBar = $('#orphanAssetsBar');
     if (orphanBar) {
       if (orphanCount) {
         orphanBar.classList.remove('hidden');
@@ -906,8 +984,10 @@
       const color = typeColors[f.type] || typeColors.other;
       const isImage = f.type === 'image' || f.isImage;
       const preview = isImage
-        ? '<img src="' + f.url + '" alt="' + esc(f.filename) + '" loading="lazy" onerror="this.style.display=\'none\'">'
-        : '<div class="asset-icon" style="color:' + color + '">' + icon + '</div>';
+        ? '<img src="' + esc(f.url) + '" alt="' + esc(f.filename) + '" loading="lazy" onerror="this.style.display=\'none\'">'
+        : (f.type === 'video'
+            ? '<video src="' + esc(f.url) + '" controls muted playsinline preload="metadata" aria-label="Preview ' + esc(f.filename) + '"></video>'
+            : '<div class="asset-icon" style="color:' + color + '">' + icon + '</div>');
 
       return '<div class="asset-card' + (f.orphan ? ' is-orphan' : '') + '" data-filename="' + esc(f.filename) + '" data-type="' + f.type + '">' +
         '<div class="asset-preview">' + preview + '</div>' +
@@ -920,10 +1000,10 @@
           '</div>' +
         '</div>' +
         '<div class="asset-actions">' +
-          '<button class="btn btn-ghost btn-sm copy-url" data-url="' + f.url + '" title="Copy URL">' +
+          '<button class="btn btn-ghost btn-sm copy-url" data-url="' + esc(f.url) + '" title="Copy URL">' +
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' +
           '</button>' +
-          '<a href="' + f.url + '" download="' + esc(f.filename) + '" class="btn btn-ghost btn-sm" title="Download">' +
+          '<a href="' + esc(f.url) + '" download="' + esc(f.filename) + '" class="btn btn-ghost btn-sm" title="Download">' +
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>' +
           '</a>' +
           '<button class="btn btn-ghost btn-sm del-asset" data-filename="' + esc(f.filename) + '" title="Delete" style="color:var(--danger)">' +
@@ -954,31 +1034,79 @@
     }));
   }
 
-  // Upload asset button
-  $('#uploadAssetBtn').addEventListener('click', () => $('#assetFileInput').click());
-  $('#refreshAssetsBtn').addEventListener('click', () => { loadAssets(); showToast('Refreshed', 'info'); });
+  // Upload media from the Assets page (picker or drag and drop)
+  const assetFileInput = $('#assetFileInput');
+  const assetUploadDropzone = $('#assetUploadDropzone');
+  const assetUploadProgress = $('#assetUploadProgress');
 
-  $('#assetFileInput').addEventListener('change', async e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 50 * 1024 * 1024) { showToast('File too large. Max 50MB.'); return; }
+  async function uploadAssetFiles(fileList) {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
 
-    const fd = new FormData();
-    fd.append('file', file);
-    try {
-      const res = await fetch(API + 'upload', {
-        method: 'POST',
-        body: fd,
-        credentials: 'same-origin'
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error);
-      showToast('Uploaded: ' + d.filename, 'success');
-      loadAssets();
-    } catch (err) {
-      showToast('Upload failed: ' + err.message, 'error');
+    const accepted = files.filter(file => {
+      if (file.size <= 50 * 1024 * 1024) return true;
+      showToast(file.name + ' is too large. Max 50MB.', 'error', 5000);
+      return false;
+    });
+    if (!accepted.length) {
+      assetFileInput.value = '';
+      return;
     }
-    $('#assetFileInput').value = '';
+
+    assetUploadDropzone.classList.add('is-uploading');
+    assetUploadProgress.classList.remove('hidden');
+    let uploaded = 0;
+
+    for (let i = 0; i < accepted.length; i++) {
+      const file = accepted[i];
+      assetUploadProgress.textContent = 'Uploading ' + (i + 1) + ' of ' + accepted.length + ': ' + file.name;
+      const fd = new FormData();
+      fd.append('file', file);
+      try {
+        const res = await fetch(API + 'upload', {
+          method: 'POST',
+          body: fd,
+          credentials: 'same-origin'
+        });
+        const text = await res.text();
+        let data = {};
+        try { data = text ? JSON.parse(text) : {}; } catch { data = {}; }
+        if (!res.ok) throw new Error(data.error || 'Server rejected the upload');
+        uploaded++;
+      } catch (err) {
+        showToast('Could not upload ' + file.name + ': ' + err.message, 'error', 5000);
+      }
+    }
+
+    assetUploadDropzone.classList.remove('is-uploading');
+    assetUploadProgress.classList.add('hidden');
+    assetUploadProgress.textContent = '';
+    assetFileInput.value = '';
+    if (uploaded) {
+      showToast(uploaded + (uploaded === 1 ? ' file uploaded' : ' files uploaded'), 'success');
+      await loadAssets();
+    }
+  }
+
+  $('#uploadAssetBtn').addEventListener('click', () => assetFileInput.click());
+  $('#refreshAssetsBtn').addEventListener('click', () => { loadAssets(); showToast('Refreshed', 'info'); });
+  assetFileInput.addEventListener('change', e => uploadAssetFiles(e.target.files));
+  assetUploadDropzone.addEventListener('click', () => assetFileInput.click());
+  assetUploadDropzone.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      assetFileInput.click();
+    }
+  });
+  assetUploadDropzone.addEventListener('dragover', e => {
+    e.preventDefault();
+    assetUploadDropzone.classList.add('dragover');
+  });
+  assetUploadDropzone.addEventListener('dragleave', () => assetUploadDropzone.classList.remove('dragover'));
+  assetUploadDropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    assetUploadDropzone.classList.remove('dragover');
+    uploadAssetFiles(e.dataTransfer.files);
   });
 
   // ============================================
@@ -1154,6 +1282,8 @@
   const pickerModal = $('#assetPickerModal');
   const pickerGrid = $('#assetPickerGrid');
   const pickerEmpty = $('#assetPickerEmpty');
+  const pickerEmptyText = $('#assetPickerEmptyText');
+  const pickerTitle = $('#assetPickerTitle');
   const pickerSearch = $('#assetPickerSearch');
 
   function openAssetPicker(callback, filter) {
@@ -1162,18 +1292,25 @@
     pickerModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     pickerSearch.value = '';
+    pickerTitle.textContent = pickerFilter === 'video' ? 'Choose a Project Video' : 'Browse Assets';
+    pickerSearch.placeholder = pickerFilter === 'video' ? 'Search videos...' : 'Search assets...';
+    pickerEmptyText.textContent = pickerFilter === 'video'
+      ? 'No videos found. Upload one in the Assets tab first.'
+      : 'No assets found. Upload files in the Assets tab first.';
     renderPickerAssets(assets);
   }
 
   function closeAssetPicker() {
     pickerModal.classList.add('hidden');
-    document.body.style.overflow = '';
+    const projectModalOpen = !$('#projectModal').classList.contains('hidden');
+    document.body.style.overflow = projectModalOpen ? 'hidden' : '';
     pickerCallback = null;
   }
 
   function renderPickerAssets(list) {
     let filtered = list;
     if (pickerFilter === 'image') filtered = list.filter(f => f.type === 'image');
+    else if (pickerFilter === 'video') filtered = list.filter(f => f.type === 'video');
     else if (pickerFilter === 'document') filtered = list.filter(f => f.type === 'document' || /\.(pdf|doc|docx|txt)$/i.test(f.filename));
 
     if (!filtered.length) {
@@ -1192,12 +1329,15 @@
 
     pickerGrid.innerHTML = filtered.map(f => {
       const isImg = f.type === 'image';
+      const isVideo = f.type === 'video';
       const preview = isImg
-        ? '<img src="' + f.url + '" alt="' + esc(f.filename) + '" loading="lazy" onerror="this.style.display=\'none\'">'
-        : '<div class="asset-icon" style="color:var(--text-dim)">' + (typeIcons[f.type] || typeIcons.other) + '</div>';
+        ? '<img src="' + esc(f.url) + '" alt="' + esc(f.filename) + '" loading="lazy" onerror="this.style.display=\'none\'">'
+        : (isVideo
+            ? '<video src="' + esc(f.url) + '" muted playsinline preload="metadata" aria-label="' + esc(f.filename) + '"></video><span class="asset-video-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 3 21 12 7 21 7 3"></polygon></svg></span>'
+            : '<div class="asset-icon" style="color:var(--text-dim)">' + (typeIcons[f.type] || typeIcons.other) + '</div>');
 
-      return '<div class="asset-card picker-card" data-url="' + f.url + '" data-name="' + esc(f.filename) + '" style="cursor:pointer">' +
-        '<div class="asset-preview">' + preview + '</div>' +
+      return '<div class="asset-card picker-card" data-url="' + esc(f.url) + '" data-name="' + esc(f.filename) + '" style="cursor:pointer">' +
+        '<div class="asset-preview' + (isVideo ? ' asset-preview-picker' : '') + '">' + preview + '</div>' +
         '<div class="asset-info"><div class="asset-name" title="' + esc(f.filename) + '">' + esc(f.filename) + '</div>' +
         '<div class="asset-meta">' + f.sizeFormatted + '</div></div>' +
       '</div>';
@@ -1219,6 +1359,9 @@
 
   $('#assetPickerClose').addEventListener('click', closeAssetPicker);
   $('#assetPickerBackdrop').addEventListener('click', closeAssetPicker);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !pickerModal.classList.contains('hidden')) closeAssetPicker();
+  });
 
   // Browse buttons — images
   $$('.image-upload-browse-btn[data-picker]:not([data-picker="resume"])').forEach(btn => {

@@ -601,7 +601,7 @@
         <div class="view-header">
           <div>
             <h2>Assets</h2>
-            <p class="view-subtitle">Browse and manage uploaded files</p>
+            <p class="view-subtitle">Upload videos and manage your portfolio media</p>
           </div>
           <div style="display:flex;gap:8px;">
             <button id="refreshAssetsBtn" class="btn btn-ghost">
@@ -617,11 +617,27 @@
                 <polyline points="17 8 12 3 7 8"></polyline>
                 <line x1="12" y1="3" x2="12" y2="15"></line>
               </svg>
-              Upload File
+              Upload Media
             </button>
           </div>
-          <input type="file" id="assetFileInput" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt,.zip,.rar" class="hidden">
+          <input type="file" id="assetFileInput" accept="image/*,video/*,audio/*,.pdf,.txt,.rtf" class="hidden" multiple>
         </div>
+        <div id="assetUploadDropzone" class="asset-library-dropzone" role="button" tabindex="0" aria-label="Upload videos or other media">
+          <div class="asset-library-dropzone-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="4" width="15" height="16" rx="2"></rect>
+              <path d="m17 9 5-3v12l-5-3"></path>
+              <path d="M9.5 8v8M5.5 12h8"></path>
+            </svg>
+          </div>
+          <div class="asset-library-dropzone-copy">
+            <strong>Drop videos here to upload</strong>
+            <span>MP4 or WebM recommended; MOV, AVI and MKV accepted · up to 50 MB per file</span>
+          </div>
+          <span class="btn btn-ghost btn-sm">Choose files</span>
+        </div>
+        <div id="assetUploadProgress" class="asset-upload-progress hidden" aria-live="polite"></div>
+        <div id="orphanAssetsBar" class="orphan-assets-bar hidden"></div>
         <div id="assetsList" class="assets-grid"></div>
         <div id="assetsEmptyState" class="empty-state hidden">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -923,8 +939,24 @@
           </div>
         </div>
         <div class="form-group">
-          <label for="projectVideo">Video Embed URL</label>
-          <input type="url" id="projectVideo" placeholder="https://www.youtube.com/embed/VIDEO_ID">
+          <label for="projectVideo">Project Video</label>
+          <div class="project-video-field">
+            <input type="text" id="projectVideo" placeholder="Choose an uploaded video or paste a YouTube/Vimeo URL">
+            <button type="button" id="browseProjectVideoBtn" class="btn btn-ghost">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              Browse Videos
+            </button>
+          </div>
+          <p class="field-help">Upload a video in <strong>Assets</strong>, then choose it here. MP4 or WebM gives the best browser support. YouTube and Vimeo links also work.</p>
+          <div id="projectVideoPreview" class="project-video-preview hidden">
+            <video id="projectVideoPreviewPlayer" controls muted playsinline preload="metadata"></video>
+            <div class="project-video-preview-info">
+              <span id="projectVideoPreviewName"></span>
+              <button type="button" id="clearProjectVideoBtn" class="btn btn-ghost btn-sm">Remove video</button>
+            </div>
+          </div>
         </div>
         <div class="form-row project-flags">
           <label class="toggle-field">
@@ -954,7 +986,7 @@
                 </svg>
               </div>
               <div class="image-upload-dropzone-text">Click to upload or drag & drop</div>
-              <div class="image-upload-dropzone-hint">Images, Videos, PDFs, Documents — max 50MB</div>
+              <div class="image-upload-dropzone-hint">JPG, PNG, GIF or WebP — max 50MB</div>
               <button type="button" class="btn btn-ghost btn-sm image-upload-browse-btn" data-picker="thumb" style="margin-top:12px">Browse Existing</button>
             </div>
             <div class="image-upload-preview hidden" id="thumbPreview">
@@ -964,7 +996,7 @@
                 Remove
               </button>
             </div>
-            <input type="file" class="image-upload-input" id="thumbFileInput" accept="image/*,video/*,.pdf,.doc,.docx,.txt">
+            <input type="file" class="image-upload-input" id="thumbFileInput" accept="image/*">
             <input type="hidden" id="projectThumbnailUrl">
           </div>
         </div>
@@ -1026,7 +1058,7 @@
     <div class="modal-backdrop" id="assetPickerBackdrop"></div>
     <div class="modal-content" style="max-width:720px">
       <div class="modal-header">
-        <h3>Browse Assets</h3>
+        <h3 id="assetPickerTitle">Browse Assets</h3>
         <button id="assetPickerClose" class="modal-close-btn" aria-label="Close">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -1038,7 +1070,7 @@
         <input type="text" id="assetPickerSearch" placeholder="Search assets..." style="width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);margin-bottom:16px;font-size:0.875rem">
         <div id="assetPickerGrid" class="assets-grid" style="max-height:400px;overflow-y:auto"></div>
         <div id="assetPickerEmpty" class="empty-state hidden" style="padding:40px 20px">
-          <p>No assets found. Upload files in the Assets tab first.</p>
+          <p id="assetPickerEmptyText">No assets found. Upload files in the Assets tab first.</p>
         </div>
       </div>
     </div>
