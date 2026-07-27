@@ -365,6 +365,7 @@
       player.removeAttribute('src');
       player.load();
       player.classList.add('hidden');
+      preview.classList.remove('is-external');
       preview.classList.add('hidden');
       name.textContent = '';
       return;
@@ -378,11 +379,13 @@
         player.load();
       }
       player.classList.remove('hidden');
+      preview.classList.remove('is-external');
     } else {
       player.pause();
       player.removeAttribute('src');
       player.load();
       player.classList.add('hidden');
+      preview.classList.add('is-external');
     }
     preview.classList.remove('hidden');
   }
@@ -1038,8 +1041,70 @@
   const assetFileInput = $('#assetFileInput');
   const assetUploadDropzone = $('#assetUploadDropzone');
   const assetUploadProgress = $('#assetUploadProgress');
+  const assetUploadProgressTitle = $('#assetUploadProgressTitle');
+  const assetUploadProgressFile = $('#assetUploadProgressFile');
+  const assetUploadProgressPercent = $('#assetUploadProgressPercent');
+  const assetUploadProgressTrack = $('#assetUploadProgressTrack');
+  const assetUploadProgressFill = $('#assetUploadProgressFill');
+  const assetUploadProgressCount = $('#assetUploadProgressCount');
+  const assetUploadProgressSize = $('#assetUploadProgressSize');
+  const uploadAssetBtn = $('#uploadAssetBtn');
+  let assetUploadRunning = false;
+  let assetProgressHideTimer = null;
+
+  function formatUploadBytes(bytes) {
+    const value = Math.max(0, Number(bytes) || 0);
+    if (value === 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    const unit = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
+    const amount = value / Math.pow(1024, unit);
+    return (unit === 0 || amount >= 10 ? Math.round(amount) : amount.toFixed(1)) + ' ' + units[unit];
+  }
+
+  function updateAssetUploadProgress(percent, loadedBytes, totalBytes) {
+    const safePercent = Math.max(0, Math.min(100, Math.round(percent || 0)));
+    assetUploadProgressPercent.textContent = safePercent + '%';
+    assetUploadProgressFill.style.width = safePercent + '%';
+    assetUploadProgressTrack.setAttribute('aria-valuenow', String(safePercent));
+    assetUploadProgressTrack.setAttribute('aria-valuetext', safePercent + '% uploaded');
+    assetUploadProgressSize.textContent = formatUploadBytes(loadedBytes) + ' / ' + formatUploadBytes(totalBytes);
+  }
+
+  function uploadAssetFile(file, onProgress) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const fd = new FormData();
+      fd.append('file', file);
+
+      xhr.open('POST', API + 'upload', true);
+      xhr.withCredentials = true;
+      xhr.upload.addEventListener('progress', event => {
+        if (event.lengthComputable) onProgress(event.loaded, event.total);
+        else onProgress(event.loaded, file.size);
+      });
+      xhr.addEventListener('load', () => {
+        let data = {};
+        try { data = xhr.responseText ? JSON.parse(xhr.responseText) : {}; } catch { data = {}; }
+        if (xhr.status >= 200 && xhr.status < 300) {
+          onProgress(file.size, file.size);
+          resolve(data);
+        } else {
+          if (xhr.status === 401) logout();
+          reject(new Error(data.error || (xhr.status === 413 ? 'File is larger than the server limit' : 'Server rejected the upload')));
+        }
+      });
+      xhr.addEventListener('error', () => reject(new Error('Network error while uploading')));
+      xhr.addEventListener('abort', () => reject(new Error('Upload was cancelled')));
+      xhr.send(fd);
+    });
+  }
 
   async function uploadAssetFiles(fileList) {
+    if (assetUploadRunning) {
+      showToast('Please wait for the current upload to finish.', 'info');
+      return;
+    }
+
     const files = Array.from(fileList || []);
     if (!files.length) return;
 
@@ -1053,54 +1118,89 @@
       return;
     }
 
+    clearTimeout(assetProgressHideTimer);
+    assetUploadRunning = true;
     assetUploadDropzone.classList.add('is-uploading');
-    assetUploadProgress.classList.remove('hidden');
+    assetUploadDropzone.setAttribute('aria-busy', 'true');
+    uploadAssetBtn.disabled = true;
+    assetUploadProgress.classList.remove('hidden', 'is-complete', 'is-error');
+    assetUploadProgressTitle.textContent = accepted.length === 1 ? 'Uploading media' : 'Uploading ' + accepted.length + ' files';
+    assetUploadProgressFile.textContent = 'Preparing your upload…';
+
+    const totalBytes = accepted.reduce((sum, file) => sum + file.size, 0);
+    let processedBytes = 0;
     let uploaded = 0;
+    let failed = 0;
+    updateAssetUploadProgress(0, 0, totalBytes);
 
     for (let i = 0; i < accepted.length; i++) {
       const file = accepted[i];
-      assetUploadProgress.textContent = 'Uploading ' + (i + 1) + ' of ' + accepted.length + ': ' + file.name;
-      const fd = new FormData();
-      fd.append('file', file);
+      assetUploadProgressTitle.textContent = 'Uploading media';
+      assetUploadProgressFile.textContent = file.name;
+      assetUploadProgressCount.textContent = 'File ' + (i + 1) + ' of ' + accepted.length;
+
       try {
-        const res = await fetch(API + 'upload', {
-          method: 'POST',
-          body: fd,
-          credentials: 'same-origin'
+        await uploadAssetFile(file, loaded => {
+          const currentLoaded = Math.min(file.size, Math.max(0, loaded || 0));
+          const overallLoaded = processedBytes + currentLoaded;
+          updateAssetUploadProgress((overallLoaded / totalBytes) * 100, overallLoaded, totalBytes);
         });
-        const text = await res.text();
-        let data = {};
-        try { data = text ? JSON.parse(text) : {}; } catch { data = {}; }
-        if (!res.ok) throw new Error(data.error || 'Server rejected the upload');
         uploaded++;
       } catch (err) {
+        failed++;
         showToast('Could not upload ' + file.name + ': ' + err.message, 'error', 5000);
+      } finally {
+        processedBytes += file.size;
+        updateAssetUploadProgress((processedBytes / totalBytes) * 100, processedBytes, totalBytes);
       }
     }
 
+    assetUploadRunning = false;
     assetUploadDropzone.classList.remove('is-uploading');
-    assetUploadProgress.classList.add('hidden');
-    assetUploadProgress.textContent = '';
+    assetUploadDropzone.removeAttribute('aria-busy');
+    uploadAssetBtn.disabled = false;
     assetFileInput.value = '';
-    if (uploaded) {
+    updateAssetUploadProgress(100, totalBytes, totalBytes);
+
+    if (failed) {
+      assetUploadProgress.classList.add('is-error');
+      assetUploadProgressTitle.textContent = uploaded ? 'Upload finished with an issue' : 'Upload failed';
+      assetUploadProgressFile.textContent = uploaded
+        ? uploaded + ' uploaded · ' + failed + ' failed'
+        : 'No files were uploaded. Please try again.';
+    } else {
+      assetUploadProgress.classList.add('is-complete');
+      assetUploadProgressTitle.textContent = uploaded === 1 ? 'Upload complete' : 'All uploads complete';
+      assetUploadProgressFile.textContent = uploaded === 1 ? accepted[0].name : uploaded + ' files are ready to use';
       showToast(uploaded + (uploaded === 1 ? ' file uploaded' : ' files uploaded'), 'success');
-      await loadAssets();
     }
+    assetUploadProgressCount.textContent = uploaded + ' uploaded' + (failed ? ' · ' + failed + ' failed' : '');
+
+    if (uploaded) await loadAssets();
+
+    assetProgressHideTimer = setTimeout(() => {
+      assetUploadProgress.classList.add('hidden');
+      assetUploadProgress.classList.remove('is-complete', 'is-error');
+    }, 4500);
   }
 
-  $('#uploadAssetBtn').addEventListener('click', () => assetFileInput.click());
+  uploadAssetBtn.addEventListener('click', () => {
+    if (!assetUploadRunning) assetFileInput.click();
+  });
   $('#refreshAssetsBtn').addEventListener('click', () => { loadAssets(); showToast('Refreshed', 'info'); });
   assetFileInput.addEventListener('change', e => uploadAssetFiles(e.target.files));
-  assetUploadDropzone.addEventListener('click', () => assetFileInput.click());
+  assetUploadDropzone.addEventListener('click', () => {
+    if (!assetUploadRunning) assetFileInput.click();
+  });
   assetUploadDropzone.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if ((e.key === 'Enter' || e.key === ' ') && !assetUploadRunning) {
       e.preventDefault();
       assetFileInput.click();
     }
   });
   assetUploadDropzone.addEventListener('dragover', e => {
     e.preventDefault();
-    assetUploadDropzone.classList.add('dragover');
+    if (!assetUploadRunning) assetUploadDropzone.classList.add('dragover');
   });
   assetUploadDropzone.addEventListener('dragleave', () => assetUploadDropzone.classList.remove('dragover'));
   assetUploadDropzone.addEventListener('drop', e => {
@@ -1108,6 +1208,7 @@
     assetUploadDropzone.classList.remove('dragover');
     uploadAssetFiles(e.dataTransfer.files);
   });
+
 
   // ============================================
   // SETTINGS (General)

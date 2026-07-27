@@ -98,7 +98,7 @@ function getCategoryLabel(slug) {
 
 function createProjectCard(project) {
   const card = document.createElement('div');
-  card.className = 'project-card' + (project.featured ? ' is-featured' : '');
+  card.className = 'project-card' + (project.featured ? ' is-featured' : '') + (project.video ? ' has-video' : '');
   card.dataset.category = project.category;
   card.dataset.id = project.id;
 
