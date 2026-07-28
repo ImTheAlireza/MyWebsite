@@ -253,7 +253,13 @@ function json_read($filename) {
         if ($db !== null) {
             if ($filename === 'projects.json') {
                 $projects = project_db_read_all($db);
-                if ($projects !== null) return array('projects' => $projects);
+                if ($projects !== null) {
+                    // Brands are portfolio metadata and are retained in the JSON mirror
+                    // while project records themselves live in SQLite.
+                    $mirror = json_file_read('projects.json');
+                    $brands = is_array($mirror) && isset($mirror['brands']) && is_array($mirror['brands']) ? $mirror['brands'] : array();
+                    return array('projects' => $projects, 'brands' => $brands);
+                }
                 error_log('Failed to read projects from SQLite; falling back to JSON.');
             } else {
                 $settings = settings_db_read_on_connection($db);
@@ -278,7 +284,9 @@ function json_write($filename, $data) {
                     send_error('Failed to save projects in the database', 500);
                 }
                 // Keep a best-effort JSON mirror for backup and host portability.
-                json_file_write($filename, array('projects' => $projects), false);
+                // Preserve brand metadata in the mirror as it is not part of the legacy projects table.
+                $brands = is_array($data) && isset($data['brands']) && is_array($data['brands']) ? $data['brands'] : array();
+                json_file_write($filename, array('projects' => $projects, 'brands' => $brands), false);
             } else {
                 if (!settings_db_write_on_connection($db, $data)) {
                     send_error('Failed to save settings in the database', 500);
