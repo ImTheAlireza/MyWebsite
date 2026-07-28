@@ -417,8 +417,8 @@
     const cards = document.querySelectorAll('.project-card');
     if (!cards.length || typeof gsap === 'undefined') return;
     gsap.fromTo(cards,
-      { rotateX: 12, y: 50, opacity: 0 },
-      { rotateX: 0, y: 0, opacity: 1, duration: 0.7, stagger: 0.1, ease: 'power3.out', clearProps: 'all' }
+      { opacity: 0 },
+      { opacity: 1, duration: 0.45, stagger: 0.07, ease: 'power2.out', clearProps: 'opacity' }
     );
   }
 
@@ -731,49 +731,6 @@
           y: 0,
           duration: 0.5,
           ease: 'elastic.out(1, 0.3)'
-        });
-      });
-    });
-  }
-
-  // ============================================
-  // 3D CARD TILT
-  // ============================================
-  if (!isTouchDevice() && typeof gsap !== 'undefined') {
-    document.addEventListener('mousemove', (e) => {
-      document.querySelectorAll('.project-card:not(.layout-list .project-card)').forEach(card => {
-        const rect = card.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const percentX = (e.clientX - centerX) / (rect.width / 2);
-        const percentY = (e.clientY - centerY) / (rect.height / 2);
-
-        const isHovering = e.clientX >= rect.left && e.clientX <= rect.right &&
-                           e.clientY >= rect.top && e.clientY <= rect.bottom;
-
-        if (isHovering) {
-          const rotateY = percentX * 6;
-          const rotateX = -percentY * 6;
-          gsap.to(card, {
-            rotateX: rotateX,
-            rotateY: rotateY,
-            transformPerspective: 800,
-            duration: 0.4,
-            ease: 'power2.out',
-            overwrite: 'auto'
-          });
-        }
-      });
-    });
-
-    document.querySelectorAll('.project-card').forEach(card => {
-      card.addEventListener('mouseleave', () => {
-        gsap.to(card, {
-          rotateX: 0,
-          rotateY: 0,
-          duration: 0.6,
-          ease: 'elastic.out(1, 0.5)',
-          overwrite: 'auto'
         });
       });
     });

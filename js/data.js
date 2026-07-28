@@ -6,8 +6,6 @@
 const PROJECTS_URL = '/api.php?_query=projects';
 
 let siteCategories = [];
-let renderedProjectsById = new Map();
-let projectGridEventsBound = false;
 let lastProjectTrigger = null;
 let projectsLoadError = '';
 
@@ -98,10 +96,6 @@ function createProjectCard(project) {
   card.className = 'project-card' + (project.featured ? ' is-featured' : '') + (project.video ? ' has-video' : '');
   card.dataset.category = project.category;
   card.dataset.id = project.id;
-  card.tabIndex = 0;
-  card.setAttribute('role', 'button');
-  card.setAttribute('aria-haspopup', 'dialog');
-  card.setAttribute('aria-label', 'View project: ' + (project.title || 'Untitled project'));
 
   const thumb = document.createElement('div');
   thumb.className = 'project-card-thumbnail';
@@ -163,8 +157,20 @@ function createProjectCard(project) {
   footer.className = 'project-card-footer';
   footer.append(year, likes);
   info.append(category, title, footer);
-  card.append(thumb, info);
 
+  // A real button covers the visual card. This gives the browser one reliable
+  // native click target instead of depending on transformed container events.
+  const openButton = document.createElement('button');
+  openButton.type = 'button';
+  openButton.className = 'project-card-open';
+  openButton.setAttribute('aria-label', 'Open project: ' + (project.title || 'Untitled project'));
+  openButton.setAttribute('aria-haspopup', 'dialog');
+  openButton.addEventListener('click', event => {
+    event.preventDefault();
+    openProjectModal(project, openButton);
+  });
+
+  card.append(thumb, info, openButton);
   return card;
 }
 
@@ -172,14 +178,12 @@ function renderProjects(projects) {
   const grid = document.getElementById('workGrid');
   if (!grid) return;
 
-  renderedProjectsById = new Map(
-    (Array.isArray(projects) ? projects : []).map(project => [String(project.id), project])
-  );
+  const visibleProjects = Array.isArray(projects) ? projects : [];
   grid.innerHTML = '';
-  renderedProjectsById.forEach(project => {
+  visibleProjects.forEach(project => {
     grid.appendChild(createProjectCard(project));
   });
-  if (!renderedProjectsById.size) {
+  if (!visibleProjects.length) {
     const empty = document.createElement('div');
     empty.className = 'projects-public-empty';
     const title = document.createElement('h3');
@@ -190,27 +194,6 @@ function renderProjects(projects) {
       : 'New work will appear here as soon as it is published.';
     empty.append(title, message);
     grid.appendChild(empty);
-  }
-
-  // Delegate activation to the stable grid. This keeps cards clickable after
-  // filters, like-count updates, animations, and any future DOM enhancements.
-  if (!projectGridEventsBound) {
-    grid.addEventListener('click', event => {
-      const card = event.target.closest('.project-card');
-      if (!card || !grid.contains(card)) return;
-      const project = renderedProjectsById.get(String(card.dataset.id));
-      if (project) openProjectModal(project, card);
-    });
-    grid.addEventListener('keydown', event => {
-      if (event.key !== 'Enter' && event.key !== ' ') return;
-      const card = event.target.closest('.project-card');
-      if (!card || !grid.contains(card)) return;
-      const project = renderedProjectsById.get(String(card.dataset.id));
-      if (!project) return;
-      event.preventDefault();
-      openProjectModal(project, card);
-    });
-    projectGridEventsBound = true;
   }
 
   document.dispatchEvent(new CustomEvent('projects:rendered'));
@@ -264,6 +247,9 @@ function openProjectModal(project, trigger) {
   modal.dataset.projectId = String(project.id || '');
   modal.classList.add('is-open');
   modal.setAttribute('aria-hidden', 'false');
+  modal.style.setProperty('visibility', 'visible', 'important');
+  modal.style.setProperty('opacity', '1', 'important');
+  modal.style.setProperty('pointer-events', 'auto', 'important');
   document.body.classList.add('project-modal-open');
   document.body.style.overflow = 'hidden';
 
@@ -349,6 +335,9 @@ function closeProjectModal() {
   modal.classList.remove('is-open');
   modal.setAttribute('aria-hidden', 'true');
   modal.removeAttribute('data-project-id');
+  modal.style.removeProperty('visibility');
+  modal.style.removeProperty('opacity');
+  modal.style.removeProperty('pointer-events');
   document.body.classList.remove('project-modal-open');
   document.body.style.overflow = '';
   modalVideo.innerHTML = '';
