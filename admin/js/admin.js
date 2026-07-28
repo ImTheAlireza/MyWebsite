@@ -592,8 +592,18 @@
     sel.value = requested;
   }
   function brandName(id) { const b=brands.find(b=>String(b.id)===String(id)); return b ? b.name : 'No brand'; }
-  function renderBrands() { const list=$('#brandsList'); if(!list)return; list.innerHTML=brands.map(b=>'<div class="category-tag"><img src="'+esc(b.thumbnail)+'" alt="" style="width:22px;height:22px;border-radius:4px;object-fit:cover;margin-right:6px">'+esc(b.name)+'<button type="button" class="brand-remove category-tag-remove" data-id="'+esc(String(b.id))+'">&times;</button></div>').join(''); $$('.brand-remove').forEach(x=>x.onclick=async()=>{if(!confirm('Delete this brand? Its projects will become unassigned.'))return;await api('brands/'+encodeURIComponent(x.dataset.id),{method:'DELETE'});loadProjects();}); }
-  $('#brandForm') && $('#brandForm').addEventListener('submit', async e=>{e.preventDefault();try{await api('brands',{method:'POST',body:JSON.stringify({name:$('#brandName').value.trim(),thumbnail:$('#brandThumbnail').value.trim()})});$('#brandForm').reset();await loadProjects();showToast('Brand added','success')}catch(err){showToast(err.message,'error')}});
+  function renderBrands() {
+    const list=$('#brandsList'), empty=$('#brandsEmpty'); if(!list)return;
+    list.innerHTML=brands.map(b=>{ const count=projects.filter(p=>String(p.brand)===String(b.id)).length; return '<article class="brand-admin-card" data-id="'+esc(String(b.id))+'"><img src="'+esc(b.thumbnail)+'" alt=""><div class="brand-admin-card-body"><strong>'+esc(b.name)+'</strong><span>'+count+' project'+(count===1?'':'s')+'</span></div><button type="button" class="brand-edit-btn" data-id="'+esc(String(b.id))+'">Edit</button></article>'; }).join('');
+    empty && empty.classList.toggle('hidden',brands.length>0); $$('.brand-edit-btn').forEach(btn=>btn.onclick=()=>openBrandEditor(btn.dataset.id));
+  }
+  function previewBrandThumbnail() { const img=$('#brandThumbnailPreview'), url=$('#brandThumbnail').value.trim(); if(!url){img.classList.add('hidden');return;} img.src=url; img.classList.remove('hidden'); }
+  function openBrandEditor(id) { const brand=id&&brands.find(b=>String(b.id)===String(id)); $('#brandForm').reset(); $('#editingBrandId').value=brand?brand.id:''; $('#brandModalTitle').textContent=brand?'Edit brand':'Add brand'; $('#brandName').value=brand?brand.name:''; $('#brandThumbnail').value=brand?brand.thumbnail:''; $('#deleteBrandBtn').classList.toggle('hidden',!brand); previewBrandThumbnail(); $('#brandModal').classList.remove('hidden'); document.body.style.overflow='hidden'; $('#brandName').focus(); }
+  function closeBrandEditor(){ $('#brandModal').classList.add('hidden'); document.body.style.overflow=''; }
+  async function removeBrand(id){const brand=brands.find(b=>String(b.id)===String(id)),count=projects.filter(p=>String(p.brand)===String(id)).length;const confirmed=await showConfirm('Delete brand', 'Delete "'+(brand?brand.name:'this brand')+'"?'+(count?' '+count+' project(s) will become unassigned.':''));if(!confirmed)return;await api('brands/'+encodeURIComponent(id),{method:'DELETE'});closeBrandEditor();await loadProjects();showToast('Brand deleted','success');}
+  $('#addBrandBtn').addEventListener('click',()=>openBrandEditor()); $('#brandModalClose').addEventListener('click',closeBrandEditor); $('#brandModalBackdrop').addEventListener('click',closeBrandEditor); $('#cancelBrandBtn').addEventListener('click',closeBrandEditor); $('#brandThumbnail').addEventListener('input',previewBrandThumbnail);
+  $('#uploadBrandThumbnailBtn').addEventListener('click',()=>$('#brandThumbnailFile').click()); $('#brandThumbnailFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const fd=new FormData();fd.append('file',file);const result=await api('upload',{method:'POST',body:fd});$('#brandThumbnail').value=result.url;previewBrandThumbnail();showToast('Thumbnail uploaded','success');}catch(err){showToast('Upload failed: '+err.message,'error')}finally{e.target.value='';}});
+  $('#brandForm').addEventListener('submit',async e=>{e.preventDefault();const id=$('#editingBrandId').value, payload={name:$('#brandName').value.trim(),thumbnail:$('#brandThumbnail').value.trim()};if(!payload.name||!payload.thumbnail)return;try{await api(id?'brands/'+encodeURIComponent(id):'brands',{method:id?'PUT':'POST',body:JSON.stringify(payload)});closeBrandEditor();await loadProjects();showToast(id?'Brand updated':'Brand created','success');}catch(err){showToast('Could not save brand: '+err.message,'error');}}); $('#deleteBrandBtn').addEventListener('click',()=>removeBrand($('#editingBrandId').value));
 
   function openAddProject() {
     editingId = null;
@@ -1341,7 +1351,7 @@
     }
   }
 
-  $('#addCategoryBtn').addEventListener('click', async () => {
+  $('#addCategoryBtn') && $('#addCategoryBtn').addEventListener('click', async () => {
     const input = $('#newCategoryInput');
     const name = input.value.trim();
     if (!name) return;
@@ -1365,7 +1375,7 @@
     }
   });
 
-  $('#newCategoryInput').addEventListener('keydown', e => {
+  $('#newCategoryInput') && $('#newCategoryInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') { e.preventDefault(); $('#addCategoryBtn').click(); }
   });
 

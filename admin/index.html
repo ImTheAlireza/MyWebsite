@@ -191,33 +191,13 @@
           </div>
         </div>
         <p class="projects-hint">Drag cards to reorder · Featured projects appear first on the site · Drafts stay hidden</p>
-        <div class="categories-section">
-          <div class="categories-header">
-            <span class="categories-label">Categories</span>
-            <button type="button" class="btn btn-ghost btn-sm" id="toggleCategoriesBtn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
+        <section class="brand-manager" id="brandsManager" aria-labelledby="brandsHeading">
+          <div class="brand-manager-header">
+            <div><span class="eyebrow">Portfolio structure</span><h3 id="brandsHeading">Brands</h3><p>Create visual brand hubs, then assign each project to one.</p></div>
+            <button type="button" id="addBrandBtn" class="btn btn-primary btn-sm">+ Add brand</button>
           </div>
-          <div class="categories-body" id="categoriesBody">
-            <div class="categories-list" id="categoriesList"></div>
-            <div class="categories-add">
-              <input type="text" id="newCategoryInput" placeholder="Add new category...">
-              <button type="button" id="addCategoryBtn" class="btn btn-primary btn-sm">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                Add
-              </button>
-            </div>
-          </div>
-        </div>
-        <section class="categories-section" id="brandsManager">
-          <div class="categories-header"><span class="categories-label">Brands</span></div>
-          <p class="field-help">Every brand needs a name and thumbnail. Projects are grouped by brand on the public site.</p>
-          <div id="brandsList" class="categories-list"></div>
-          <form id="brandForm" class="categories-add" style="flex-wrap:wrap">
-            <input id="brandName" required type="text" placeholder="Brand name">
-            <input id="brandThumbnail" required type="url" placeholder="Thumbnail URL or /uploads/file.jpg">
-            <button class="btn btn-primary btn-sm">Add Brand</button>
-          </form>
+          <div id="brandsList" class="brands-grid"></div>
+          <p id="brandsEmpty" class="brands-empty hidden">No brands yet. Add your first brand to start grouping projects.</p>
         </section>
         <div id="projectsList" class="projects-grid"></div>
         <div id="emptyState" class="empty-state hidden">
@@ -932,6 +912,9 @@
       </div>
     </main>
   </div>
+
+  <!-- Brand editor -->
+  <div id="brandModal" class="modal hidden" aria-hidden="true"><div class="modal-backdrop" id="brandModalBackdrop"></div><div class="modal-content brand-editor-modal"><div class="modal-header"><h3 id="brandModalTitle">Add brand</h3><button type="button" id="brandModalClose" class="modal-close-btn" aria-label="Close">×</button></div><form id="brandForm" class="modal-form"><input id="editingBrandId" type="hidden"><div class="form-group"><label for="brandName">Brand name *</label><input id="brandName" required maxlength="80" placeholder="e.g. Nike"></div><div class="form-group"><label>Brand thumbnail *</label><div class="brand-thumb-picker"><img id="brandThumbnailPreview" alt="Brand thumbnail preview" class="hidden"><div><input id="brandThumbnail" required type="url" placeholder="Paste an image URL or upload a file"><input id="brandThumbnailFile" type="file" accept="image/*" class="hidden"><div class="brand-thumb-actions"><button type="button" id="uploadBrandThumbnailBtn" class="btn btn-ghost btn-sm">Upload image</button><span>Used on the public brand grid</span></div></div></div></div><div class="modal-footer"><button type="button" id="deleteBrandBtn" class="btn btn-ghost hidden" style="color:var(--danger)">Delete brand</button><span class="modal-footer-spacer"></span><button type="button" id="cancelBrandBtn" class="btn btn-ghost">Cancel</button><button class="btn btn-primary" type="submit">Save brand</button></div></form></div></div>
 
   <!-- Project Edit Modal -->
   <div id="projectModal" class="modal hidden">

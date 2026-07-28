@@ -102,6 +102,11 @@ function collect_used_upload_urls() {
         }
     }
 
+    $brands = arr_get($projectsData, 'brands', array());
+    if (is_array($brands)) {
+        foreach ($brands as $brand) $add(arr_get($brand, 'thumbnail', ''));
+    }
+
     $settings = json_read('settings.json');
     if (!is_array($settings)) $settings = array();
     foreach (array('heroPortraitDark', 'heroPortraitLight', 'aboutImage', 'aboutResumeUrl') as $k) {
