@@ -1,7 +1,7 @@
 <?php
 // php/db.php — Persistent content storage (PHP 5.6+ compatible)
-// Projects are stored in SQLite when the extension is available. JSON files
-// remain as a migration source and compatibility fallback for older hosts.
+// Projects, project details, and panel settings are stored in SQLite when the
+// extension is available. JSON remains a migration/compatibility fallback.
 
 define('DATA_DIR', __DIR__ . '/../data');
 define('PROJECT_DB_PATH', DATA_DIR . '/.portfolio.sqlite');
@@ -101,6 +101,36 @@ function project_db_replace_on_connection($db, $projects) {
     return $db->exec('COMMIT');
 }
 
+function settings_db_write_on_connection($db, $settings) {
+    if (!is_array($settings)) return false;
+    $payload = json_encode($settings, JSON_UNESCAPED_UNICODE);
+    if ($payload === false) return false;
+
+    $statement = $db->prepare(
+        'INSERT OR REPLACE INTO site_settings (settings_id, payload, updated_at) ' .
+        'VALUES (1, :payload, :updated_at)'
+    );
+    if (!$statement) return false;
+    $statement->bindValue(':payload', $payload, SQLITE3_TEXT);
+    $statement->bindValue(':updated_at', date('c'), SQLITE3_TEXT);
+    $result = $statement->execute();
+    if ($result === false) return false;
+    if (is_object($result)) $result->finalize();
+    return true;
+}
+
+function settings_db_read_on_connection($db) {
+    $statement = $db->prepare('SELECT payload FROM site_settings WHERE settings_id = 1');
+    if (!$statement) return null;
+    $result = $statement->execute();
+    if ($result === false) return null;
+    $row = $result->fetchArray(SQLITE3_ASSOC);
+    $result->finalize();
+    if (!$row || !isset($row['payload'])) return null;
+    $settings = json_decode($row['payload'], true);
+    return is_array($settings) ? $settings : null;
+}
+
 function project_db_connection() {
     static $initialized = false;
     static $connection = null;
@@ -134,13 +164,19 @@ function project_db_connection() {
             'updated_at TEXT' .
             ')'
         );
+        $settingsCreated = $db->exec(
+            'CREATE TABLE IF NOT EXISTS site_settings (' .
+            'settings_id INTEGER PRIMARY KEY NOT NULL, ' .
+            'payload TEXT NOT NULL, updated_at TEXT' .
+            ')'
+        );
         $metadataCreated = $db->exec(
             'CREATE TABLE IF NOT EXISTS storage_meta (' .
             'meta_key TEXT PRIMARY KEY NOT NULL, meta_value TEXT NOT NULL' .
             ')'
         );
-        if (!$created || !$metadataCreated) {
-            throw new Exception('Unable to create project database tables');
+        if (!$created || !$settingsCreated || !$metadataCreated) {
+            throw new Exception('Unable to create content database tables');
         }
         $db->exec('CREATE INDEX IF NOT EXISTS idx_projects_order ON projects(featured DESC, sort_order ASC)');
 
@@ -163,6 +199,25 @@ function project_db_connection() {
             $db->exec(
                 "INSERT OR REPLACE INTO storage_meta (meta_key, meta_value) " .
                 "VALUES ('projects_json_migrated', '1')"
+            );
+        }
+
+        // Categories and the rest of the panel settings belong to the same
+        // persistent database so deployments cannot restore old defaults.
+        $settingsMigrationDone = $db->querySingle(
+            "SELECT meta_value FROM storage_meta WHERE meta_key = 'settings_json_migrated'"
+        );
+        if ((string)$settingsMigrationDone !== '1') {
+            $storedSettings = settings_db_read_on_connection($db);
+            if ($storedSettings === null) {
+                $legacySettings = json_file_read('settings.json');
+                if (is_array($legacySettings) && !settings_db_write_on_connection($db, $legacySettings)) {
+                    throw new Exception('Failed to migrate settings.json into SQLite');
+                }
+            }
+            $db->exec(
+                "INSERT OR REPLACE INTO storage_meta (meta_key, meta_value) " .
+                "VALUES ('settings_json_migrated', '1')"
             );
         }
 
@@ -193,12 +248,18 @@ function project_db_read_all($db) {
 }
 
 function json_read($filename) {
-    if ($filename === 'projects.json') {
+    if ($filename === 'projects.json' || $filename === 'settings.json') {
         $db = project_db_connection();
         if ($db !== null) {
-            $projects = project_db_read_all($db);
-            if ($projects !== null) return array('projects' => $projects);
-            error_log('Failed to read projects from SQLite; falling back to JSON.');
+            if ($filename === 'projects.json') {
+                $projects = project_db_read_all($db);
+                if ($projects !== null) return array('projects' => $projects);
+                error_log('Failed to read projects from SQLite; falling back to JSON.');
+            } else {
+                $settings = settings_db_read_on_connection($db);
+                if ($settings !== null) return $settings;
+                error_log('Failed to read settings from SQLite; falling back to JSON.');
+            }
         }
     }
 
@@ -206,17 +267,24 @@ function json_read($filename) {
 }
 
 function json_write($filename, $data) {
-    if ($filename === 'projects.json') {
-        $projects = is_array($data) && isset($data['projects']) && is_array($data['projects'])
-            ? $data['projects']
-            : array();
+    if ($filename === 'projects.json' || $filename === 'settings.json') {
         $db = project_db_connection();
         if ($db !== null) {
-            if (!project_db_replace_on_connection($db, $projects)) {
-                send_error('Failed to save projects in the database', 500);
+            if ($filename === 'projects.json') {
+                $projects = is_array($data) && isset($data['projects']) && is_array($data['projects'])
+                    ? $data['projects']
+                    : array();
+                if (!project_db_replace_on_connection($db, $projects)) {
+                    send_error('Failed to save projects in the database', 500);
+                }
+                // Keep a best-effort JSON mirror for backup and host portability.
+                json_file_write($filename, array('projects' => $projects), false);
+            } else {
+                if (!settings_db_write_on_connection($db, $data)) {
+                    send_error('Failed to save settings in the database', 500);
+                }
+                json_file_write($filename, $data, false);
             }
-            // Keep a best-effort JSON mirror for backup and host portability.
-            json_file_write($filename, array('projects' => $projects), false);
             return;
         }
     }

@@ -2164,6 +2164,12 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; }
   margin: 12px 0;
 }
 
+.categories-empty {
+  color: var(--text-dim);
+  font-size: 0.8125rem;
+  font-style: italic;
+}
+
 .categories-section .category-tag {
   display: inline-flex;
   align-items: center;

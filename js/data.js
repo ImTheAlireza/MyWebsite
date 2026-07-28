@@ -5,10 +5,11 @@
 
 const PROJECTS_URL = '/api.php?_query=projects';
 
-let siteCategories = ['Explainer', 'Social Media', 'UI Motion'];
+let siteCategories = [];
 let renderedProjectsById = new Map();
 let projectGridEventsBound = false;
 let lastProjectTrigger = null;
+let projectsLoadError = '';
 
 function normalizeSlug(value) {
   return String(value || '').toLowerCase().replace(/\s+/g, '');
@@ -62,26 +63,17 @@ function safeEmbedUrl(value) {
 
 async function loadProjects() {
   try {
-    const [projRes, settingsRes] = await Promise.all([
-      fetch(PROJECTS_URL, { credentials: 'same-origin', cache: 'no-store' }),
-      fetch('/api.php?_query=settings', { credentials: 'same-origin', cache: 'no-store' })
-    ]);
+    projectsLoadError = '';
+    const projRes = await fetch(PROJECTS_URL, { credentials: 'same-origin', cache: 'no-store' });
     if (!projRes.ok) throw new Error(`Failed to load projects: ${projRes.status}`);
     const projData = await projRes.json();
-    if (settingsRes.ok) {
-      const settings = await settingsRes.json();
-      if (Array.isArray(settings.categories) && settings.categories.length) {
-        siteCategories = settings.categories;
-      }
-    }
-    const all = projData.projects || [];
-    // Public API already filters drafts; still require a valid category for display
-    const filtered = all.filter(p =>
-      p.published !== false &&
-      p.category &&
-      String(p.category).trim() !== '' &&
-      siteCategories.some(c => normalizeSlug(c) === normalizeSlug(p.category))
-    );
+    // Projects and category configuration come from one database-backed
+    // response, preventing mismatched filters after refreshes or deployments.
+    siteCategories = Array.isArray(projData.categories) ? projData.categories : [];
+    const all = Array.isArray(projData.projects) ? projData.projects : [];
+    // Category configuration controls filters, not project visibility. Published
+    // projects must remain visible even when uncategorized or after a rename.
+    const filtered = all.filter(p => p.published !== false);
     // Featured first (API also sorts), then order
     return filtered.slice().sort((a, b) => {
       const fo = (b.featured === true) - (a.featured === true);
@@ -89,14 +81,16 @@ async function loadProjects() {
       return (Number(a.order) || 0) - (Number(b.order) || 0);
     });
   } catch (err) {
+    projectsLoadError = err && err.message ? err.message : 'Unknown project loading error';
     console.error('Error loading projects:', err);
     return [];
   }
 }
 
 function getCategoryLabel(slug) {
-  const cat = siteCategories.find(c => normalizeSlug(c) === normalizeSlug(slug));
-  return cat || slug;
+  const category = siteCategories.find(c => normalizeSlug(c) === normalizeSlug(slug));
+  // Do not leak removed or stale category values into the public UI.
+  return category || '';
 }
 
 function createProjectCard(project) {
@@ -153,7 +147,7 @@ function createProjectCard(project) {
   info.className = 'project-card-info';
   const category = document.createElement('span');
   category.className = 'project-card-category';
-  category.textContent = getCategoryLabel(project.category);
+  category.textContent = getCategoryLabel(project.category) || 'Uncategorized';
   const title = document.createElement('h3');
   title.className = 'project-card-title';
   title.textContent = project.title || '';
@@ -185,6 +179,18 @@ function renderProjects(projects) {
   renderedProjectsById.forEach(project => {
     grid.appendChild(createProjectCard(project));
   });
+  if (!renderedProjectsById.size) {
+    const empty = document.createElement('div');
+    empty.className = 'projects-public-empty';
+    const title = document.createElement('h3');
+    title.textContent = projectsLoadError ? 'Projects could not be loaded' : 'No published projects yet';
+    const message = document.createElement('p');
+    message.textContent = projectsLoadError
+      ? 'Please refresh the page or try again shortly.'
+      : 'New work will appear here as soon as it is published.';
+    empty.append(title, message);
+    grid.appendChild(empty);
+  }
 
   // Delegate activation to the stable grid. This keeps cards clickable after
   // filters, like-count updates, animations, and any future DOM enhancements.
@@ -213,11 +219,23 @@ function renderProjects(projects) {
 function renderFilters() {
   const filters = document.getElementById('workFilters');
   if (!filters) return;
-  filters.innerHTML = '<button class="filter-btn active" data-filter="all" data-cursor="link">All</button>' +
-    siteCategories.map(c => {
-      const slug = normalizeSlug(c);
-      return '<button class="filter-btn" data-filter="' + slug + '" data-cursor="link">' + c.replace(/[&<>"']/g, '') + '</button>';
-    }).join('');
+  filters.innerHTML = '';
+
+  const allButton = document.createElement('button');
+  allButton.className = 'filter-btn active';
+  allButton.dataset.filter = 'all';
+  allButton.dataset.cursor = 'link';
+  allButton.textContent = 'All';
+  filters.appendChild(allButton);
+
+  siteCategories.forEach(category => {
+    const button = document.createElement('button');
+    button.className = 'filter-btn';
+    button.dataset.filter = normalizeSlug(category);
+    button.dataset.cursor = 'link';
+    button.textContent = category;
+    filters.appendChild(button);
+  });
 }
 
 function filterProjects(category, projects) {
@@ -305,7 +323,7 @@ function openProjectModal(project, trigger) {
   }
 
   modalTitle.textContent = project.title;
-  modalCategory.textContent = getCategoryLabel(project.category);
+  modalCategory.textContent = getCategoryLabel(project.category) || 'Uncategorized';
   modalYear.textContent = project.year;
   modalDescription.textContent = project.description;
   modalRole.textContent = project.role;

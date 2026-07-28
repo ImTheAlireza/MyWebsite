@@ -16,7 +16,13 @@ function list_projects() {
     }
 
     $projects = sort_projects($projects);
-    send_json(array('projects' => $projects));
+    $settings = json_read('settings.json');
+    $categories = normalize_category_list(arr_get(is_array($settings) ? $settings : array(), 'categories', array()));
+    send_json(array(
+        'projects' => $projects,
+        'categories' => $categories,
+        'storage' => project_db_connection() !== null ? 'sqlite' : 'json'
+    ));
 }
 
 // POST /api/projects

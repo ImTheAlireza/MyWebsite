@@ -1351,6 +1351,21 @@ img {
   gap: var(--space-xl);
 }
 
+.projects-public-empty {
+  grid-column: 1 / -1;
+  padding: var(--space-3xl) var(--space-xl);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  text-align: center;
+}
+.projects-public-empty h3 {
+  margin-bottom: var(--space-xs);
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+}
+.projects-public-empty p { color: var(--text-tertiary); font-size: 0.875rem; }
+
 /* Project Card */
 .project-card {
   position: relative;

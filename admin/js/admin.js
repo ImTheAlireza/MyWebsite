@@ -330,8 +330,8 @@
   let dragProjectId = null;
 
   function getCategoryLabel(val) {
-    const cat = categories.find(c => c.toLowerCase().replace(/\s+/g, '') === String(val || '').toLowerCase().replace(/\s+/g, ''));
-    return cat || val;
+    const cat = categories.find(c => getCategorySlug(c) === getCategorySlug(val));
+    return cat || (val ? 'Uncategorized' : '');
   }
 
   function getCategorySlug(name) {
@@ -401,11 +401,21 @@
 
   async function loadProjects() {
     try {
-      const d = await api('projects');
-      projects = d.projects || [];
+      const data = await api('projects');
+      projects = Array.isArray(data.projects) ? data.projects : [];
+      if (Array.isArray(data.categories)) {
+        categories = data.categories;
+        renderCategories();
+        populateCategoryDropdown();
+      }
       renderProjects();
       checkProjectWarnings();
-    } catch (e) { console.error(e); }
+      return projects;
+    } catch (error) {
+      console.error(error);
+      showToast('Could not load saved projects: ' + error.message, 'error', 7000);
+      return null;
+    }
   }
 
   function checkProjectWarnings() {
@@ -573,10 +583,21 @@
     });
   });
 
-  function populateCategoryDropdown() {
+  function populateCategoryDropdown(selectedValue) {
     const sel = $('#projectCategory');
     if (!sel) return;
-    sel.innerHTML = categories.map(c => '<option value="' + getCategorySlug(c) + '">' + esc(c) + '</option>').join('');
+    const requested = selectedValue == null ? sel.value : String(selectedValue || '');
+    const matching = categories.find(c => getCategorySlug(c) === getCategorySlug(requested));
+    sel.innerHTML = categories.map(c => '<option value="' + esc(c) + '">' + esc(c) + '</option>').join('');
+
+    if (requested && !matching) {
+      sel.innerHTML += '<option value="' + esc(requested) + '">' + esc(requested) + ' (not in category list)</option>';
+    }
+    if (!categories.length && !requested) {
+      sel.innerHTML = '<option value="" disabled selected>Add a category first</option>';
+    } else {
+      sel.value = matching || requested || categories[0] || '';
+    }
   }
 
   function openAddProject() {
@@ -602,8 +623,7 @@
     $('#modalTitle').textContent = 'Edit Project';
     $('#projectId').value = p.id;
     $('#projectTitle').value = p.title || '';
-    populateCategoryDropdown();
-    $('#projectCategory').value = p.category || '';
+    populateCategoryDropdown(p.category || '');
     $('#projectYear').value = p.year || '';
     $('#projectDescription').value = p.description || '';
     $('#projectRole').value = p.role || '';
@@ -665,6 +685,7 @@
       gallery: galleryRaw
     };
     if (!payload.title) { showToast('Title is required', 'error'); return; }
+    if (!payload.category) { showToast('Add and select a category before saving the project', 'error', 5000); return; }
     const submitBtn = e.target.querySelector('[type="submit"]');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving…'; }
     const wasEdit = !!editingId;
@@ -684,6 +705,9 @@
       }
 
       projects = persistedProjects;
+      if (Array.isArray(persisted.categories)) categories = persisted.categories;
+      renderCategories();
+      populateCategoryDropdown(saved.category || '');
       renderProjects();
       checkProjectWarnings();
       hasUnsavedChanges = false;
@@ -1253,8 +1277,8 @@
         const el = $(`#setting${k.charAt(0).toUpperCase() + k.slice(1)}`);
         if (el && d[k] != null) el.value = d[k];
       });
-      // Load categories
-      categories = d.categories || ['Explainer', 'Social Media', 'UI Motion'];
+      // Empty is a valid saved state; never reintroduce removed defaults.
+      categories = Array.isArray(d.categories) ? d.categories : [];
       projectLayout = d.projectLayout || '2col';
       renderCategories();
       populateCategoryDropdown();
@@ -1268,48 +1292,82 @@
   function renderCategories() {
     const list = $('#categoriesList');
     if (!list) return;
-    list.innerHTML = categories.map(c =>
-      '<div class="category-tag">' + esc(c) + '<button type="button" class="category-tag-remove" data-cat="' + esc(c) + '">&times;</button></div>'
-    ).join('');
+    list.innerHTML = categories.length
+      ? categories.map(c =>
+          '<div class="category-tag">' + esc(c) + '<button type="button" class="category-tag-remove" data-cat="' + esc(c) + '">&times;</button></div>'
+        ).join('')
+      : '<span class="categories-empty">No categories saved yet.</span>';
     $$('.category-tag-remove').forEach(btn => {
       btn.addEventListener('click', () => removeCategory(btn.dataset.cat));
     });
   }
 
+  async function persistCategoryList(nextCategories) {
+    const saved = await api('settings', {
+      method: 'PUT',
+      body: JSON.stringify({ categories: nextCategories })
+    });
+    if (!Array.isArray(saved.categories)) throw new Error('The server did not confirm the category list');
+
+    const verified = await api('settings');
+    if (!Array.isArray(verified.categories)) throw new Error('The saved category list could not be read back');
+    const expected = nextCategories.map(getCategorySlug);
+    const actual = verified.categories.map(getCategorySlug);
+    if (expected.length !== actual.length || expected.some((category, index) => category !== actual[index])) {
+      throw new Error('The category list did not persist correctly');
+    }
+    return verified.categories;
+  }
+
   async function removeCategory(name) {
-    const catProjects = projects.filter(p => p.category && p.category.toLowerCase().replace(/\s+/g, '') === name.toLowerCase().replace(/\s+/g, ''));
+    const catProjects = projects.filter(p => p.category && getCategorySlug(p.category) === getCategorySlug(name));
     if (catProjects.length) {
       const confirmed = await showConfirm('Remove Category', `Removing "${name}" will untag ${catProjects.length} project(s). Continue?`);
       if (!confirmed) return;
     }
-    categories = categories.filter(c => c.toLowerCase().replace(/\s+/g, '') !== name.toLowerCase().replace(/\s+/g, ''));
-    if (catProjects.length) {
-      for (const p of catProjects) {
-        await api('projects/' + encodeURIComponent(p.id), { method: 'PUT', body: JSON.stringify({ category: '' }) });
+
+    const nextCategories = categories.filter(c => getCategorySlug(c) !== getCategorySlug(name));
+    try {
+      for (const project of catProjects) {
+        await api('projects/' + encodeURIComponent(project.id), {
+          method: 'PUT',
+          body: JSON.stringify({ category: '' })
+        });
       }
+      categories = await persistCategoryList(nextCategories);
+      await loadProjects();
+      renderCategories();
+      populateCategoryDropdown();
+      showToast('Category removed and saved', 'success');
+    } catch (err) {
+      showToast('Could not remove category: ' + err.message, 'error', 6000);
+      await loadSettings();
       await loadProjects();
     }
-    try {
-      await api('settings', { method: 'PUT', body: JSON.stringify({ categories }) });
-    } catch {}
-    renderCategories();
-    populateCategoryDropdown();
-    showToast('Category removed', 'success');
   }
 
   $('#addCategoryBtn').addEventListener('click', async () => {
     const input = $('#newCategoryInput');
     const name = input.value.trim();
     if (!name) return;
-    if (categories.some(c => c.toLowerCase() === name.toLowerCase())) { showToast('Category already exists', 'error'); return; }
-    categories.push(name);
-    input.value = '';
+    if (categories.some(c => getCategorySlug(c) === getCategorySlug(name))) {
+      showToast('Category already exists', 'error');
+      return;
+    }
+
+    const nextCategories = categories.concat(name);
     try {
-      await api('settings', { method: 'PUT', body: JSON.stringify({ categories }) });
-    } catch {}
-    renderCategories();
-    populateCategoryDropdown();
-    showToast('Category added', 'success');
+      categories = await persistCategoryList(nextCategories);
+      if (!categories.some(c => getCategorySlug(c) === getCategorySlug(name))) {
+        throw new Error('The new category was not found after saving');
+      }
+      input.value = '';
+      renderCategories();
+      populateCategoryDropdown(name);
+      showToast('Category added and saved', 'success');
+    } catch (err) {
+      showToast('Could not save category: ' + err.message, 'error', 6000);
+    }
   });
 
   $('#newCategoryInput').addEventListener('keydown', e => {

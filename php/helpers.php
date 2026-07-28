@@ -1,22 +1,48 @@
 <?php
 // php/helpers.php — Shared helper functions (PHP 5.6+ compatible)
 
+function clean_content_text($value) {
+    // Store content as plain UTF-8, not pre-escaped HTML. Every UI already
+    // escapes or uses textContent, and pre-escaping corrupts labels and URLs.
+    if (is_array($value) || is_object($value)) return '';
+    $text = html_entity_decode((string)$value, ENT_QUOTES, 'UTF-8');
+    $text = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $text);
+    return trim($text);
+}
+
+function normalize_category_list($values) {
+    if (!is_array($values)) return array();
+    $result = array();
+    $seen = array();
+    foreach ($values as $value) {
+        $category = clean_content_text($value);
+        if ($category === '') continue;
+        if (function_exists('mb_substr')) $category = mb_substr($category, 0, 80, 'UTF-8');
+        else $category = substr($category, 0, 80);
+        $key = strtolower(preg_replace('/\s+/', '', $category));
+        if (isset($seen[$key])) continue;
+        $seen[$key] = true;
+        $result[] = $category;
+    }
+    return $result;
+}
+
 function normalize_project($raw) {
     $tools = array();
     if (isset($raw['tools'])) {
         if (is_array($raw['tools'])) {
-            $tools = array_map(function($t) { return sanitize((string)$t); }, $raw['tools']);
+            $tools = array_map(function($t) { return clean_content_text($t); }, $raw['tools']);
             $tools = array_filter($tools);
         } else {
             $tools = array_map('trim', explode(',', (string)$raw['tools']));
-            $tools = array_map('sanitize', $tools);
+            $tools = array_map('clean_content_text', $tools);
             $tools = array_filter($tools);
         }
     }
 
     $gallery = array();
     if (isset($raw['gallery']) && is_array($raw['gallery'])) {
-        $gallery = array_map(function($u) { return sanitize((string)$u); }, $raw['gallery']);
+        $gallery = array_map(function($u) { return clean_content_text($u); }, $raw['gallery']);
         $gallery = array_filter($gallery);
         $gallery = array_slice($gallery, 0, 20);
     }
@@ -25,14 +51,14 @@ function normalize_project($raw) {
 
     return array(
         'id' => isset($raw['id']) ? $raw['id'] : generate_uuid(),
-        'title' => sanitize((string)arr_get($raw, 'title', '')),
-        'category' => sanitize((string)arr_get($raw, 'category', '')),
-        'year' => sanitize((string)arr_get($raw, 'year', '')),
-        'description' => sanitize((string)arr_get($raw, 'description', '')),
-        'role' => sanitize((string)arr_get($raw, 'role', '')),
+        'title' => clean_content_text(arr_get($raw, 'title', '')),
+        'category' => clean_content_text(arr_get($raw, 'category', '')),
+        'year' => clean_content_text(arr_get($raw, 'year', '')),
+        'description' => clean_content_text(arr_get($raw, 'description', '')),
+        'role' => clean_content_text(arr_get($raw, 'role', '')),
         'tools' => array_values($tools),
-        'video' => sanitize((string)arr_get($raw, 'video', '')),
-        'thumbnail' => sanitize((string)arr_get($raw, 'thumbnail', '')),
+        'video' => clean_content_text(arr_get($raw, 'video', '')),
+        'thumbnail' => clean_content_text(arr_get($raw, 'thumbnail', '')),
         'gallery' => array_values($gallery),
         'published' => isset($raw['published']) ? ($raw['published'] !== false && $raw['published'] !== 'false') : true,
         'featured' => isset($raw['featured']) ? ($raw['featured'] === true || $raw['featured'] === 'true') : false,
