@@ -97,10 +97,14 @@ function getCategoryLabel(slug) {
 }
 
 function createProjectCard(project) {
-  const card = document.createElement('div');
+  const card = document.createElement('article');
   card.className = 'project-card' + (project.featured ? ' is-featured' : '') + (project.video ? ' has-video' : '');
   card.dataset.category = project.category;
   card.dataset.id = project.id;
+  card.tabIndex = 0;
+  card.setAttribute('role', 'button');
+  card.setAttribute('aria-haspopup', 'dialog');
+  card.setAttribute('aria-label', 'View project: ' + (project.title || 'Untitled project'));
 
   const thumb = document.createElement('div');
   thumb.className = 'project-card-thumbnail';
@@ -156,7 +160,19 @@ function createProjectCard(project) {
   info.append(category, title, year);
   card.append(thumb, info);
 
-  card.addEventListener('click', () => openProjectModal(project));
+  function selectProject(event) {
+    // The like control has its own action; every other part of the card opens it.
+    if (event.target && event.target.closest && event.target.closest('.project-card-like')) return;
+    openProjectModal(project);
+  }
+
+  card.addEventListener('click', selectProject);
+  card.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    if (event.target && event.target.closest && event.target.closest('.project-card-like')) return;
+    event.preventDefault();
+    selectProject(event);
+  });
 
   return card;
 }
@@ -194,6 +210,17 @@ function openProjectModal(project) {
   const modalDescription = document.getElementById('modalDescription');
   const modalTools = document.getElementById('modalTools');
   const modalRole = document.getElementById('modalRole');
+
+  if (!modal || !modalVideo || !modalTitle || !modalCategory || !modalYear ||
+      !modalDescription || !modalTools || !modalRole) {
+    console.error('Project modal markup is incomplete.');
+    return;
+  }
+
+  // Open first so a broken media URL can never make the card appear unresponsive.
+  modal.classList.add('is-open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
 
   modalVideo.innerHTML = '';
   const directVideo = safeDirectVideoUrl(project.video);
@@ -263,14 +290,14 @@ function openProjectModal(project) {
     modalTools.appendChild(tag);
   });
 
-  modal.classList.add('is-open');
-  document.body.style.overflow = 'hidden';
 }
 
 function closeProjectModal() {
   const modal = document.getElementById('projectModal');
   const modalVideo = document.getElementById('modalVideo');
+  if (!modal || !modalVideo) return;
   modal.classList.remove('is-open');
+  modal.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
   modalVideo.innerHTML = '';
   const galleryEl = document.getElementById('modalGallery');

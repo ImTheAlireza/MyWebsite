@@ -282,25 +282,8 @@
     </div>
   </section>
 
-  <!-- Horizontal Scroll Gallery -->
-  <section class="section horizontal-gallery" id="gallery">
-    <div class="hscroll-header">
-      <span class="section-number">04</span>
-      <h2 class="section-title">Featured Work</h2>
-      <p class="hscroll-hint">Scroll to explore</p>
-    </div>
-    <div class="hscroll-wrapper">
-      <div class="hscroll-track" id="hscrollTrack">
-        <!-- Populated dynamically from projects -->
-      </div>
-    </div>
-    <div class="hscroll-progress" id="hscrollProgress">
-      <div class="hscroll-progress-bar"></div>
-    </div>
-  </section>
-
   <!-- Project Modal -->
-  <div class="project-modal" id="projectModal">
+  <div class="project-modal" id="projectModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
     <div class="modal-backdrop" id="modalBackdrop"></div>
     <div class="modal-content">
       <button class="modal-close" id="modalClose" data-cursor="link" aria-label="Close project">
@@ -330,7 +313,7 @@
   <section class="section contact" id="contact">
     <div class="container">
       <div class="section-header">
-        <span class="section-number">05</span>
+        <span class="section-number">04</span>
         <h2 class="section-title">Get in Touch</h2>
       </div>
       <div class="contact-grid">
@@ -409,7 +392,6 @@
       <a href="#about" class="scroll-dot" data-section="about" data-cursor="link"></a>
       <a href="#timeline" class="scroll-dot" data-section="timeline" data-cursor="link"></a>
       <a href="#work" class="scroll-dot" data-section="work" data-cursor="link"></a>
-      <a href="#gallery" class="scroll-dot" data-section="gallery" data-cursor="link"></a>
       <a href="#contact" class="scroll-dot" data-section="contact" data-cursor="link"></a>
     </div>
   </div>

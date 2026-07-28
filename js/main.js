@@ -625,7 +625,7 @@
   // ============================================
   const scrollProgressFill = document.querySelector('.scroll-progress-fill');
   const scrollDots = document.querySelectorAll('.scroll-dot');
-  const sections = ['hero', 'about', 'timeline', 'work', 'gallery', 'contact'];
+  const sections = ['hero', 'about', 'timeline', 'work', 'contact'];
 
   if (scrollProgressFill && scrollDots.length) {
     window.addEventListener('scroll', () => {
