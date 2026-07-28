@@ -52,7 +52,8 @@ function normalize_project($raw) {
     return array(
         'id' => isset($raw['id']) ? $raw['id'] : generate_uuid(),
         'title' => clean_content_text(arr_get($raw, 'title', '')),
-        'category' => clean_content_text(arr_get($raw, 'category', '')),
+        'brand' => clean_content_text(arr_get($raw, 'brand', arr_get($raw, 'category', ''))),
+        'category' => clean_content_text(arr_get($raw, 'category', '')), // legacy compatibility
         'year' => clean_content_text(arr_get($raw, 'year', '')),
         'description' => clean_content_text(arr_get($raw, 'description', '')),
         'role' => clean_content_text(arr_get($raw, 'role', '')),

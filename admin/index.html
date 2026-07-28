@@ -153,7 +153,7 @@
         <div class="view-header">
           <div>
             <h2>Projects</h2>
-            <p class="view-subtitle">Manage your portfolio projects</p>
+            <p class="view-subtitle">Manage projects and the brands that group them</p>
           </div>
           <button id="addProjectBtn" class="btn btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -209,6 +209,16 @@
             </div>
           </div>
         </div>
+        <section class="categories-section" id="brandsManager">
+          <div class="categories-header"><span class="categories-label">Brands</span></div>
+          <p class="field-help">Every brand needs a name and thumbnail. Projects are grouped by brand on the public site.</p>
+          <div id="brandsList" class="categories-list"></div>
+          <form id="brandForm" class="categories-add" style="flex-wrap:wrap">
+            <input id="brandName" required type="text" placeholder="Brand name">
+            <input id="brandThumbnail" required type="url" placeholder="Thumbnail URL or /uploads/file.jpg">
+            <button class="btn btn-primary btn-sm">Add Brand</button>
+          </form>
+        </section>
         <div id="projectsList" class="projects-grid"></div>
         <div id="emptyState" class="empty-state hidden">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -944,8 +954,8 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label for="projectCategory">Category *</label>
-            <select id="projectCategory" required>
+            <label for="projectBrand">Brand *</label>
+            <select id="projectBrand" required>
               <!-- Populated dynamically -->
             </select>
           </div>
@@ -1020,7 +1030,7 @@
           </label>
         </div>
         <div class="form-group">
-          <label for="projectGallery">Gallery URLs <span class="label-hint">(optional, one per line)</span></label>
+          <label for="projectGallery">Mixed media gallery <span class="label-hint">(optional, one image/video URL per line, in display order)</span></label>
           <textarea id="projectGallery" rows="3" placeholder="/uploads/image1.jpg&#10;/uploads/image2.jpg"></textarea>
         </div>
         <div class="form-group">

@@ -411,56 +411,10 @@
   // PORTFOLIO FILTER
   // ============================================
   let allProjects = [];
-  let currentFilter = 'all';
-
-  function animateCards() {
-    const cards = document.querySelectorAll('.project-card');
-    if (!cards.length || typeof gsap === 'undefined') return;
-    gsap.fromTo(cards,
-      { opacity: 0 },
-      { opacity: 1, duration: 0.45, stagger: 0.07, ease: 'power2.out', clearProps: 'opacity' }
-    );
-  }
-
   async function initPortfolio() {
     allProjects = await window.loadProjects();
-    window.renderFilters();
-    window.renderProjects(allProjects);
-    animateCards();
-
-    function bindFilters() {
-      const filterBtns = document.querySelectorAll('.filter-btn');
-      filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const filter = btn.dataset.filter;
-          if (filter === currentFilter) return;
-          currentFilter = filter;
-
-          filterBtns.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-
-          const filtered = window.filterProjects(filter, allProjects);
-          window.renderProjects(filtered);
-          animateCards();
-
-          if (!isTouchDevice()) {
-            document.querySelectorAll('.project-card').forEach(card => {
-              card.addEventListener('mouseenter', () => {
-                cursor.className = 'cursor is-play';
-              });
-              card.addEventListener('mouseleave', () => {
-              cursor.className = 'cursor';
-            });
-          });
-        }
-      });
-    });
-
-    }
-
-    bindFilters();
+    window.renderProjects();
   }
-
   initPortfolio();
 
   // ============================================
