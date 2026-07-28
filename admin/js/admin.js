@@ -602,7 +602,7 @@
   function closeBrandEditor(){ $('#brandModal').classList.add('hidden'); document.body.style.overflow=''; }
   async function removeBrand(id){const brand=brands.find(b=>String(b.id)===String(id)),count=projects.filter(p=>String(p.brand)===String(id)).length;const confirmed=await showConfirm('Delete brand', 'Delete "'+(brand?brand.name:'this brand')+'"?'+(count?' '+count+' project(s) will become unassigned.':''));if(!confirmed)return;await api('brands/'+encodeURIComponent(id),{method:'DELETE'});closeBrandEditor();await loadProjects();showToast('Brand deleted','success');}
   $('#addBrandBtn').addEventListener('click',()=>openBrandEditor()); $('#brandModalClose').addEventListener('click',closeBrandEditor); $('#brandModalBackdrop').addEventListener('click',closeBrandEditor); $('#cancelBrandBtn').addEventListener('click',closeBrandEditor); $('#brandThumbnail').addEventListener('input',previewBrandThumbnail);
-  $('#uploadBrandThumbnailBtn').addEventListener('click',()=>$('#brandThumbnailFile').click()); $('#brandThumbnailFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const fd=new FormData();fd.append('file',file);const result=await api('upload',{method:'POST',body:fd});$('#brandThumbnail').value=result.url;previewBrandThumbnail();showToast('Thumbnail uploaded','success');}catch(err){showToast('Upload failed: '+err.message,'error')}finally{e.target.value='';}});
+  $('#browseBrandThumbnailBtn').addEventListener('click',()=>openAssetPicker(url=>{ $('#brandThumbnail').value=url; previewBrandThumbnail(); },'image')); $('#uploadBrandThumbnailBtn').addEventListener('click',()=>$('#brandThumbnailFile').click()); $('#brandThumbnailFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const fd=new FormData();fd.append('file',file);const result=await api('upload',{method:'POST',body:fd});$('#brandThumbnail').value=result.url;previewBrandThumbnail();showToast('Thumbnail uploaded','success');}catch(err){showToast('Upload failed: '+err.message,'error')}finally{e.target.value='';}});
   $('#brandForm').addEventListener('submit',async e=>{e.preventDefault();const id=$('#editingBrandId').value, payload={name:$('#brandName').value.trim(),thumbnail:$('#brandThumbnail').value.trim()};if(!payload.name||!payload.thumbnail)return;try{await api(id?'brands/'+encodeURIComponent(id):'brands',{method:id?'PUT':'POST',body:JSON.stringify(payload)});closeBrandEditor();await loadProjects();showToast(id?'Brand updated':'Brand created','success');}catch(err){showToast('Could not save brand: '+err.message,'error');}}); $('#deleteBrandBtn').addEventListener('click',()=>removeBrand($('#editingBrandId').value));
 
   function openAddProject() {
@@ -1500,7 +1500,8 @@
   function closeAssetPicker() {
     pickerModal.classList.add('hidden');
     const projectModalOpen = !$('#projectModal').classList.contains('hidden');
-    document.body.style.overflow = projectModalOpen ? 'hidden' : '';
+    const brandModalOpen = !$('#brandModal').classList.contains('hidden');
+    document.body.style.overflow = (projectModalOpen || brandModalOpen) ? 'hidden' : '';
     pickerCallback = null;
   }
 
