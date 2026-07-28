@@ -131,6 +131,21 @@ function settings_db_read_on_connection($db) {
     return is_array($settings) ? $settings : null;
 }
 
+function brands_db_read_on_connection($db) {
+    $statement = $db->prepare("SELECT meta_value FROM storage_meta WHERE meta_key = 'brands'");
+    if (!$statement) return null;
+    $result = $statement->execute(); if ($result === false) return null;
+    $row = $result->fetchArray(SQLITE3_ASSOC); $result->finalize();
+    if (!$row || !isset($row['meta_value'])) return null;
+    $brands = json_decode($row['meta_value'], true);
+    return is_array($brands) ? $brands : null;
+}
+function brands_db_write_on_connection($db, $brands) {
+    if (!is_array($brands)) return false; $payload=json_encode(array_values($brands), JSON_UNESCAPED_UNICODE); if($payload===false)return false;
+    $statement=$db->prepare("INSERT OR REPLACE INTO storage_meta (meta_key, meta_value) VALUES ('brands', :payload)"); if(!$statement)return false;
+    $statement->bindValue(':payload',$payload,SQLITE3_TEXT); $result=$statement->execute(); if($result===false)return false; if(is_object($result))$result->finalize(); return true;
+}
+
 function project_db_connection() {
     static $initialized = false;
     static $connection = null;
@@ -202,6 +217,13 @@ function project_db_connection() {
             );
         }
 
+        // Migrate brand metadata once; brands must survive SQLite-backed project reads.
+        if (brands_db_read_on_connection($db) === null) {
+            $legacy = json_file_read('projects.json');
+            $legacyBrands = is_array($legacy) && isset($legacy['brands']) && is_array($legacy['brands']) ? $legacy['brands'] : array();
+            if (!brands_db_write_on_connection($db, $legacyBrands)) throw new Exception('Failed to migrate brands');
+        }
+
         // Categories and the rest of the panel settings belong to the same
         // persistent database so deployments cannot restore old defaults.
         $settingsMigrationDone = $db->querySingle(
@@ -254,11 +276,8 @@ function json_read($filename) {
             if ($filename === 'projects.json') {
                 $projects = project_db_read_all($db);
                 if ($projects !== null) {
-                    // Brands are portfolio metadata and are retained in the JSON mirror
-                    // while project records themselves live in SQLite.
-                    $mirror = json_file_read('projects.json');
-                    $brands = is_array($mirror) && isset($mirror['brands']) && is_array($mirror['brands']) ? $mirror['brands'] : array();
-                    return array('projects' => $projects, 'brands' => $brands);
+                    $brands = brands_db_read_on_connection($db);
+                    return array('projects' => $projects, 'brands' => is_array($brands) ? $brands : array());
                 }
                 error_log('Failed to read projects from SQLite; falling back to JSON.');
             } else {
@@ -283,9 +302,9 @@ function json_write($filename, $data) {
                 if (!project_db_replace_on_connection($db, $projects)) {
                     send_error('Failed to save projects in the database', 500);
                 }
+                $brands = is_array($data) && isset($data['brands']) && is_array($data['brands']) ? $data['brands'] : brands_db_read_on_connection($db);
+                if (!is_array($brands) || !brands_db_write_on_connection($db, $brands)) send_error('Failed to save brands in the database', 500);
                 // Keep a best-effort JSON mirror for backup and host portability.
-                // Preserve brand metadata in the mirror as it is not part of the legacy projects table.
-                $brands = is_array($data) && isset($data['brands']) && is_array($data['brands']) ? $data['brands'] : array();
                 json_file_write($filename, array('projects' => $projects, 'brands' => $brands), false);
             } else {
                 if (!settings_db_write_on_connection($db, $data)) {

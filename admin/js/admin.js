@@ -11,6 +11,7 @@
   let brands = [];
   let assets = [];
   let editingId = null;
+  let editingProjectMedia = [];
   let hasUnsavedChanges = false;
 
   const $ = s => document.querySelector(s);
@@ -602,8 +603,16 @@
   function closeBrandEditor(){ $('#brandModal').classList.add('hidden'); document.body.style.overflow=''; }
   async function removeBrand(id){const brand=brands.find(b=>String(b.id)===String(id)),count=projects.filter(p=>String(p.brand)===String(id)).length;const confirmed=await showConfirm('Delete brand', 'Delete "'+(brand?brand.name:'this brand')+'"?'+(count?' '+count+' project(s) will become unassigned.':''));if(!confirmed)return;await api('brands/'+encodeURIComponent(id),{method:'DELETE'});closeBrandEditor();await loadProjects();showToast('Brand deleted','success');}
   $('#addBrandBtn').addEventListener('click',()=>openBrandEditor()); $('#brandModalClose').addEventListener('click',closeBrandEditor); $('#brandModalBackdrop').addEventListener('click',closeBrandEditor); $('#cancelBrandBtn').addEventListener('click',closeBrandEditor); $('#brandThumbnail').addEventListener('input',previewBrandThumbnail);
-  $('#browseBrandThumbnailBtn').addEventListener('click',()=>openAssetPicker(url=>{ $('#brandThumbnail').value=url; previewBrandThumbnail(); },'image')); $('#uploadBrandThumbnailBtn').addEventListener('click',()=>$('#brandThumbnailFile').click()); $('#brandThumbnailFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const fd=new FormData();fd.append('file',file);const result=await api('upload',{method:'POST',body:fd});$('#brandThumbnail').value=result.url;previewBrandThumbnail();showToast('Thumbnail uploaded','success');}catch(err){showToast('Upload failed: '+err.message,'error')}finally{e.target.value='';}});
+  $('#browseBrandThumbnailBtn').addEventListener('click',()=>openAssetPicker(url=>{ $('#brandThumbnail').value=url; previewBrandThumbnail(); },'image'));
   $('#brandForm').addEventListener('submit',async e=>{e.preventDefault();const id=$('#editingBrandId').value, payload={name:$('#brandName').value.trim(),thumbnail:$('#brandThumbnail').value.trim()};if(!payload.name||!payload.thumbnail)return;try{await api(id?'brands/'+encodeURIComponent(id):'brands',{method:id?'PUT':'POST',body:JSON.stringify(payload)});closeBrandEditor();await loadProjects();showToast(id?'Brand updated':'Brand created','success');}catch(err){showToast('Could not save brand: '+err.message,'error');}}); $('#deleteBrandBtn').addEventListener('click',()=>removeBrand($('#editingBrandId').value));
+
+  function renderProjectMedia() {
+    const list=$('#projectMediaList'), empty=$('#projectMediaEmpty'); if(!list)return;
+    list.innerHTML=editingProjectMedia.map((url,index)=>{const video=/\.(mp4|webm|mov|m4v|ogv|ogg|avi|mkv)(\?.*)?$/i.test(url);return '<div class="project-media-item" data-index="'+index+'">'+(video?'<video src="'+esc(url)+'" muted preload="metadata"></video>':'<img src="'+esc(url)+'" alt="">')+'<span>'+esc(url.split('/').pop()||'Media')+'</span><div><button type="button" class="project-media-move" data-direction="-1" '+(index===0?'disabled':'')+'>↑</button><button type="button" class="project-media-move" data-direction="1" '+(index===editingProjectMedia.length-1?'disabled':'')+'>↓</button><button type="button" class="project-media-remove">×</button></div></div>';}).join('');
+    empty && empty.classList.toggle('hidden',editingProjectMedia.length>0);
+    $$('.project-media-item').forEach(item=>{const index=Number(item.dataset.index);item.querySelector('.project-media-remove').onclick=()=>{editingProjectMedia.splice(index,1);renderProjectMedia();};item.querySelectorAll('.project-media-move').forEach(btn=>btn.onclick=()=>{const target=index+Number(btn.dataset.direction);[editingProjectMedia[index],editingProjectMedia[target]]=[editingProjectMedia[target],editingProjectMedia[index]];renderProjectMedia();});});
+  }
+  $('#addProjectMediaBtn').addEventListener('click',()=>openAssetPicker(url=>{if(!editingProjectMedia.includes(url)){editingProjectMedia.push(url);renderProjectMedia();}},'all'));
 
   function openAddProject() {
     editingId = null;
@@ -613,7 +622,7 @@
     setProjectVideo('');
     if ($('#projectPublished')) $('#projectPublished').checked = true;
     if ($('#projectFeatured')) $('#projectFeatured').checked = false;
-    if ($('#projectGallery')) $('#projectGallery').value = '';
+    editingProjectMedia = []; renderProjectMedia();
     $('#deleteProjectBtn').classList.add('hidden');
     populateCategoryDropdown();
     $('#projectModal').classList.remove('hidden');
@@ -638,7 +647,7 @@
     $('#projectThumbUrl').value = p.thumbnail || '';
     if ($('#projectPublished')) $('#projectPublished').checked = p.published !== false;
     if ($('#projectFeatured')) $('#projectFeatured').checked = p.featured === true;
-    if ($('#projectGallery')) $('#projectGallery').value = (p.gallery || []).join('\n');
+    editingProjectMedia = Array.isArray(p.gallery) ? p.gallery.slice() : []; renderProjectMedia();
     if (p.thumbnail) uploads.thumb.setImage(p.thumbnail);
     else uploads.thumb.clearImage();
     $('#deleteProjectBtn').classList.remove('hidden');
@@ -675,7 +684,7 @@
 
   $('#projectForm').addEventListener('submit', async e => {
     e.preventDefault();
-    const galleryRaw = ($('#projectGallery')?.value || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
+    const galleryRaw = editingProjectMedia.slice();
     const payload = {
       title: $('#projectTitle').value.trim(),
       brand: $('#projectBrand').value,
