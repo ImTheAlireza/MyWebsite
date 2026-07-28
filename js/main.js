@@ -698,7 +698,7 @@
       '.header-link',
       '.theme-toggle',
       '.back-to-top',
-      '.project-card-like',
+      '.modal-like-button',
       '.app-card',
       '.skill-node',
       '.availability-badge'

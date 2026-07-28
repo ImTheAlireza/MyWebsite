@@ -6,6 +6,9 @@
 const PROJECTS_URL = '/api.php?_query=projects';
 
 let siteCategories = ['Explainer', 'Social Media', 'UI Motion'];
+let renderedProjectsById = new Map();
+let projectGridEventsBound = false;
+let lastProjectTrigger = null;
 
 function normalizeSlug(value) {
   return String(value || '').toLowerCase().replace(/\s+/g, '');
@@ -157,22 +160,16 @@ function createProjectCard(project) {
   const year = document.createElement('span');
   year.className = 'project-card-year';
   year.textContent = project.year || '';
-  info.append(category, title, year);
+  const likes = document.createElement('span');
+  likes.className = 'project-card-like-count';
+  likes.dataset.projectId = String(project.id || '');
+  likes.setAttribute('aria-label', '0 likes');
+  likes.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"></path><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg><span class="like-count">0</span>';
+  const footer = document.createElement('div');
+  footer.className = 'project-card-footer';
+  footer.append(year, likes);
+  info.append(category, title, footer);
   card.append(thumb, info);
-
-  function selectProject(event) {
-    // The like control has its own action; every other part of the card opens it.
-    if (event.target && event.target.closest && event.target.closest('.project-card-like')) return;
-    openProjectModal(project);
-  }
-
-  card.addEventListener('click', selectProject);
-  card.addEventListener('keydown', event => {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-    if (event.target && event.target.closest && event.target.closest('.project-card-like')) return;
-    event.preventDefault();
-    selectProject(event);
-  });
 
   return card;
 }
@@ -180,10 +177,37 @@ function createProjectCard(project) {
 function renderProjects(projects) {
   const grid = document.getElementById('workGrid');
   if (!grid) return;
+
+  renderedProjectsById = new Map(
+    (Array.isArray(projects) ? projects : []).map(project => [String(project.id), project])
+  );
   grid.innerHTML = '';
-  projects.forEach(project => {
+  renderedProjectsById.forEach(project => {
     grid.appendChild(createProjectCard(project));
   });
+
+  // Delegate activation to the stable grid. This keeps cards clickable after
+  // filters, like-count updates, animations, and any future DOM enhancements.
+  if (!projectGridEventsBound) {
+    grid.addEventListener('click', event => {
+      const card = event.target.closest('.project-card');
+      if (!card || !grid.contains(card)) return;
+      const project = renderedProjectsById.get(String(card.dataset.id));
+      if (project) openProjectModal(project, card);
+    });
+    grid.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const card = event.target.closest('.project-card');
+      if (!card || !grid.contains(card)) return;
+      const project = renderedProjectsById.get(String(card.dataset.id));
+      if (!project) return;
+      event.preventDefault();
+      openProjectModal(project, card);
+    });
+    projectGridEventsBound = true;
+  }
+
+  document.dispatchEvent(new CustomEvent('projects:rendered'));
 }
 
 function renderFilters() {
@@ -201,7 +225,7 @@ function filterProjects(category, projects) {
   return projects.filter(p => p.category && normalizeSlug(p.category) === category);
 }
 
-function openProjectModal(project) {
+function openProjectModal(project, trigger) {
   const modal = document.getElementById('projectModal');
   const modalVideo = document.getElementById('modalVideo');
   const modalTitle = document.getElementById('modalTitle');
@@ -218,8 +242,11 @@ function openProjectModal(project) {
   }
 
   // Open first so a broken media URL can never make the card appear unresponsive.
+  lastProjectTrigger = trigger || document.activeElement;
+  modal.dataset.projectId = String(project.id || '');
   modal.classList.add('is-open');
   modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('project-modal-open');
   document.body.style.overflow = 'hidden';
 
   modalVideo.innerHTML = '';
@@ -290,6 +317,11 @@ function openProjectModal(project) {
     modalTools.appendChild(tag);
   });
 
+  document.dispatchEvent(new CustomEvent('project:opened', {
+    detail: { projectId: String(project.id || '') }
+  }));
+  const closeButton = document.getElementById('modalClose');
+  if (closeButton) closeButton.focus({ preventScroll: true });
 }
 
 function closeProjectModal() {
@@ -298,10 +330,16 @@ function closeProjectModal() {
   if (!modal || !modalVideo) return;
   modal.classList.remove('is-open');
   modal.setAttribute('aria-hidden', 'true');
+  modal.removeAttribute('data-project-id');
+  document.body.classList.remove('project-modal-open');
   document.body.style.overflow = '';
   modalVideo.innerHTML = '';
   const galleryEl = document.getElementById('modalGallery');
   if (galleryEl) galleryEl.innerHTML = '';
+  if (lastProjectTrigger && typeof lastProjectTrigger.focus === 'function') {
+    lastProjectTrigger.focus({ preventScroll: true });
+  }
+  lastProjectTrigger = null;
 }
 
 Object.assign(window, {
