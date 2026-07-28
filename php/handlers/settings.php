@@ -35,7 +35,7 @@ $DEFAULT_SETTINGS = array(
     'aboutText' => "I'm a motion graphics designer with a passion for transforming complex ideas into clear, compelling visual stories.",
     'aboutSkills' => 'Motion Design, Explainer Videos, Social Content, UI Animation, After Effects',
     'aboutResumeUrl' => '',
-    'categories' => array('Explainer', 'Social Media', 'UI Motion'),
+    'categories' => array(),
     'projectLayout' => '2col',
     'footerCopy' => '© 2026 Alireza Shabanzadeh',
     'footerNote' => 'Crafted with motion & care',
@@ -43,11 +43,16 @@ $DEFAULT_SETTINGS = array(
     'education' => array(),
 );
 
+function normalize_categories($values) {
+    return normalize_category_list($values);
+}
+
 function get_settings() {
     global $DEFAULT_SETTINGS;
     $data = json_read('settings.json');
-    $settings = is_array($data) ? $data : array();
-    send_json(array_merge($DEFAULT_SETTINGS, $settings));
+    $settings = array_merge($DEFAULT_SETTINGS, is_array($data) ? $data : array());
+    $settings['categories'] = normalize_categories(arr_get($settings, 'categories', array()));
+    send_json($settings);
 }
 
 function update_settings() {
@@ -76,7 +81,7 @@ function update_settings() {
             }, $value);
         } elseif ($key === 'categories') {
             if (!is_array($value)) continue;
-            $patch[$key] = array_values(array_filter(array_map('sanitize', $value)));
+            $patch[$key] = normalize_categories($value);
         } elseif (substr($key, -7) === 'Opacity' || substr($key, -5) === 'Scale') {
             $n = floatval($value);
             if (is_finite($n)) $patch[$key] = $n;
@@ -88,6 +93,7 @@ function update_settings() {
     $current = json_read('settings.json');
     if (!is_array($current)) $current = array();
     $settings = array_merge($DEFAULT_SETTINGS, $current, $patch);
+    $settings['categories'] = normalize_categories(arr_get($settings, 'categories', array()));
     json_write('settings.json', $settings);
     send_json($settings);
 }

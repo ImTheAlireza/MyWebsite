@@ -16,7 +16,13 @@ function list_projects() {
     }
 
     $projects = sort_projects($projects);
-    send_json(array('projects' => $projects));
+    $settings = json_read('settings.json');
+    $categories = normalize_category_list(arr_get(is_array($settings) ? $settings : array(), 'categories', array()));
+    send_json(array(
+        'projects' => $projects,
+        'categories' => $categories,
+        'storage' => project_db_connection() !== null ? 'sqlite' : 'json'
+    ));
 }
 
 // POST /api/projects
@@ -143,7 +149,7 @@ function delete_project($id) {
     // Remove orphaned thumbnail
     if (!empty($removed['thumbnail'])) {
         $used = collect_used_upload_urls();
-        if (preg_match('#/uploads/([^/?#]+)#', $removed['thumbnail'], $m)) {
+        if (preg_match('!/uploads/([^/?#]+)!', $removed['thumbnail'], $m)) {
             if (!in_array($m[1], $used)) {
                 $fp = __DIR__ . '/../../uploads/' . basename($m[1]);
                 if (file_exists($fp)) @unlink($fp);

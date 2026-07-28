@@ -40,6 +40,7 @@
     }
     const res = await fetch(API + url, {
       credentials: 'same-origin',
+      cache: 'no-store',
       ...opts,
       headers
     });
@@ -47,7 +48,7 @@
     const text = await res.text();
     let d = {};
     try { d = text ? JSON.parse(text) : {}; } catch { d = { error: text || 'Request failed' }; }
-    if (!res.ok) throw new Error(d.error || 'Request failed');
+    if (!res.ok || d.error) throw new Error(d.error || 'Request failed');
     return d;
   }
 
@@ -329,21 +330,92 @@
   let dragProjectId = null;
 
   function getCategoryLabel(val) {
-    const cat = categories.find(c => c.toLowerCase().replace(/\s+/g, '') === String(val || '').toLowerCase().replace(/\s+/g, ''));
-    return cat || val;
+    const cat = categories.find(c => getCategorySlug(c) === getCategorySlug(val));
+    return cat || (val ? 'Uncategorized' : '');
   }
 
   function getCategorySlug(name) {
     return String(name || '').toLowerCase().replace(/\s+/g, '');
   }
 
+  function isDirectVideoUrl(value) {
+    const clean = String(value || '').trim().split(/[?#]/)[0];
+    return /\.(mp4|webm|mov|m4v|ogv|ogg|avi|mkv)$/i.test(clean);
+  }
+
+  function mediaFilename(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    try {
+      const url = new URL(raw, window.location.origin);
+      return decodeURIComponent(url.pathname.split('/').pop() || raw);
+    } catch {
+      return raw;
+    }
+  }
+
+  function updateProjectVideoPreview(value, displayName) {
+    const preview = $('#projectVideoPreview');
+    const player = $('#projectVideoPreviewPlayer');
+    const name = $('#projectVideoPreviewName');
+    if (!preview || !player || !name) return;
+
+    const url = String(value || '').trim();
+    if (!url) {
+      player.pause();
+      player.removeAttribute('src');
+      player.load();
+      player.classList.add('hidden');
+      preview.classList.remove('is-external');
+      preview.classList.add('hidden');
+      name.textContent = '';
+      return;
+    }
+
+    const directVideo = isDirectVideoUrl(url);
+    name.textContent = displayName || (directVideo ? mediaFilename(url) : url);
+    if (directVideo) {
+      if (player.getAttribute('src') !== url) {
+        player.src = url;
+        player.load();
+      }
+      player.classList.remove('hidden');
+      preview.classList.remove('is-external');
+    } else {
+      player.pause();
+      player.removeAttribute('src');
+      player.load();
+      player.classList.add('hidden');
+      preview.classList.add('is-external');
+    }
+    preview.classList.remove('hidden');
+  }
+
+  function setProjectVideo(value, displayName) {
+    const input = $('#projectVideo');
+    if (!input) return;
+    input.value = value || '';
+    updateProjectVideoPreview(input.value, displayName);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
   async function loadProjects() {
     try {
-      const d = await api('projects');
-      projects = d.projects || [];
+      const data = await api('projects');
+      projects = Array.isArray(data.projects) ? data.projects : [];
+      if (Array.isArray(data.categories)) {
+        categories = data.categories;
+        renderCategories();
+        populateCategoryDropdown();
+      }
       renderProjects();
       checkProjectWarnings();
-    } catch (e) { console.error(e); }
+      return projects;
+    } catch (error) {
+      console.error(error);
+      showToast('Could not load saved projects: ' + error.message, 'error', 7000);
+      return null;
+    }
   }
 
   function checkProjectWarnings() {
@@ -390,13 +462,17 @@
     if (isDraft) badges.push('<span class="status-badge status-draft">Draft</span>');
     else badges.push('<span class="status-badge status-live">Live</span>');
     if (isFeatured) badges.push('<span class="status-badge status-featured">Featured</span>');
+    if (p.video) badges.push('<span class="status-badge status-video">Video</span>');
+    const thumbMedia = p.thumbnail
+      ? '<img src="' + esc(p.thumbnail) + '" alt="' + esc(p.title) + '" loading="lazy">'
+      : (isDirectVideoUrl(p.video)
+          ? '<video src="' + esc(p.video) + '" muted playsinline preload="metadata" aria-label="' + esc(p.title) + ' video"></video>'
+          : '<div class="project-thumb-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg></div>');
     return '<div class="project-card' + (hasCat ? '' : ' project-card-warning') + (isDraft ? ' is-draft' : '') + (isFeatured ? ' is-featured' : '') + '" data-id="' + esc(String(p.id)) + '" draggable="true">' +
       '<div class="project-drag-handle" title="Drag to reorder" aria-hidden="true">' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>' +
       '</div>' +
-      '<div class="project-thumb">' +
-        (p.thumbnail ? '<img src="' + esc(p.thumbnail) + '" alt="' + esc(p.title) + '" loading="lazy">' : '<div class="project-thumb-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg></div>') +
-      '</div>' +
+      '<div class="project-thumb">' + thumbMedia + '</div>' +
       '<div class="project-info">' +
         '<div class="project-badges">' + badges.join('') + '</div>' +
         '<div class="project-category">' + (hasCat ? esc(getCategoryLabel(p.category)) : '<em style="color:var(--danger)">No category</em>') + '</div>' +
@@ -507,10 +583,21 @@
     });
   });
 
-  function populateCategoryDropdown() {
+  function populateCategoryDropdown(selectedValue) {
     const sel = $('#projectCategory');
     if (!sel) return;
-    sel.innerHTML = categories.map(c => '<option value="' + getCategorySlug(c) + '">' + esc(c) + '</option>').join('');
+    const requested = selectedValue == null ? sel.value : String(selectedValue || '');
+    const matching = categories.find(c => getCategorySlug(c) === getCategorySlug(requested));
+    sel.innerHTML = categories.map(c => '<option value="' + esc(c) + '">' + esc(c) + '</option>').join('');
+
+    if (requested && !matching) {
+      sel.innerHTML += '<option value="' + esc(requested) + '">' + esc(requested) + ' (not in category list)</option>';
+    }
+    if (!categories.length && !requested) {
+      sel.innerHTML = '<option value="" disabled selected>Add a category first</option>';
+    } else {
+      sel.value = matching || requested || categories[0] || '';
+    }
   }
 
   function openAddProject() {
@@ -518,6 +605,7 @@
     $('#modalTitle').textContent = 'Add Project';
     $('#projectForm').reset();
     uploads.thumb.clearImage();
+    setProjectVideo('');
     if ($('#projectPublished')) $('#projectPublished').checked = true;
     if ($('#projectFeatured')) $('#projectFeatured').checked = false;
     if ($('#projectGallery')) $('#projectGallery').value = '';
@@ -535,13 +623,13 @@
     $('#modalTitle').textContent = 'Edit Project';
     $('#projectId').value = p.id;
     $('#projectTitle').value = p.title || '';
-    populateCategoryDropdown();
-    $('#projectCategory').value = p.category || '';
+    populateCategoryDropdown(p.category || '');
     $('#projectYear').value = p.year || '';
     $('#projectDescription').value = p.description || '';
     $('#projectRole').value = p.role || '';
     $('#projectTools').value = (p.tools || []).join(', ');
     $('#projectVideo').value = p.video || '';
+    updateProjectVideoPreview(p.video || '');
     $('#projectThumbUrl').value = p.thumbnail || '';
     if ($('#projectPublished')) $('#projectPublished').checked = p.published !== false;
     if ($('#projectFeatured')) $('#projectFeatured').checked = p.featured === true;
@@ -568,7 +656,17 @@
   $('#modalClose').addEventListener('click', closeModal);
   $('#modalBackdrop').addEventListener('click', closeModal);
   $('#cancelBtn').addEventListener('click', closeModal);
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#projectModal').classList.contains('hidden')) closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' &&
+        $('#assetPickerModal').classList.contains('hidden') &&
+        !$('#projectModal').classList.contains('hidden')) closeModal();
+  });
+
+  $('#projectVideo').addEventListener('input', e => updateProjectVideoPreview(e.target.value));
+  $('#browseProjectVideoBtn').addEventListener('click', () => {
+    openAssetPicker((url, name) => setProjectVideo(url, name), 'video');
+  });
+  $('#clearProjectVideoBtn').addEventListener('click', () => setProjectVideo(''));
 
   $('#projectForm').addEventListener('submit', async e => {
     e.preventDefault();
@@ -587,17 +685,35 @@
       gallery: galleryRaw
     };
     if (!payload.title) { showToast('Title is required', 'error'); return; }
+    if (!payload.category) { showToast('Add and select a category before saving the project', 'error', 5000); return; }
     const submitBtn = e.target.querySelector('[type="submit"]');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving…'; }
     const wasEdit = !!editingId;
     try {
-      if (editingId) await api(`/projects/${encodeURIComponent(editingId)}`, { method: 'PUT', body: JSON.stringify(payload) });
-      else await api('projects', { method: 'POST', body: JSON.stringify(payload) });
+      const saved = editingId
+        ? await api(`/projects/${encodeURIComponent(editingId)}`, { method: 'PUT', body: JSON.stringify(payload) })
+        : await api('projects', { method: 'POST', body: JSON.stringify(payload) });
+
+      if (!saved || !saved.id) throw new Error('The server did not confirm the project was saved');
+
+      // Read it back from persistent storage before reporting success. This
+      // prevents a temporary UI card from disappearing on the next refresh.
+      const persisted = await api('projects');
+      const persistedProjects = Array.isArray(persisted.projects) ? persisted.projects : [];
+      if (!persistedProjects.some(project => String(project.id) === String(saved.id))) {
+        throw new Error('The project could not be verified in persistent storage');
+      }
+
+      projects = persistedProjects;
+      if (Array.isArray(persisted.categories)) categories = persisted.categories;
+      renderCategories();
+      populateCategoryDropdown(saved.category || '');
+      renderProjects();
+      checkProjectWarnings();
       hasUnsavedChanges = false;
       closeModal();
-      await loadProjects();
-      showToast(wasEdit ? 'Project updated' : 'Project created', 'success');
-    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+      showToast(wasEdit ? 'Project updated and saved' : 'Project saved permanently', 'success');
+    } catch (err) { showToast('Save failed: ' + err.message, 'error', 6000); }
     finally {
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Save Project'; }
     }
@@ -852,11 +968,16 @@
 
   function renderAssets() {
     const list = $('#assetsList'), empty = $('#assetsEmptyState');
+    const orphanBar = $('#orphanAssetsBar');
     if (!list || !empty) return;
 
     if (!assets.length) {
       list.innerHTML = '';
       empty.classList.remove('hidden');
+      if (orphanBar) {
+        orphanBar.classList.add('hidden');
+        orphanBar.innerHTML = '';
+      }
       return;
     }
 
@@ -878,7 +999,6 @@
     };
 
     const orphanCount = assets.filter(f => f.orphan).length;
-    const orphanBar = $('#orphanAssetsBar');
     if (orphanBar) {
       if (orphanCount) {
         orphanBar.classList.remove('hidden');
@@ -906,8 +1026,10 @@
       const color = typeColors[f.type] || typeColors.other;
       const isImage = f.type === 'image' || f.isImage;
       const preview = isImage
-        ? '<img src="' + f.url + '" alt="' + esc(f.filename) + '" loading="lazy" onerror="this.style.display=\'none\'">'
-        : '<div class="asset-icon" style="color:' + color + '">' + icon + '</div>';
+        ? '<img src="' + esc(f.url) + '" alt="' + esc(f.filename) + '" loading="lazy" onerror="this.style.display=\'none\'">'
+        : (f.type === 'video'
+            ? '<video src="' + esc(f.url) + '" controls muted playsinline preload="metadata" aria-label="Preview ' + esc(f.filename) + '"></video>'
+            : '<div class="asset-icon" style="color:' + color + '">' + icon + '</div>');
 
       return '<div class="asset-card' + (f.orphan ? ' is-orphan' : '') + '" data-filename="' + esc(f.filename) + '" data-type="' + f.type + '">' +
         '<div class="asset-preview">' + preview + '</div>' +
@@ -920,10 +1042,10 @@
           '</div>' +
         '</div>' +
         '<div class="asset-actions">' +
-          '<button class="btn btn-ghost btn-sm copy-url" data-url="' + f.url + '" title="Copy URL">' +
+          '<button class="btn btn-ghost btn-sm copy-url" data-url="' + esc(f.url) + '" title="Copy URL">' +
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' +
           '</button>' +
-          '<a href="' + f.url + '" download="' + esc(f.filename) + '" class="btn btn-ghost btn-sm" title="Download">' +
+          '<a href="' + esc(f.url) + '" download="' + esc(f.filename) + '" class="btn btn-ghost btn-sm" title="Download">' +
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>' +
           '</a>' +
           '<button class="btn btn-ghost btn-sm del-asset" data-filename="' + esc(f.filename) + '" title="Delete" style="color:var(--danger)">' +
@@ -954,32 +1076,196 @@
     }));
   }
 
-  // Upload asset button
-  $('#uploadAssetBtn').addEventListener('click', () => $('#assetFileInput').click());
-  $('#refreshAssetsBtn').addEventListener('click', () => { loadAssets(); showToast('Refreshed', 'info'); });
+  // Upload media from the Assets page (picker or drag and drop)
+  const assetFileInput = $('#assetFileInput');
+  const assetUploadDropzone = $('#assetUploadDropzone');
+  const assetUploadProgress = $('#assetUploadProgress');
+  const assetUploadProgressTitle = $('#assetUploadProgressTitle');
+  const assetUploadProgressFile = $('#assetUploadProgressFile');
+  const assetUploadProgressPercent = $('#assetUploadProgressPercent');
+  const assetUploadProgressTrack = $('#assetUploadProgressTrack');
+  const assetUploadProgressFill = $('#assetUploadProgressFill');
+  const assetUploadProgressCount = $('#assetUploadProgressCount');
+  const assetUploadProgressSize = $('#assetUploadProgressSize');
+  const uploadAssetBtn = $('#uploadAssetBtn');
+  let assetUploadRunning = false;
+  let assetProgressHideTimer = null;
 
-  $('#assetFileInput').addEventListener('change', async e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 50 * 1024 * 1024) { showToast('File too large. Max 50MB.'); return; }
+  function formatUploadBytes(bytes) {
+    const value = Math.max(0, Number(bytes) || 0);
+    if (value === 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    const unit = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
+    const amount = value / Math.pow(1024, unit);
+    return (unit === 0 || amount >= 10 ? Math.round(amount) : amount.toFixed(1)) + ' ' + units[unit];
+  }
 
-    const fd = new FormData();
-    fd.append('file', file);
-    try {
-      const res = await fetch(API + 'upload', {
-        method: 'POST',
-        body: fd,
-        credentials: 'same-origin'
+  function updateAssetUploadProgress(percent, loadedBytes, totalBytes) {
+    const safePercent = Math.max(0, Math.min(100, Math.round(percent || 0)));
+    assetUploadProgressPercent.textContent = safePercent + '%';
+    assetUploadProgressFill.style.width = safePercent + '%';
+    assetUploadProgressTrack.setAttribute('aria-valuenow', String(safePercent));
+    assetUploadProgressTrack.setAttribute('aria-valuetext', safePercent + '% uploaded');
+    assetUploadProgressSize.textContent = formatUploadBytes(loadedBytes) + ' / ' + formatUploadBytes(totalBytes);
+  }
+
+  function uploadAssetFile(file, onProgress) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const fd = new FormData();
+      fd.append('file', file);
+
+      xhr.open('POST', API + 'upload', true);
+      xhr.withCredentials = true;
+      xhr.upload.addEventListener('progress', event => {
+        const total = event.lengthComputable ? event.total : file.size;
+        const loaded = Math.min(event.loaded, total);
+        // Reaching the server is not the same as being saved. Hold at 95%
+        // until the API confirms the file exists, instead of showing a false 100%.
+        const confirmedLoaded = total > 0 ? (loaded / total) * file.size * 0.95 : 0;
+        onProgress(confirmedLoaded, file.size, loaded >= total ? 'processing' : 'uploading');
       });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error);
-      showToast('Uploaded: ' + d.filename, 'success');
-      loadAssets();
-    } catch (err) {
-      showToast('Upload failed: ' + err.message, 'error');
+      xhr.addEventListener('load', () => {
+        let data = {};
+        try { data = xhr.responseText ? JSON.parse(xhr.responseText) : {}; } catch { data = {}; }
+        if (xhr.status >= 200 && xhr.status < 300 && data.url && data.filename) {
+          onProgress(file.size, file.size, 'complete');
+          resolve(data);
+        } else {
+          if (xhr.status === 401) logout();
+          const invalidResponse = xhr.status >= 200 && xhr.status < 300
+            ? 'The server did not confirm that the file was saved'
+            : 'Server rejected the upload';
+          reject(new Error(data.error || (xhr.status === 413 ? 'File is larger than the server limit' : invalidResponse)));
+        }
+      });
+      xhr.addEventListener('error', () => reject(new Error('Network error while uploading')));
+      xhr.addEventListener('abort', () => reject(new Error('Upload was cancelled')));
+      xhr.send(fd);
+    });
+  }
+
+  async function uploadAssetFiles(fileList) {
+    if (assetUploadRunning) {
+      showToast('Please wait for the current upload to finish.', 'info');
+      return;
     }
-    $('#assetFileInput').value = '';
+
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+
+    const accepted = files.filter(file => {
+      if (file.size <= 50 * 1024 * 1024) return true;
+      showToast(file.name + ' is too large. Max 50MB.', 'error', 5000);
+      return false;
+    });
+    if (!accepted.length) {
+      assetFileInput.value = '';
+      return;
+    }
+
+    clearTimeout(assetProgressHideTimer);
+    assetUploadRunning = true;
+    assetUploadDropzone.classList.add('is-uploading');
+    assetUploadDropzone.setAttribute('aria-busy', 'true');
+    uploadAssetBtn.disabled = true;
+    assetUploadProgress.classList.remove('hidden', 'is-complete', 'is-error');
+    assetUploadProgressTitle.textContent = accepted.length === 1 ? 'Uploading media' : 'Uploading ' + accepted.length + ' files';
+    assetUploadProgressFile.textContent = 'Preparing your upload…';
+
+    const totalBytes = accepted.reduce((sum, file) => sum + file.size, 0);
+    let confirmedBytes = 0;
+    let uploaded = 0;
+    let failed = 0;
+    updateAssetUploadProgress(0, 0, totalBytes);
+
+    for (let i = 0; i < accepted.length; i++) {
+      const file = accepted[i];
+      const confirmedBeforeFile = confirmedBytes;
+      let currentVisibleBytes = 0;
+      assetUploadProgressTitle.textContent = 'Uploading media';
+      assetUploadProgressFile.textContent = file.name;
+      assetUploadProgressCount.textContent = 'File ' + (i + 1) + ' of ' + accepted.length;
+
+      try {
+        await uploadAssetFile(file, (loaded, fileTotal, phase) => {
+          currentVisibleBytes = Math.min(file.size, Math.max(0, loaded || 0));
+          const overallLoaded = confirmedBeforeFile + currentVisibleBytes;
+          updateAssetUploadProgress((overallLoaded / totalBytes) * 100, overallLoaded, totalBytes);
+          if (phase === 'processing') {
+            assetUploadProgressTitle.textContent = 'Saving media on server…';
+            assetUploadProgressFile.textContent = 'Confirming ' + file.name;
+            assetUploadProgressSize.textContent = formatUploadBytes(confirmedBeforeFile + file.size) + ' / ' + formatUploadBytes(totalBytes);
+          }
+        });
+        uploaded++;
+        confirmedBytes = confirmedBeforeFile + file.size;
+        updateAssetUploadProgress((confirmedBytes / totalBytes) * 100, confirmedBytes, totalBytes);
+      } catch (err) {
+        failed++;
+        // Keep the bar below completion when the server did not save the file.
+        confirmedBytes = confirmedBeforeFile + currentVisibleBytes;
+        updateAssetUploadProgress((confirmedBytes / totalBytes) * 100, confirmedBytes, totalBytes);
+        showToast('Could not upload ' + file.name + ': ' + err.message, 'error', 7000);
+      }
+    }
+
+    assetUploadRunning = false;
+    assetUploadDropzone.classList.remove('is-uploading');
+    assetUploadDropzone.removeAttribute('aria-busy');
+    uploadAssetBtn.disabled = false;
+    assetFileInput.value = '';
+
+    if (failed) {
+      assetUploadProgress.classList.add('is-error');
+      assetUploadProgressPercent.textContent = uploaded ? 'Issue' : 'Failed';
+      assetUploadProgressTitle.textContent = uploaded ? 'Upload finished with an issue' : 'Upload failed';
+      assetUploadProgressFile.textContent = uploaded
+        ? uploaded + ' uploaded · ' + failed + ' failed'
+        : 'The server did not save this media. See the error message and try again.';
+      assetUploadProgressTrack.setAttribute('aria-valuetext', uploaded ? 'Some files failed to upload' : 'Upload failed');
+    } else {
+      updateAssetUploadProgress(100, totalBytes, totalBytes);
+      assetUploadProgress.classList.add('is-complete');
+      assetUploadProgressTitle.textContent = uploaded === 1 ? 'Upload complete' : 'All uploads complete';
+      assetUploadProgressFile.textContent = uploaded === 1 ? accepted[0].name : uploaded + ' files are ready to use';
+      showToast(uploaded + (uploaded === 1 ? ' file uploaded' : ' files uploaded'), 'success');
+    }
+    assetUploadProgressCount.textContent = uploaded + ' uploaded' + (failed ? ' · ' + failed + ' failed' : '');
+
+    if (uploaded) await loadAssets();
+
+    assetProgressHideTimer = setTimeout(() => {
+      assetUploadProgress.classList.add('hidden');
+      assetUploadProgress.classList.remove('is-complete', 'is-error');
+    }, 4500);
+  }
+
+  uploadAssetBtn.addEventListener('click', () => {
+    if (!assetUploadRunning) assetFileInput.click();
   });
+  $('#refreshAssetsBtn').addEventListener('click', () => { loadAssets(); showToast('Refreshed', 'info'); });
+  assetFileInput.addEventListener('change', e => uploadAssetFiles(e.target.files));
+  assetUploadDropzone.addEventListener('click', () => {
+    if (!assetUploadRunning) assetFileInput.click();
+  });
+  assetUploadDropzone.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && !assetUploadRunning) {
+      e.preventDefault();
+      assetFileInput.click();
+    }
+  });
+  assetUploadDropzone.addEventListener('dragover', e => {
+    e.preventDefault();
+    if (!assetUploadRunning) assetUploadDropzone.classList.add('dragover');
+  });
+  assetUploadDropzone.addEventListener('dragleave', () => assetUploadDropzone.classList.remove('dragover'));
+  assetUploadDropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    assetUploadDropzone.classList.remove('dragover');
+    uploadAssetFiles(e.dataTransfer.files);
+  });
+
 
   // ============================================
   // SETTINGS (General)
@@ -991,8 +1277,8 @@
         const el = $(`#setting${k.charAt(0).toUpperCase() + k.slice(1)}`);
         if (el && d[k] != null) el.value = d[k];
       });
-      // Load categories
-      categories = d.categories || ['Explainer', 'Social Media', 'UI Motion'];
+      // Empty is a valid saved state; never reintroduce removed defaults.
+      categories = Array.isArray(d.categories) ? d.categories : [];
       projectLayout = d.projectLayout || '2col';
       renderCategories();
       populateCategoryDropdown();
@@ -1006,48 +1292,82 @@
   function renderCategories() {
     const list = $('#categoriesList');
     if (!list) return;
-    list.innerHTML = categories.map(c =>
-      '<div class="category-tag">' + esc(c) + '<button type="button" class="category-tag-remove" data-cat="' + esc(c) + '">&times;</button></div>'
-    ).join('');
+    list.innerHTML = categories.length
+      ? categories.map(c =>
+          '<div class="category-tag">' + esc(c) + '<button type="button" class="category-tag-remove" data-cat="' + esc(c) + '">&times;</button></div>'
+        ).join('')
+      : '<span class="categories-empty">No categories saved yet.</span>';
     $$('.category-tag-remove').forEach(btn => {
       btn.addEventListener('click', () => removeCategory(btn.dataset.cat));
     });
   }
 
+  async function persistCategoryList(nextCategories) {
+    const saved = await api('settings', {
+      method: 'PUT',
+      body: JSON.stringify({ categories: nextCategories })
+    });
+    if (!Array.isArray(saved.categories)) throw new Error('The server did not confirm the category list');
+
+    const verified = await api('settings');
+    if (!Array.isArray(verified.categories)) throw new Error('The saved category list could not be read back');
+    const expected = nextCategories.map(getCategorySlug);
+    const actual = verified.categories.map(getCategorySlug);
+    if (expected.length !== actual.length || expected.some((category, index) => category !== actual[index])) {
+      throw new Error('The category list did not persist correctly');
+    }
+    return verified.categories;
+  }
+
   async function removeCategory(name) {
-    const catProjects = projects.filter(p => p.category && p.category.toLowerCase().replace(/\s+/g, '') === name.toLowerCase().replace(/\s+/g, ''));
+    const catProjects = projects.filter(p => p.category && getCategorySlug(p.category) === getCategorySlug(name));
     if (catProjects.length) {
       const confirmed = await showConfirm('Remove Category', `Removing "${name}" will untag ${catProjects.length} project(s). Continue?`);
       if (!confirmed) return;
     }
-    categories = categories.filter(c => c.toLowerCase().replace(/\s+/g, '') !== name.toLowerCase().replace(/\s+/g, ''));
-    if (catProjects.length) {
-      for (const p of catProjects) {
-        await api('projects/' + encodeURIComponent(p.id), { method: 'PUT', body: JSON.stringify({ category: '' }) });
+
+    const nextCategories = categories.filter(c => getCategorySlug(c) !== getCategorySlug(name));
+    try {
+      for (const project of catProjects) {
+        await api('projects/' + encodeURIComponent(project.id), {
+          method: 'PUT',
+          body: JSON.stringify({ category: '' })
+        });
       }
+      categories = await persistCategoryList(nextCategories);
+      await loadProjects();
+      renderCategories();
+      populateCategoryDropdown();
+      showToast('Category removed and saved', 'success');
+    } catch (err) {
+      showToast('Could not remove category: ' + err.message, 'error', 6000);
+      await loadSettings();
       await loadProjects();
     }
-    try {
-      await api('settings', { method: 'PUT', body: JSON.stringify({ categories }) });
-    } catch {}
-    renderCategories();
-    populateCategoryDropdown();
-    showToast('Category removed', 'success');
   }
 
   $('#addCategoryBtn').addEventListener('click', async () => {
     const input = $('#newCategoryInput');
     const name = input.value.trim();
     if (!name) return;
-    if (categories.some(c => c.toLowerCase() === name.toLowerCase())) { showToast('Category already exists', 'error'); return; }
-    categories.push(name);
-    input.value = '';
+    if (categories.some(c => getCategorySlug(c) === getCategorySlug(name))) {
+      showToast('Category already exists', 'error');
+      return;
+    }
+
+    const nextCategories = categories.concat(name);
     try {
-      await api('settings', { method: 'PUT', body: JSON.stringify({ categories }) });
-    } catch {}
-    renderCategories();
-    populateCategoryDropdown();
-    showToast('Category added', 'success');
+      categories = await persistCategoryList(nextCategories);
+      if (!categories.some(c => getCategorySlug(c) === getCategorySlug(name))) {
+        throw new Error('The new category was not found after saving');
+      }
+      input.value = '';
+      renderCategories();
+      populateCategoryDropdown(name);
+      showToast('Category added and saved', 'success');
+    } catch (err) {
+      showToast('Could not save category: ' + err.message, 'error', 6000);
+    }
   });
 
   $('#newCategoryInput').addEventListener('keydown', e => {
@@ -1154,6 +1474,8 @@
   const pickerModal = $('#assetPickerModal');
   const pickerGrid = $('#assetPickerGrid');
   const pickerEmpty = $('#assetPickerEmpty');
+  const pickerEmptyText = $('#assetPickerEmptyText');
+  const pickerTitle = $('#assetPickerTitle');
   const pickerSearch = $('#assetPickerSearch');
 
   function openAssetPicker(callback, filter) {
@@ -1162,18 +1484,25 @@
     pickerModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     pickerSearch.value = '';
+    pickerTitle.textContent = pickerFilter === 'video' ? 'Choose a Project Video' : 'Browse Assets';
+    pickerSearch.placeholder = pickerFilter === 'video' ? 'Search videos...' : 'Search assets...';
+    pickerEmptyText.textContent = pickerFilter === 'video'
+      ? 'No videos found. Upload one in the Assets tab first.'
+      : 'No assets found. Upload files in the Assets tab first.';
     renderPickerAssets(assets);
   }
 
   function closeAssetPicker() {
     pickerModal.classList.add('hidden');
-    document.body.style.overflow = '';
+    const projectModalOpen = !$('#projectModal').classList.contains('hidden');
+    document.body.style.overflow = projectModalOpen ? 'hidden' : '';
     pickerCallback = null;
   }
 
   function renderPickerAssets(list) {
     let filtered = list;
     if (pickerFilter === 'image') filtered = list.filter(f => f.type === 'image');
+    else if (pickerFilter === 'video') filtered = list.filter(f => f.type === 'video');
     else if (pickerFilter === 'document') filtered = list.filter(f => f.type === 'document' || /\.(pdf|doc|docx|txt)$/i.test(f.filename));
 
     if (!filtered.length) {
@@ -1192,12 +1521,15 @@
 
     pickerGrid.innerHTML = filtered.map(f => {
       const isImg = f.type === 'image';
+      const isVideo = f.type === 'video';
       const preview = isImg
-        ? '<img src="' + f.url + '" alt="' + esc(f.filename) + '" loading="lazy" onerror="this.style.display=\'none\'">'
-        : '<div class="asset-icon" style="color:var(--text-dim)">' + (typeIcons[f.type] || typeIcons.other) + '</div>';
+        ? '<img src="' + esc(f.url) + '" alt="' + esc(f.filename) + '" loading="lazy" onerror="this.style.display=\'none\'">'
+        : (isVideo
+            ? '<video src="' + esc(f.url) + '" muted playsinline preload="metadata" aria-label="' + esc(f.filename) + '"></video><span class="asset-video-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 3 21 12 7 21 7 3"></polygon></svg></span>'
+            : '<div class="asset-icon" style="color:var(--text-dim)">' + (typeIcons[f.type] || typeIcons.other) + '</div>');
 
-      return '<div class="asset-card picker-card" data-url="' + f.url + '" data-name="' + esc(f.filename) + '" style="cursor:pointer">' +
-        '<div class="asset-preview">' + preview + '</div>' +
+      return '<div class="asset-card picker-card" data-url="' + esc(f.url) + '" data-name="' + esc(f.filename) + '" style="cursor:pointer">' +
+        '<div class="asset-preview' + (isVideo ? ' asset-preview-picker' : '') + '">' + preview + '</div>' +
         '<div class="asset-info"><div class="asset-name" title="' + esc(f.filename) + '">' + esc(f.filename) + '</div>' +
         '<div class="asset-meta">' + f.sizeFormatted + '</div></div>' +
       '</div>';
@@ -1219,6 +1551,9 @@
 
   $('#assetPickerClose').addEventListener('click', closeAssetPicker);
   $('#assetPickerBackdrop').addEventListener('click', closeAssetPicker);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !pickerModal.classList.contains('hidden')) closeAssetPicker();
+  });
 
   // Browse buttons — images
   $$('.image-upload-browse-btn[data-picker]:not([data-picker="resume"])').forEach(btn => {

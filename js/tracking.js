@@ -103,7 +103,10 @@
 
   async function fetchLikeCount(projectId) {
     try {
-      const res = await fetch(`${LIKES_URL}/${encodeURIComponent(projectId)}/likes`);
+      const res = await fetch(`${LIKES_URL}/${encodeURIComponent(projectId)}/likes`, {
+        credentials: 'same-origin',
+        cache: 'no-store'
+      });
       if (res.ok) {
         const d = await res.json();
         return d.count || 0;
@@ -117,6 +120,8 @@
       const res = await fetch(`${LIKES_URL}/${encodeURIComponent(projectId)}/like`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
         body: JSON.stringify({ visitorId })
       });
       if (res.ok) {
@@ -130,58 +135,83 @@
     return null;
   }
 
-  function createLikeButton(projectId) {
-    const btn = document.createElement('button');
-    btn.className = 'project-card-like';
-    btn.type = 'button';
-    btn.setAttribute('data-cursor', 'link');
-    btn.setAttribute('aria-label', 'Like project');
-    const isLiked = likedProjects.has(String(projectId));
-    btn.innerHTML = `
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
-        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"></path>
-        <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-      </svg>
-      <span class="like-count">0</span>
-    `;
-    if (isLiked) btn.classList.add('is-liked');
+  const modalLikeButton = document.getElementById('modalLikeButton');
+  const modalLikeLabel = document.getElementById('modalLikeLabel');
+  const modalLikeCount = document.getElementById('modalLikeCount');
 
-    btn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      btn.style.pointerEvents = 'none';
+  function updateCardLikeCounts(projectId, count) {
+    document.querySelectorAll('.project-card-like-count[data-project-id]').forEach(indicator => {
+      if (String(indicator.dataset.projectId) !== String(projectId)) return;
+      const value = indicator.querySelector('.like-count');
+      if (value) value.textContent = String(count);
+      indicator.setAttribute('aria-label', count + (count === 1 ? ' like' : ' likes'));
+      indicator.classList.toggle('has-likes', count > 0);
+    });
+  }
+
+  function updateModalLike(projectId, count) {
+    if (!modalLikeButton || String(modalLikeButton.dataset.projectId || '') !== String(projectId)) return;
+    const isLiked = likedProjects.has(String(projectId));
+    modalLikeButton.disabled = false;
+    modalLikeButton.classList.toggle('is-liked', isLiked);
+    modalLikeButton.setAttribute('aria-pressed', isLiked ? 'true' : 'false');
+    modalLikeButton.setAttribute('aria-label', (isLiked ? 'Unlike' : 'Like') + ' this project. ' + count + (count === 1 ? ' like' : ' likes'));
+    const icon = modalLikeButton.querySelector('svg');
+    if (icon) icon.setAttribute('fill', isLiked ? 'currentColor' : 'none');
+    if (modalLikeLabel) modalLikeLabel.textContent = isLiked ? 'Liked' : 'Like project';
+    if (modalLikeCount) modalLikeCount.textContent = String(count);
+  }
+
+  async function refreshLikeCount(projectId) {
+    const count = await fetchLikeCount(projectId);
+    updateCardLikeCounts(projectId, count);
+    updateModalLike(projectId, count);
+    return count;
+  }
+
+  function hydrateCardLikeCounts() {
+    document.querySelectorAll('.project-card-like-count[data-project-id]').forEach(indicator => {
+      if (indicator.dataset.likesLoading === 'true' || indicator.dataset.likesLoaded === 'true') return;
+      indicator.dataset.likesLoading = 'true';
+      refreshLikeCount(indicator.dataset.projectId).then(() => {
+        indicator.dataset.likesLoaded = 'true';
+      }).finally(() => {
+        indicator.dataset.likesLoading = 'false';
+      });
+    });
+  }
+
+  document.addEventListener('projects:rendered', hydrateCardLikeCounts);
+  document.addEventListener('project:opened', event => {
+    if (!modalLikeButton) return;
+    const projectId = String(event.detail && event.detail.projectId || '');
+    if (!projectId) return;
+    modalLikeButton.dataset.projectId = projectId;
+    modalLikeButton.disabled = true;
+    modalLikeButton.classList.toggle('is-liked', likedProjects.has(projectId));
+    if (modalLikeLabel) modalLikeLabel.textContent = 'Loading likes…';
+    if (modalLikeCount) modalLikeCount.textContent = '—';
+    refreshLikeCount(projectId);
+  });
+
+  if (modalLikeButton) {
+    modalLikeButton.addEventListener('click', async event => {
+      event.stopPropagation();
+      const projectId = String(modalLikeButton.dataset.projectId || '');
+      if (!projectId || modalLikeButton.disabled) return;
+      modalLikeButton.disabled = true;
       const result = await toggleLike(projectId);
       if (result) {
-        btn.classList.toggle('is-liked', result.liked);
-        const svg = btn.querySelector('svg');
-        svg.setAttribute('fill', result.liked ? 'currentColor' : 'none');
-        btn.querySelector('.like-count').textContent = result.count;
+        updateCardLikeCounts(projectId, Number(result.count) || 0);
+        updateModalLike(projectId, Number(result.count) || 0);
+      } else {
+        modalLikeButton.disabled = false;
+        if (modalLikeLabel) modalLikeLabel.textContent = 'Try again';
       }
-      btn.style.pointerEvents = '';
-    });
-
-    fetchLikeCount(projectId).then(count => {
-      const el = btn.querySelector('.like-count');
-      if (el) el.textContent = count;
-    });
-
-    return btn;
-  }
-
-  function addLikeButtons() {
-    document.querySelectorAll('.project-card').forEach(card => {
-      if (card.querySelector('.project-card-like')) return;
-      const projectId = card.dataset.id;
-      if (!projectId) return;
-      const info = card.querySelector('.project-card-info');
-      if (info) info.appendChild(createLikeButton(projectId));
     });
   }
-
-  const observer = new MutationObserver(() => addLikeButtons());
-  observer.observe(document.body, { childList: true, subtree: true });
 
   document.addEventListener('click', (e) => {
-    if (e.target.closest('.project-card-like')) return;
     const card = e.target.closest('.project-card');
     if (card && card.dataset.id) trackProjectClick(card.dataset.id);
 
@@ -193,12 +223,12 @@
     document.addEventListener('DOMContentLoaded', () => {
       trackPageView();
       startTimeTracking();
-      addLikeButtons();
+      hydrateCardLikeCounts();
     });
   } else {
     trackPageView();
     startTimeTracking();
-    addLikeButtons();
+    hydrateCardLikeCounts();
   }
 
   window.addEventListener('hashchange', trackPageView);
@@ -215,7 +245,7 @@
     trackResumeDownload,
     trackProjectClick,
     getVisitorId,
-    createLikeButton,
-    addLikeButtons
+    refreshLikeCount,
+    hydrateCardLikeCounts
   };
 })();
