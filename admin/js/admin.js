@@ -8,8 +8,10 @@
   const API = '/api.php?_query=';
   let token = null;
   let projects = [];
+  let brands = [];
   let assets = [];
   let editingId = null;
+  let editingProjectMedia = [];
   let hasUnsavedChanges = false;
 
   const $ = s => document.querySelector(s);
@@ -403,6 +405,7 @@
     try {
       const data = await api('projects');
       projects = Array.isArray(data.projects) ? data.projects : [];
+      if (Array.isArray(data.brands)) { brands = data.brands; renderBrands(); }
       if (Array.isArray(data.categories)) {
         categories = data.categories;
         renderCategories();
@@ -425,7 +428,7 @@
     const drafts = projects.filter(p => p.published === false);
     const issues = [];
     if (untagged.length) {
-      issues.push('<div class="project-warnings-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> ' + untagged.length + ' project(s) hidden — no category</div><ul class="project-warnings-list">' + untagged.map(p => '<li>' + esc(p.title) + '</li>').join('') + '</ul>');
+      issues.push('<div class="project-warnings-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> ' + untagged.length + ' project(s) hidden — no brand</div><ul class="project-warnings-list">' + untagged.map(p => '<li>' + esc(p.title) + '</li>').join('') + '</ul>');
     }
     if (drafts.length) {
       issues.push('<div class="project-warnings-title" style="margin-top:8px;color:var(--warning)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> ' + drafts.length + ' draft(s) not visible on the site</div>');
@@ -441,7 +444,7 @@
     if (q) {
       list = list.filter(p =>
         (p.title || '').toLowerCase().includes(q) ||
-        (p.category || '').toLowerCase().includes(q) ||
+        (brandName(p.brand || p.category)).toLowerCase().includes(q) ||
         (p.year || '').toLowerCase().includes(q) ||
         (p.description || '').toLowerCase().includes(q) ||
         (p.role || '').toLowerCase().includes(q)
@@ -450,12 +453,12 @@
     if (projectStatusFilter === 'published') list = list.filter(p => p.published !== false);
     else if (projectStatusFilter === 'draft') list = list.filter(p => p.published === false);
     else if (projectStatusFilter === 'featured') list = list.filter(p => p.featured === true);
-    else if (projectStatusFilter === 'uncategorized') list = list.filter(p => !p.category || !String(p.category).trim());
+    else if (projectStatusFilter === 'uncategorized') list = list.filter(p => !p.brand || !String(p.brand).trim());
     return list;
   }
 
   function projectCardHtml(p) {
-    const hasCat = p.category && String(p.category).trim() !== '';
+    const hasCat = p.brand && String(p.brand).trim() !== '';
     const isDraft = p.published === false;
     const isFeatured = p.featured === true;
     const badges = [];
@@ -475,7 +478,7 @@
       '<div class="project-thumb">' + thumbMedia + '</div>' +
       '<div class="project-info">' +
         '<div class="project-badges">' + badges.join('') + '</div>' +
-        '<div class="project-category">' + (hasCat ? esc(getCategoryLabel(p.category)) : '<em style="color:var(--danger)">No category</em>') + '</div>' +
+        '<div class="project-category">' + (hasCat ? esc(brandName(p.brand || p.category)) : '<em style="color:var(--danger)">No brand</em>') + '</div>' +
         '<div class="project-title">' + esc(p.title) + '</div>' +
         '<div class="project-year">' + esc(p.year || '') + '</div>' +
       '</div>' +
@@ -584,21 +587,32 @@
   });
 
   function populateCategoryDropdown(selectedValue) {
-    const sel = $('#projectCategory');
-    if (!sel) return;
+    const sel = $('#projectBrand'); if (!sel) return;
     const requested = selectedValue == null ? sel.value : String(selectedValue || '');
-    const matching = categories.find(c => getCategorySlug(c) === getCategorySlug(requested));
-    sel.innerHTML = categories.map(c => '<option value="' + esc(c) + '">' + esc(c) + '</option>').join('');
-
-    if (requested && !matching) {
-      sel.innerHTML += '<option value="' + esc(requested) + '">' + esc(requested) + ' (not in category list)</option>';
-    }
-    if (!categories.length && !requested) {
-      sel.innerHTML = '<option value="" disabled selected>Add a category first</option>';
-    } else {
-      sel.value = matching || requested || categories[0] || '';
-    }
+    sel.innerHTML = '<option value="">Select a brand</option>' + brands.map(b => '<option value="' + esc(String(b.id)) + '">' + esc(b.name) + '</option>').join('');
+    sel.value = requested;
   }
+  function brandName(id) { const b=brands.find(b=>String(b.id)===String(id)); return b ? b.name : 'No brand'; }
+  function renderBrands() {
+    const list=$('#brandsList'), empty=$('#brandsEmpty'); if(!list)return;
+    list.innerHTML=brands.map(b=>{ const count=projects.filter(p=>String(p.brand)===String(b.id)).length; return '<article class="brand-admin-card" data-id="'+esc(String(b.id))+'"><img src="'+esc(b.thumbnail)+'" alt=""><div class="brand-admin-card-body"><strong>'+esc(b.name)+'</strong><span>'+count+' project'+(count===1?'':'s')+'</span></div><button type="button" class="brand-edit-btn" data-id="'+esc(String(b.id))+'">Edit</button></article>'; }).join('');
+    empty && empty.classList.toggle('hidden',brands.length>0); $$('.brand-edit-btn').forEach(btn=>btn.onclick=()=>openBrandEditor(btn.dataset.id));
+  }
+  function previewBrandThumbnail() { const img=$('#brandThumbnailPreview'), url=$('#brandThumbnail').value.trim(); if(!url){img.classList.add('hidden');return;} img.src=url; img.classList.remove('hidden'); }
+  function openBrandEditor(id) { const brand=id&&brands.find(b=>String(b.id)===String(id)); $('#brandForm').reset(); $('#editingBrandId').value=brand?brand.id:''; $('#brandModalTitle').textContent=brand?'Edit brand':'Add brand'; $('#brandName').value=brand?brand.name:''; $('#brandThumbnail').value=brand?brand.thumbnail:''; $('#deleteBrandBtn').classList.toggle('hidden',!brand); previewBrandThumbnail(); $('#brandModal').classList.remove('hidden'); document.body.style.overflow='hidden'; $('#brandName').focus(); }
+  function closeBrandEditor(){ $('#brandModal').classList.add('hidden'); document.body.style.overflow=''; }
+  async function removeBrand(id){const brand=brands.find(b=>String(b.id)===String(id)),count=projects.filter(p=>String(p.brand)===String(id)).length;const confirmed=await showConfirm('Delete brand', 'Delete "'+(brand?brand.name:'this brand')+'"?'+(count?' '+count+' project(s) will become unassigned.':''));if(!confirmed)return;await api('brands/'+encodeURIComponent(id),{method:'DELETE'});closeBrandEditor();await loadProjects();showToast('Brand deleted','success');}
+  $('#addBrandBtn').addEventListener('click',()=>openBrandEditor()); $('#brandModalClose').addEventListener('click',closeBrandEditor); $('#brandModalBackdrop').addEventListener('click',closeBrandEditor); $('#cancelBrandBtn').addEventListener('click',closeBrandEditor); $('#brandThumbnail').addEventListener('input',previewBrandThumbnail);
+  $('#browseBrandThumbnailBtn').addEventListener('click',()=>openAssetPicker(url=>{ $('#brandThumbnail').value=url; previewBrandThumbnail(); },'image'));
+  $('#brandForm').addEventListener('submit',async e=>{e.preventDefault();const id=$('#editingBrandId').value, payload={name:$('#brandName').value.trim(),thumbnail:$('#brandThumbnail').value.trim()};if(!payload.name||!payload.thumbnail)return;try{await api(id?'brands/'+encodeURIComponent(id):'brands',{method:id?'PUT':'POST',body:JSON.stringify(payload)});closeBrandEditor();await loadProjects();showToast(id?'Brand updated':'Brand created','success');}catch(err){showToast('Could not save brand: '+err.message,'error');}}); $('#deleteBrandBtn').addEventListener('click',()=>removeBrand($('#editingBrandId').value));
+
+  function renderProjectMedia() {
+    const list=$('#projectMediaList'), empty=$('#projectMediaEmpty'); if(!list)return;
+    list.innerHTML=editingProjectMedia.map((url,index)=>{const video=/\.(mp4|webm|mov|m4v|ogv|ogg|avi|mkv)(\?.*)?$/i.test(url);return '<div class="project-media-item" data-index="'+index+'">'+(video?'<video src="'+esc(url)+'" muted preload="metadata"></video>':'<img src="'+esc(url)+'" alt="">')+'<span>'+esc(url.split('/').pop()||'Media')+'</span><div><button type="button" class="project-media-move" data-direction="-1" '+(index===0?'disabled':'')+'>↑</button><button type="button" class="project-media-move" data-direction="1" '+(index===editingProjectMedia.length-1?'disabled':'')+'>↓</button><button type="button" class="project-media-remove">×</button></div></div>';}).join('');
+    empty && empty.classList.toggle('hidden',editingProjectMedia.length>0);
+    $$('.project-media-item').forEach(item=>{const index=Number(item.dataset.index);item.querySelector('.project-media-remove').onclick=()=>{editingProjectMedia.splice(index,1);renderProjectMedia();};item.querySelectorAll('.project-media-move').forEach(btn=>btn.onclick=()=>{const target=index+Number(btn.dataset.direction);[editingProjectMedia[index],editingProjectMedia[target]]=[editingProjectMedia[target],editingProjectMedia[index]];renderProjectMedia();});});
+  }
+  $('#addProjectMediaBtn').addEventListener('click',()=>openAssetPicker(url=>{if(!editingProjectMedia.includes(url)){editingProjectMedia.push(url);renderProjectMedia();}},'all'));
 
   function openAddProject() {
     editingId = null;
@@ -608,7 +622,7 @@
     setProjectVideo('');
     if ($('#projectPublished')) $('#projectPublished').checked = true;
     if ($('#projectFeatured')) $('#projectFeatured').checked = false;
-    if ($('#projectGallery')) $('#projectGallery').value = '';
+    editingProjectMedia = []; renderProjectMedia();
     $('#deleteProjectBtn').classList.add('hidden');
     populateCategoryDropdown();
     $('#projectModal').classList.remove('hidden');
@@ -623,7 +637,7 @@
     $('#modalTitle').textContent = 'Edit Project';
     $('#projectId').value = p.id;
     $('#projectTitle').value = p.title || '';
-    populateCategoryDropdown(p.category || '');
+    populateCategoryDropdown(p.brand || p.category || '');
     $('#projectYear').value = p.year || '';
     $('#projectDescription').value = p.description || '';
     $('#projectRole').value = p.role || '';
@@ -633,7 +647,7 @@
     $('#projectThumbUrl').value = p.thumbnail || '';
     if ($('#projectPublished')) $('#projectPublished').checked = p.published !== false;
     if ($('#projectFeatured')) $('#projectFeatured').checked = p.featured === true;
-    if ($('#projectGallery')) $('#projectGallery').value = (p.gallery || []).join('\n');
+    editingProjectMedia = Array.isArray(p.gallery) ? p.gallery.slice() : []; renderProjectMedia();
     if (p.thumbnail) uploads.thumb.setImage(p.thumbnail);
     else uploads.thumb.clearImage();
     $('#deleteProjectBtn').classList.remove('hidden');
@@ -670,10 +684,10 @@
 
   $('#projectForm').addEventListener('submit', async e => {
     e.preventDefault();
-    const galleryRaw = ($('#projectGallery')?.value || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
+    const galleryRaw = editingProjectMedia.slice();
     const payload = {
       title: $('#projectTitle').value.trim(),
-      category: $('#projectCategory').value,
+      brand: $('#projectBrand').value,
       year: $('#projectYear').value.trim(),
       description: $('#projectDescription').value.trim(),
       role: $('#projectRole').value.trim(),
@@ -685,7 +699,7 @@
       gallery: galleryRaw
     };
     if (!payload.title) { showToast('Title is required', 'error'); return; }
-    if (!payload.category) { showToast('Add and select a category before saving the project', 'error', 5000); return; }
+    if (!payload.brand) { showToast('Add and select a brand before saving the project', 'error', 5000); return; }
     const submitBtn = e.target.querySelector('[type="submit"]');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving…'; }
     const wasEdit = !!editingId;
@@ -707,7 +721,7 @@
       projects = persistedProjects;
       if (Array.isArray(persisted.categories)) categories = persisted.categories;
       renderCategories();
-      populateCategoryDropdown(saved.category || '');
+      populateCategoryDropdown(saved.brand || '');
       renderProjects();
       checkProjectWarnings();
       hasUnsavedChanges = false;
@@ -1346,7 +1360,7 @@
     }
   }
 
-  $('#addCategoryBtn').addEventListener('click', async () => {
+  $('#addCategoryBtn') && $('#addCategoryBtn').addEventListener('click', async () => {
     const input = $('#newCategoryInput');
     const name = input.value.trim();
     if (!name) return;
@@ -1370,7 +1384,7 @@
     }
   });
 
-  $('#newCategoryInput').addEventListener('keydown', e => {
+  $('#newCategoryInput') && $('#newCategoryInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') { e.preventDefault(); $('#addCategoryBtn').click(); }
   });
 
@@ -1495,7 +1509,8 @@
   function closeAssetPicker() {
     pickerModal.classList.add('hidden');
     const projectModalOpen = !$('#projectModal').classList.contains('hidden');
-    document.body.style.overflow = projectModalOpen ? 'hidden' : '';
+    const brandModalOpen = !$('#brandModal').classList.contains('hidden');
+    document.body.style.overflow = (projectModalOpen || brandModalOpen) ? 'hidden' : '';
     pickerCallback = null;
   }
 
@@ -1841,7 +1856,7 @@
             <div class="stats-list-thumb">${p.thumbnail ? '<img src="' + esc(p.thumbnail) + '" alt="">' : ''}</div>
             <div class="stats-list-info">
               <div class="stats-list-title">${esc(p.title)}</div>
-              <div class="stats-list-meta">${esc(p.category || 'No category')} &middot; ${esc(p.year || '')}</div>
+              <div class="stats-list-meta">${esc(p.category || 'No brand')} &middot; ${esc(p.year || '')}</div>
             </div>
           </div>
         `).join('') || '<p style="color:var(--text-dim);font-size:0.875rem">No projects yet</p>';
@@ -2177,7 +2192,7 @@
         if (!q) { renderProjects(); return; }
         const filtered = projects.filter(p =>
           (p.title || '').toLowerCase().includes(q) ||
-          (p.category || '').toLowerCase().includes(q) ||
+          (brandName(p.brand || p.category)).toLowerCase().includes(q) ||
           (p.year || '').toLowerCase().includes(q) ||
           (p.description || '').toLowerCase().includes(q)
         );
@@ -2186,7 +2201,7 @@
         empty.classList.add('hidden');
         list.innerHTML = filtered.map(p => {
           const hasCat = p.category && p.category.trim() !== '';
-          return '<div class="project-card' + (hasCat ? '' : ' project-card-warning') + '" data-id="' + p.id + '"><div class="project-thumb">' + (p.thumbnail ? '<img src="' + p.thumbnail + '" alt="' + esc(p.title) + '" loading="lazy">' : '<div class="project-thumb-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg></div>') + '</div><div class="project-info"><div class="project-category">' + (hasCat ? getCategoryLabel(p.category) : '<em style="color:var(--danger)">No category</em>') + '</div><div class="project-title">' + esc(p.title) + '</div><div class="project-year">' + esc(p.year || '') + '</div></div><div class="project-actions"><button class="btn btn-ghost btn-sm edit-btn" data-id="' + p.id + '">Edit</button><button class="btn btn-ghost btn-sm del-btn" data-id="' + p.id + '" style="color:var(--danger)">Delete</button></div></div>';
+          return '<div class="project-card' + (hasCat ? '' : ' project-card-warning') + '" data-id="' + p.id + '"><div class="project-thumb">' + (p.thumbnail ? '<img src="' + p.thumbnail + '" alt="' + esc(p.title) + '" loading="lazy">' : '<div class="project-thumb-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg></div>') + '</div><div class="project-info"><div class="project-category">' + (hasCat ? getCategoryLabel(p.category) : '<em style="color:var(--danger)">No brand</em>') + '</div><div class="project-title">' + esc(p.title) + '</div><div class="project-year">' + esc(p.year || '') + '</div></div><div class="project-actions"><button class="btn btn-ghost btn-sm edit-btn" data-id="' + p.id + '">Edit</button><button class="btn btn-ghost btn-sm del-btn" data-id="' + p.id + '" style="color:var(--danger)">Delete</button></div></div>';
         }).join('');
         $$('.edit-btn').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openEditProject(+b.dataset.id); }));
         $$('.del-btn').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); deleteProject(+b.dataset.id); }));

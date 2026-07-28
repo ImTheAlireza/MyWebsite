@@ -153,7 +153,7 @@
         <div class="view-header">
           <div>
             <h2>Projects</h2>
-            <p class="view-subtitle">Manage your portfolio projects</p>
+            <p class="view-subtitle">Manage projects and the brands that group them</p>
           </div>
           <button id="addProjectBtn" class="btn btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -175,7 +175,7 @@
               <option value="published">Published</option>
               <option value="draft">Drafts</option>
               <option value="featured">Featured</option>
-              <option value="uncategorized">No category</option>
+              <option value="uncategorized">No brand</option>
             </select>
           </div>
           <div class="layout-switcher" id="layoutSwitcher">
@@ -190,25 +190,15 @@
             </button>
           </div>
         </div>
-        <p class="projects-hint">Drag cards to reorder · Featured projects appear first on the site · Drafts stay hidden</p>
-        <div class="categories-section">
-          <div class="categories-header">
-            <span class="categories-label">Categories</span>
-            <button type="button" class="btn btn-ghost btn-sm" id="toggleCategoriesBtn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
+        <p class="projects-hint">Projects are grouped by brand on the public site · Drag to reorder · Drafts stay hidden</p>
+        <section class="brand-manager" id="brandsManager" aria-labelledby="brandsHeading">
+          <div class="brand-manager-header">
+            <div><span class="eyebrow">Portfolio structure</span><h3 id="brandsHeading">Brands</h3><p>Create visual brand hubs, then assign each project to one.</p></div>
+            <button type="button" id="addBrandBtn" class="btn btn-primary btn-sm">+ Add brand</button>
           </div>
-          <div class="categories-body" id="categoriesBody">
-            <div class="categories-list" id="categoriesList"></div>
-            <div class="categories-add">
-              <input type="text" id="newCategoryInput" placeholder="Add new category...">
-              <button type="button" id="addCategoryBtn" class="btn btn-primary btn-sm">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                Add
-              </button>
-            </div>
-          </div>
-        </div>
+          <div id="brandsList" class="brands-grid"></div>
+          <p id="brandsEmpty" class="brands-empty hidden">No brands yet. Add your first brand to start grouping projects.</p>
+        </section>
         <div id="projectsList" class="projects-grid"></div>
         <div id="emptyState" class="empty-state hidden">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -923,6 +913,9 @@
     </main>
   </div>
 
+  <!-- Brand editor -->
+  <div id="brandModal" class="modal hidden" aria-hidden="true"><div class="modal-backdrop" id="brandModalBackdrop"></div><div class="modal-content brand-editor-modal"><div class="modal-header"><div><span class="modal-eyebrow">Portfolio structure</span><h3 id="brandModalTitle">Create brand</h3></div><button type="button" id="brandModalClose" class="modal-close-btn" aria-label="Close">×</button></div><form id="brandForm" class="modal-form"><input id="editingBrandId" type="hidden"><div class="form-group"><label for="brandName">Brand name</label><input id="brandName" required maxlength="80" placeholder="e.g. Nike" autocomplete="off"></div><div class="form-group"><label>Brand cover image</label><p class="field-help">This image represents the brand in your public portfolio.</p><input id="brandThumbnail" required type="hidden"><input id="brandThumbnailFile" type="file" accept="image/*" class="hidden"><button type="button" id="browseBrandThumbnailBtn" class="brand-cover-picker"><img id="brandThumbnailPreview" alt=""><span class="brand-cover-empty"><b>Choose from Assets</b><small>Select an uploaded image for this brand</small></span><span class="brand-cover-change">Choose image</span></button></div><div class="modal-footer"><button type="button" id="deleteBrandBtn" class="btn btn-ghost hidden" style="color:var(--danger)">Delete</button><span class="modal-footer-spacer"></span><button type="button" id="cancelBrandBtn" class="btn btn-ghost">Cancel</button><button class="btn btn-primary" type="submit">Save brand</button></div></form></div></div>
+
   <!-- Project Edit Modal -->
   <div id="projectModal" class="modal hidden">
     <div class="modal-backdrop" id="modalBackdrop"></div>
@@ -944,8 +937,8 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label for="projectCategory">Category *</label>
-            <select id="projectCategory" required>
+            <label for="projectBrand">Brand *</label>
+            <select id="projectBrand" required>
               <!-- Populated dynamically -->
             </select>
           </div>
@@ -1020,8 +1013,9 @@
           </label>
         </div>
         <div class="form-group">
-          <label for="projectGallery">Gallery URLs <span class="label-hint">(optional, one per line)</span></label>
-          <textarea id="projectGallery" rows="3" placeholder="/uploads/image1.jpg&#10;/uploads/image2.jpg"></textarea>
+          <div class="project-media-header"><div><label>Project media</label><p>Add and order every image or video for this case study.</p></div><button type="button" id="addProjectMediaBtn" class="btn btn-ghost btn-sm">+ Add from Assets</button></div>
+          <div id="projectMediaList" class="project-media-list"></div>
+          <p id="projectMediaEmpty" class="project-media-empty">No media yet. Add images or videos from Assets.</p>
         </div>
         <div class="form-group">
           <label>Thumbnail Image</label>

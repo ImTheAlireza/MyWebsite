@@ -6,6 +6,7 @@ function list_projects() {
     $user = optional_auth();
     $data = json_read('projects.json');
     $projects = arr_get($data, 'projects', array());
+    $brands = arr_get($data, 'brands', array());
 
     $projects = array_map('normalize_project', $projects);
 
@@ -20,7 +21,8 @@ function list_projects() {
     $categories = normalize_category_list(arr_get(is_array($settings) ? $settings : array(), 'categories', array()));
     send_json(array(
         'projects' => $projects,
-        'categories' => $categories,
+        'categories' => $categories, // legacy
+        'brands' => is_array($brands) ? array_values($brands) : array(),
         'storage' => project_db_connection() !== null ? 'sqlite' : 'json'
     ));
 }
@@ -50,7 +52,7 @@ function create_project() {
     $created = normalize_project($input);
 
     $projects[] = $created;
-    json_write('projects.json', array('projects' => $projects));
+    json_write('projects.json', array('projects' => $projects, 'brands' => arr_get($data, 'brands', array())));
     send_json($created);
 }
 
@@ -81,7 +83,7 @@ function reorder_projects() {
         }
     }
 
-    json_write('projects.json', array('projects' => $projects));
+    json_write('projects.json', array('projects' => $projects, 'brands' => arr_get($data, 'brands', array())));
     send_json(array('success' => true));
 }
 
@@ -111,7 +113,7 @@ function update_project($id) {
 
     if (!$found) send_error('Project not found', 404);
 
-    json_write('projects.json', array('projects' => $projects));
+    json_write('projects.json', array('projects' => $projects, 'brands' => arr_get($data, 'brands', array())));
     send_json($result);
 }
 
@@ -136,7 +138,7 @@ function delete_project($id) {
 
     if (!$found) send_error('Project not found', 404);
 
-    json_write('projects.json', array('projects' => $newProjects));
+    json_write('projects.json', array('projects' => $newProjects, 'brands' => arr_get($data, 'brands', array())));
 
     // Clean likes for this project
     $likesData = json_read('likes.json');

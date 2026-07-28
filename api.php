@@ -45,6 +45,10 @@ if ($path === '/projects' && $method === 'GET') {
     require $base . '/php/handlers/projects.php';
     list_projects(); return;
 }
+if ($path === '/brands' && $method === 'POST') { require $base . '/php/handlers/brands.php'; create_brand(); return; }
+if (preg_match('#^/brands/([a-f0-9-]+)$#i', $path, $m) && $method === 'PUT') { require $base . '/php/handlers/brands.php'; update_brand($m[1]); return; }
+if (preg_match('#^/brands/([a-f0-9-]+)$#i', $path, $m) && $method === 'DELETE') { require $base . '/php/handlers/brands.php'; delete_brand($m[1]); return; }
+
 if ($path === '/projects' && $method === 'POST') {
     require $base . '/php/handlers/projects.php';
     create_project(); return;
