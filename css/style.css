@@ -85,7 +85,6 @@ body {
   color: var(--text-primary);
   background-color: var(--bg-primary);
   overflow-x: hidden;
-  cursor: none;
 }
 
 a {
@@ -98,13 +97,11 @@ button {
   background: none;
   font: inherit;
   color: inherit;
-  cursor: none;
 }
 
 input, textarea {
   font: inherit;
   color: inherit;
-  cursor: none;
 }
 
 img {
@@ -2282,3 +2279,15 @@ a.contact-info-value:hover {
 .is-brand-modal .modal-close{position:fixed;top:calc(4vh + 14px);right:calc(3vw + 14px);background:rgba(10,10,12,.78);color:#fff;backdrop-filter:blur(14px);z-index:30}.brand-modal-body{padding:0!important}.brand-showcase-hero{position:relative;min-height:300px;overflow:hidden;isolation:isolate;background:#141416}.brand-showcase-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55;filter:saturate(.8);transform:scale(1.04);transition:transform 1.1s cubic-bezier(.2,.75,.2,1),opacity .7s}.brand-modal-body.is-ready .brand-showcase-image{transform:scale(1);opacity:.65}.brand-showcase-hero:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(0,0,0,.78),rgba(0,0,0,.28)),linear-gradient(0deg,rgba(0,0,0,.52),transparent 60%)}.brand-showcase-copy{position:relative;z-index:1;display:flex;flex-direction:column;justify-content:flex-end;min-height:300px;padding:44px;max-width:620px;color:#fff;transform:translateY(16px);opacity:0;transition:transform .65s .1s var(--ease-out),opacity .65s .1s}.is-ready .brand-showcase-copy{transform:none;opacity:1}.brand-showcase-kicker,.brand-projects-intro span,.case-study-meta{font:600 .67rem var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}.brand-showcase-copy h3{margin:9px 0;font:600 clamp(2rem,5vw,4.2rem)/.98 var(--font-display);letter-spacing:-.055em}.brand-showcase-copy p{margin:0;color:rgba(255,255,255,.74);font-size:.95rem}.brand-projects-intro{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;padding:34px 44px 21px}.brand-projects-intro h4{margin:7px 0 0;font:600 1.45rem var(--font-display);letter-spacing:-.025em}.brand-projects-intro p{margin:0;max-width:260px;color:var(--text-tertiary);font-size:.82rem;line-height:1.5}.brand-projects-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:0 44px 44px}.brand-project-tile{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:12px;background:var(--bg-primary);cursor:pointer;outline:0;opacity:0;transform:translateY(18px);transition:transform .35s var(--ease-out),border-color .3s,box-shadow .3s,opacity .45s var(--tile-delay)}.is-ready .brand-project-tile{opacity:1;transform:none}.brand-project-tile:hover,.brand-project-tile:focus-visible{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 14px 32px rgba(0,0,0,.18)}.brand-project-visual{position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--bg-tertiary)}.brand-project-preview{width:100%;height:100%;object-fit:cover;transition:transform .55s var(--ease-out),filter .4s}.brand-project-tile:hover .brand-project-preview{transform:scale(1.06);filter:brightness(.78)}.brand-media-count{position:absolute;right:11px;bottom:11px;padding:5px 8px;border-radius:99px;background:rgba(0,0,0,.66);color:#fff;font:600 .62rem var(--font-mono);letter-spacing:.04em}.brand-project-no-media{height:100%;display:grid;place-items:center;color:var(--text-tertiary);font:.75rem var(--font-mono)}.brand-project-tile-details{display:grid;grid-template-columns:1fr auto;gap:3px;padding:17px 18px}.brand-project-tile-details>span{grid-column:1;color:var(--accent);font:.65rem var(--font-mono);text-transform:uppercase}.brand-project-tile-details h4{margin:0;font:600 1.05rem var(--font-display)}.brand-project-tile-details button{grid-row:1/3;grid-column:2;align-self:center;color:var(--text-secondary);font-size:.75rem}.brand-project-tile-details b{font-size:1rem;color:var(--accent)}
 .brand-case-study{position:absolute;inset:0;z-index:15;overflow:auto;background:var(--bg-secondary);opacity:0;transform:translateX(24px);transition:opacity .35s var(--ease-out),transform .35s var(--ease-out)}.brand-case-study.is-open{opacity:1;transform:none}.case-study-top{display:flex;justify-content:space-between;position:absolute;z-index:2;top:16px;left:18px;right:18px}.case-study-top button{padding:9px 12px;border-radius:99px;background:rgba(10,10,12,.7);backdrop-filter:blur(12px);color:#fff;font-size:.75rem}.case-close{font-size:1.25rem!important}.case-media-viewer{position:relative;aspect-ratio:16/8;background:#070707}.case-media-viewer img,.case-media-viewer video{width:100%;height:100%;object-fit:contain}.case-media-nav{position:absolute;right:20px;bottom:18px;display:flex;align-items:center;gap:12px;padding:5px;background:rgba(0,0,0,.68);border-radius:99px;color:white;font:12px var(--font-mono)}.case-media-nav button{color:white;padding:5px 9px}.case-study-info{padding:36px 44px 50px}.case-study-info h3{margin:10px 0 15px;font:600 clamp(1.8rem,3vw,2.8rem) var(--font-display);letter-spacing:-.04em}.case-study-description{max-width:690px;margin:0;color:var(--text-secondary);line-height:1.75}.case-study-bottom{display:flex;justify-content:space-between;gap:20px;margin-top:30px;padding-top:20px;border-top:1px solid var(--border);color:var(--text-tertiary);font-size:.8rem}.case-tools{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px}.case-tools span{padding:4px 9px;border:1px solid var(--border);border-radius:99px;color:var(--text-secondary);font:.67rem var(--font-mono)}
 @media(max-width:680px){.is-brand-modal .modal-content{width:100%;max-height:100vh;border-radius:0}.brand-showcase-hero,.brand-showcase-copy{min-height:250px}.brand-showcase-copy{padding:28px}.brand-projects-intro{padding:26px 22px 18px}.brand-projects-intro p{display:none}.brand-projects-grid{grid-template-columns:1fr;padding:0 22px 30px}.case-study-info{padding:28px 22px}.case-study-bottom{flex-direction:column}.case-tools{justify-content:flex-start}.is-brand-modal .modal-close{top:12px;right:12px}}
+/* Reliable, high-contrast cursor treatment in light mode. Native cursor remains
+   available until the custom cursor has started successfully. */
+html.has-custom-cursor body,
+html.has-custom-cursor button,
+html.has-custom-cursor input,
+html.has-custom-cursor textarea { cursor: none; }
+[data-theme="light"] .cursor { mix-blend-mode: normal; filter: drop-shadow(0 1px 1px rgba(255,255,255,.95)) drop-shadow(0 0 2px rgba(255,255,255,.8)); }
+[data-theme="light"] .cursor-dot { background:#101014; box-shadow:0 0 0 1px rgba(255,255,255,.9); }
+[data-theme="light"] .cursor-ring { border-color:rgba(12,12,14,.82); background:rgba(255,255,255,.08); }
+[data-theme="light"] .cursor.is-link .cursor-ring,
+[data-theme="light"] .cursor.is-play .cursor-ring { border-color:var(--accent); box-shadow:0 0 0 1px rgba(255,255,255,.72); }
+[data-theme="light"] .cursor-text { color:#101014; text-shadow:0 1px 1px #fff; }

@@ -303,6 +303,7 @@
   }
 
   if (cursor && !isTouchDevice()) {
+    document.documentElement.classList.add('has-custom-cursor');
     document.addEventListener('mousemove', (e) => {
       cursorX = e.clientX;
       cursorY = e.clientY;
