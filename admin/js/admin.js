@@ -1079,18 +1079,25 @@
       xhr.open('POST', API + 'upload', true);
       xhr.withCredentials = true;
       xhr.upload.addEventListener('progress', event => {
-        if (event.lengthComputable) onProgress(event.loaded, event.total);
-        else onProgress(event.loaded, file.size);
+        const total = event.lengthComputable ? event.total : file.size;
+        const loaded = Math.min(event.loaded, total);
+        // Reaching the server is not the same as being saved. Hold at 95%
+        // until the API confirms the file exists, instead of showing a false 100%.
+        const confirmedLoaded = total > 0 ? (loaded / total) * file.size * 0.95 : 0;
+        onProgress(confirmedLoaded, file.size, loaded >= total ? 'processing' : 'uploading');
       });
       xhr.addEventListener('load', () => {
         let data = {};
         try { data = xhr.responseText ? JSON.parse(xhr.responseText) : {}; } catch { data = {}; }
-        if (xhr.status >= 200 && xhr.status < 300) {
-          onProgress(file.size, file.size);
+        if (xhr.status >= 200 && xhr.status < 300 && data.url && data.filename) {
+          onProgress(file.size, file.size, 'complete');
           resolve(data);
         } else {
           if (xhr.status === 401) logout();
-          reject(new Error(data.error || (xhr.status === 413 ? 'File is larger than the server limit' : 'Server rejected the upload')));
+          const invalidResponse = xhr.status >= 200 && xhr.status < 300
+            ? 'The server did not confirm that the file was saved'
+            : 'Server rejected the upload';
+          reject(new Error(data.error || (xhr.status === 413 ? 'File is larger than the server limit' : invalidResponse)));
         }
       });
       xhr.addEventListener('error', () => reject(new Error('Network error while uploading')));
@@ -1128,30 +1135,39 @@
     assetUploadProgressFile.textContent = 'Preparing your upload…';
 
     const totalBytes = accepted.reduce((sum, file) => sum + file.size, 0);
-    let processedBytes = 0;
+    let confirmedBytes = 0;
     let uploaded = 0;
     let failed = 0;
     updateAssetUploadProgress(0, 0, totalBytes);
 
     for (let i = 0; i < accepted.length; i++) {
       const file = accepted[i];
+      const confirmedBeforeFile = confirmedBytes;
+      let currentVisibleBytes = 0;
       assetUploadProgressTitle.textContent = 'Uploading media';
       assetUploadProgressFile.textContent = file.name;
       assetUploadProgressCount.textContent = 'File ' + (i + 1) + ' of ' + accepted.length;
 
       try {
-        await uploadAssetFile(file, loaded => {
-          const currentLoaded = Math.min(file.size, Math.max(0, loaded || 0));
-          const overallLoaded = processedBytes + currentLoaded;
+        await uploadAssetFile(file, (loaded, fileTotal, phase) => {
+          currentVisibleBytes = Math.min(file.size, Math.max(0, loaded || 0));
+          const overallLoaded = confirmedBeforeFile + currentVisibleBytes;
           updateAssetUploadProgress((overallLoaded / totalBytes) * 100, overallLoaded, totalBytes);
+          if (phase === 'processing') {
+            assetUploadProgressTitle.textContent = 'Saving media on server…';
+            assetUploadProgressFile.textContent = 'Confirming ' + file.name;
+            assetUploadProgressSize.textContent = formatUploadBytes(confirmedBeforeFile + file.size) + ' / ' + formatUploadBytes(totalBytes);
+          }
         });
         uploaded++;
+        confirmedBytes = confirmedBeforeFile + file.size;
+        updateAssetUploadProgress((confirmedBytes / totalBytes) * 100, confirmedBytes, totalBytes);
       } catch (err) {
         failed++;
-        showToast('Could not upload ' + file.name + ': ' + err.message, 'error', 5000);
-      } finally {
-        processedBytes += file.size;
-        updateAssetUploadProgress((processedBytes / totalBytes) * 100, processedBytes, totalBytes);
+        // Keep the bar below completion when the server did not save the file.
+        confirmedBytes = confirmedBeforeFile + currentVisibleBytes;
+        updateAssetUploadProgress((confirmedBytes / totalBytes) * 100, confirmedBytes, totalBytes);
+        showToast('Could not upload ' + file.name + ': ' + err.message, 'error', 7000);
       }
     }
 
@@ -1160,15 +1176,17 @@
     assetUploadDropzone.removeAttribute('aria-busy');
     uploadAssetBtn.disabled = false;
     assetFileInput.value = '';
-    updateAssetUploadProgress(100, totalBytes, totalBytes);
 
     if (failed) {
       assetUploadProgress.classList.add('is-error');
+      assetUploadProgressPercent.textContent = uploaded ? 'Issue' : 'Failed';
       assetUploadProgressTitle.textContent = uploaded ? 'Upload finished with an issue' : 'Upload failed';
       assetUploadProgressFile.textContent = uploaded
         ? uploaded + ' uploaded · ' + failed + ' failed'
-        : 'No files were uploaded. Please try again.';
+        : 'The server did not save this media. See the error message and try again.';
+      assetUploadProgressTrack.setAttribute('aria-valuetext', uploaded ? 'Some files failed to upload' : 'Upload failed');
     } else {
+      updateAssetUploadProgress(100, totalBytes, totalBytes);
       assetUploadProgress.classList.add('is-complete');
       assetUploadProgressTitle.textContent = uploaded === 1 ? 'Upload complete' : 'All uploads complete';
       assetUploadProgressFile.textContent = uploaded === 1 ? accepted[0].name : uploaded + ' files are ready to use';

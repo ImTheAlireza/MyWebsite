@@ -30,7 +30,23 @@ function json_write($filename, $data) {
 }
 
 function generate_uuid() {
-    $data = random_bytes(16);
+    // random_bytes() only exists in PHP 7+. Keep uploads working on the
+    // PHP 5.6 hosts supported by this project by using OpenSSL when needed.
+    if (function_exists('random_bytes')) {
+        $data = random_bytes(16);
+    } elseif (function_exists('openssl_random_pseudo_bytes')) {
+        $data = openssl_random_pseudo_bytes(16);
+    } else {
+        // Last-resort compatibility fallback for hosts without OpenSSL.
+        $seed = uniqid((string)mt_rand(), true) . microtime(true);
+        $data = substr(hash('sha256', $seed, true), 0, 16);
+    }
+
+    if ($data === false || strlen($data) < 16) {
+        $seed = uniqid((string)mt_rand(), true) . microtime(true);
+        $data = substr(hash('sha256', $seed, true), 0, 16);
+    }
+
     $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
     $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
     return vsprintf('%s%s-%s-%s-%s-%s%s', str_split(bin2hex($data), 4));
