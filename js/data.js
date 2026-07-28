@@ -60,8 +60,8 @@ function safeEmbedUrl(value) {
 async function loadProjects() {
   try {
     const [projRes, settingsRes] = await Promise.all([
-      fetch(PROJECTS_URL, { credentials: 'same-origin' }),
-      fetch('/api.php?_query=settings', { credentials: 'same-origin' })
+      fetch(PROJECTS_URL, { credentials: 'same-origin', cache: 'no-store' }),
+      fetch('/api.php?_query=settings', { credentials: 'same-origin', cache: 'no-store' })
     ]);
     if (!projRes.ok) throw new Error(`Failed to load projects: ${projRes.status}`);
     const projData = await projRes.json();

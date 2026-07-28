@@ -1,0 +1,6 @@
+# Runtime database and SQLite journal files
+data/*.sqlite
+data/*.sqlite-*
+data/.portfolio.sqlite
+data/.portfolio.sqlite-*
+data/.content-*

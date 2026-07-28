@@ -1,32 +1,227 @@
 <?php
-// php/db.php — JSON file read/write with file locking (PHP 5.6+ compatible)
+// php/db.php — Persistent content storage (PHP 5.6+ compatible)
+// Projects are stored in SQLite when the extension is available. JSON files
+// remain as a migration source and compatibility fallback for older hosts.
 
 define('DATA_DIR', __DIR__ . '/../data');
+define('PROJECT_DB_PATH', DATA_DIR . '/.portfolio.sqlite');
 
-function json_read($filename) {
+function json_file_read($filename) {
     $path = DATA_DIR . '/' . $filename;
     if (!file_exists($path)) return null;
     $content = file_get_contents($path);
-    $data = json_decode($content, true);
-    return $data;
+    if ($content === false) return null;
+    return json_decode($content, true);
 }
 
-function json_write($filename, $data) {
-    $path = DATA_DIR . '/' . $filename;
+function json_encode_pretty($data) {
     $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     if ($json === false) {
         send_error('Failed to encode data', 500);
     }
-    $fp = fopen($path, 'c');
-    if (!$fp) {
-        send_error('Failed to write data file', 500);
+    return $json;
+}
+
+function json_file_write($filename, $data, $required) {
+    if (!is_dir(DATA_DIR) && !@mkdir(DATA_DIR, 0755, true)) {
+        if ($required) send_error('Failed to create data directory', 500);
+        return false;
     }
-    flock($fp, LOCK_EX);
-    ftruncate($fp, 0);
-    fwrite($fp, $json);
-    fflush($fp);
-    flock($fp, LOCK_UN);
-    fclose($fp);
+
+    $path = DATA_DIR . '/' . $filename;
+    $json = json_encode_pretty($data);
+    $tmp = @tempnam(DATA_DIR, '.content-');
+    if ($tmp === false) {
+        if ($required) send_error('Failed to create temporary data file', 500);
+        return false;
+    }
+
+    $written = @file_put_contents($tmp, $json, LOCK_EX);
+    if ($written === false || $written !== strlen($json)) {
+        @unlink($tmp);
+        if ($required) send_error('Failed to write data file', 500);
+        return false;
+    }
+
+    @chmod($tmp, 0644);
+    if (!@rename($tmp, $path)) {
+        @unlink($tmp);
+        if ($required) send_error('Failed to replace data file', 500);
+        return false;
+    }
+
+    return true;
+}
+
+function project_db_replace_on_connection($db, $projects) {
+    if (!is_array($projects)) $projects = array();
+    if (!$db->exec('BEGIN IMMEDIATE TRANSACTION')) return false;
+
+    if (!$db->exec('DELETE FROM projects')) {
+        $db->exec('ROLLBACK');
+        return false;
+    }
+
+    $statement = $db->prepare(
+        'INSERT INTO projects (id, payload, published, featured, sort_order, created_at, updated_at) ' .
+        'VALUES (:id, :payload, :published, :featured, :sort_order, :created_at, :updated_at)'
+    );
+    if (!$statement) {
+        $db->exec('ROLLBACK');
+        return false;
+    }
+
+    foreach ($projects as $project) {
+        if (!is_array($project)) continue;
+        $id = isset($project['id']) && $project['id'] !== '' ? (string)$project['id'] : generate_uuid();
+        $project['id'] = $id;
+        $payload = json_encode($project, JSON_UNESCAPED_UNICODE);
+        if ($payload === false) {
+            $db->exec('ROLLBACK');
+            return false;
+        }
+
+        $statement->reset();
+        if (method_exists($statement, 'clear')) $statement->clear();
+        $statement->bindValue(':id', $id, SQLITE3_TEXT);
+        $statement->bindValue(':payload', $payload, SQLITE3_TEXT);
+        $statement->bindValue(':published', isset($project['published']) && $project['published'] === false ? 0 : 1, SQLITE3_INTEGER);
+        $statement->bindValue(':featured', isset($project['featured']) && $project['featured'] === true ? 1 : 0, SQLITE3_INTEGER);
+        $statement->bindValue(':sort_order', isset($project['order']) ? intval($project['order']) : 0, SQLITE3_INTEGER);
+        $statement->bindValue(':created_at', isset($project['createdAt']) ? (string)$project['createdAt'] : '', SQLITE3_TEXT);
+        $statement->bindValue(':updated_at', isset($project['updatedAt']) ? (string)$project['updatedAt'] : '', SQLITE3_TEXT);
+        $result = $statement->execute();
+        if ($result === false) {
+            $db->exec('ROLLBACK');
+            return false;
+        }
+        if (is_object($result)) $result->finalize();
+    }
+
+    return $db->exec('COMMIT');
+}
+
+function project_db_connection() {
+    static $initialized = false;
+    static $connection = null;
+
+    if ($initialized) return $connection;
+    $initialized = true;
+
+    if (!class_exists('SQLite3')) {
+        error_log('SQLite3 extension unavailable; projects are using the JSON compatibility store.');
+        return null;
+    }
+
+    if (!is_dir(DATA_DIR) && !@mkdir(DATA_DIR, 0755, true)) {
+        error_log('Unable to create data directory for the project database.');
+        return null;
+    }
+
+    try {
+        $db = new SQLite3(PROJECT_DB_PATH, SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE);
+        $db->busyTimeout(5000);
+        $db->exec('PRAGMA journal_mode = WAL');
+        $db->exec('PRAGMA synchronous = FULL');
+        $created = $db->exec(
+            'CREATE TABLE IF NOT EXISTS projects (' .
+            'id TEXT PRIMARY KEY NOT NULL, ' .
+            'payload TEXT NOT NULL, ' .
+            'published INTEGER NOT NULL DEFAULT 1, ' .
+            'featured INTEGER NOT NULL DEFAULT 0, ' .
+            'sort_order INTEGER NOT NULL DEFAULT 0, ' .
+            'created_at TEXT, ' .
+            'updated_at TEXT' .
+            ')'
+        );
+        $metadataCreated = $db->exec(
+            'CREATE TABLE IF NOT EXISTS storage_meta (' .
+            'meta_key TEXT PRIMARY KEY NOT NULL, meta_value TEXT NOT NULL' .
+            ')'
+        );
+        if (!$created || !$metadataCreated) {
+            throw new Exception('Unable to create project database tables');
+        }
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_projects_order ON projects(featured DESC, sort_order ASC)');
+
+        // One-time migration: seed a new database from the existing JSON file.
+        // The marker prevents intentionally deleted projects from being restored.
+        $migrationDone = $db->querySingle(
+            "SELECT meta_value FROM storage_meta WHERE meta_key = 'projects_json_migrated'"
+        );
+        if ((string)$migrationDone !== '1') {
+            $count = intval($db->querySingle('SELECT COUNT(*) FROM projects'));
+            if ($count === 0) {
+                $legacy = json_file_read('projects.json');
+                $legacyProjects = is_array($legacy) && isset($legacy['projects']) && is_array($legacy['projects'])
+                    ? $legacy['projects']
+                    : array();
+                if (!empty($legacyProjects) && !project_db_replace_on_connection($db, $legacyProjects)) {
+                    throw new Exception('Failed to migrate projects.json into SQLite');
+                }
+            }
+            $db->exec(
+                "INSERT OR REPLACE INTO storage_meta (meta_key, meta_value) " .
+                "VALUES ('projects_json_migrated', '1')"
+            );
+        }
+
+        @chmod(PROJECT_DB_PATH, 0660);
+        $connection = $db;
+        return $connection;
+    } catch (Exception $error) {
+        error_log('Project database initialization failed: ' . $error->getMessage());
+        $connection = null;
+        return null;
+    }
+}
+
+function project_db_read_all($db) {
+    $projects = array();
+    $result = $db->query(
+        'SELECT payload FROM projects ' .
+        'ORDER BY featured DESC, sort_order ASC, created_at DESC'
+    );
+    if ($result === false) return null;
+
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $project = json_decode($row['payload'], true);
+        if (is_array($project)) $projects[] = $project;
+    }
+    $result->finalize();
+    return $projects;
+}
+
+function json_read($filename) {
+    if ($filename === 'projects.json') {
+        $db = project_db_connection();
+        if ($db !== null) {
+            $projects = project_db_read_all($db);
+            if ($projects !== null) return array('projects' => $projects);
+            error_log('Failed to read projects from SQLite; falling back to JSON.');
+        }
+    }
+
+    return json_file_read($filename);
+}
+
+function json_write($filename, $data) {
+    if ($filename === 'projects.json') {
+        $projects = is_array($data) && isset($data['projects']) && is_array($data['projects'])
+            ? $data['projects']
+            : array();
+        $db = project_db_connection();
+        if ($db !== null) {
+            if (!project_db_replace_on_connection($db, $projects)) {
+                send_error('Failed to save projects in the database', 500);
+            }
+            // Keep a best-effort JSON mirror for backup and host portability.
+            json_file_write($filename, array('projects' => $projects), false);
+            return;
+        }
+    }
+
+    json_file_write($filename, $data, true);
 }
 
 function generate_uuid() {

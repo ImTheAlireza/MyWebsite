@@ -40,6 +40,7 @@
     }
     const res = await fetch(API + url, {
       credentials: 'same-origin',
+      cache: 'no-store',
       ...opts,
       headers
     });
@@ -47,7 +48,7 @@
     const text = await res.text();
     let d = {};
     try { d = text ? JSON.parse(text) : {}; } catch { d = { error: text || 'Request failed' }; }
-    if (!res.ok) throw new Error(d.error || 'Request failed');
+    if (!res.ok || d.error) throw new Error(d.error || 'Request failed');
     return d;
   }
 
@@ -668,13 +669,27 @@
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving…'; }
     const wasEdit = !!editingId;
     try {
-      if (editingId) await api(`/projects/${encodeURIComponent(editingId)}`, { method: 'PUT', body: JSON.stringify(payload) });
-      else await api('projects', { method: 'POST', body: JSON.stringify(payload) });
+      const saved = editingId
+        ? await api(`/projects/${encodeURIComponent(editingId)}`, { method: 'PUT', body: JSON.stringify(payload) })
+        : await api('projects', { method: 'POST', body: JSON.stringify(payload) });
+
+      if (!saved || !saved.id) throw new Error('The server did not confirm the project was saved');
+
+      // Read it back from persistent storage before reporting success. This
+      // prevents a temporary UI card from disappearing on the next refresh.
+      const persisted = await api('projects');
+      const persistedProjects = Array.isArray(persisted.projects) ? persisted.projects : [];
+      if (!persistedProjects.some(project => String(project.id) === String(saved.id))) {
+        throw new Error('The project could not be verified in persistent storage');
+      }
+
+      projects = persistedProjects;
+      renderProjects();
+      checkProjectWarnings();
       hasUnsavedChanges = false;
       closeModal();
-      await loadProjects();
-      showToast(wasEdit ? 'Project updated' : 'Project created', 'success');
-    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+      showToast(wasEdit ? 'Project updated and saved' : 'Project saved permanently', 'success');
+    } catch (err) { showToast('Save failed: ' + err.message, 'error', 6000); }
     finally {
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Save Project'; }
     }

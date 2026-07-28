@@ -143,7 +143,7 @@ function delete_project($id) {
     // Remove orphaned thumbnail
     if (!empty($removed['thumbnail'])) {
         $used = collect_used_upload_urls();
-        if (preg_match('#/uploads/([^/?#]+)#', $removed['thumbnail'], $m)) {
+        if (preg_match('!/uploads/([^/?#]+)!', $removed['thumbnail'], $m)) {
             if (!in_array($m[1], $used)) {
                 $fp = __DIR__ . '/../../uploads/' . basename($m[1]);
                 if (file_exists($fp)) @unlink($fp);
