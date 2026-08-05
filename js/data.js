@@ -11,6 +11,9 @@ let activeCaseStudy = null;
 let activeLightbox = null;
 let modalScrollPosition = 0;
 let previousBodyOverflow = '';
+let galleryResizeObserver = null;
+let galleryLayoutFrame = null;
+let galleryResizeHandler = null;
 
 const VIDEO_EXTENSION = /\.(mp4|webm|mov|m4v|ogv|ogg|avi|mkv)(?:[?#].*)?$/i;
 const ICONS = {
@@ -309,14 +312,153 @@ function brandHero(brand, count) {
   return hero;
 }
 
-function galleryTile(url, index, brand) {
+function galleryTargetHeight(width) {
+  if (width <= 460) return 155;
+  if (width <= 760) return 178;
+  return Math.max(195, Math.min(230, width * 0.215));
+}
+
+function galleryGap(grid) {
+  const styles = getComputedStyle(grid);
+  return Number.parseFloat(styles.columnGap || styles.gap) || 10;
+}
+
+function rowHeightForWidth(row, width, gap) {
+  const ratioTotal = row.reduce((sum, tile) => sum + (Number.parseFloat(tile.dataset.aspect) || 4 / 3), 0);
+  return ratioTotal > 0 ? (width - gap * Math.max(0, row.length - 1)) / ratioTotal : 0;
+}
+
+function sizeGalleryRow(row, gridWidth, gap, height, fillRow) {
+  if (!row.length || !height) return;
+  const availableWidth = gridWidth - gap * Math.max(0, row.length - 1);
+  let usedWidth = 0;
+
+  row.forEach((tile, index) => {
+    const ratio = Number.parseFloat(tile.dataset.aspect) || 4 / 3;
+    let width = ratio * height;
+    if (fillRow && index === row.length - 1) width = Math.max(1, availableWidth - usedWidth);
+    usedWidth += width;
+    tile.style.width = width.toFixed(2) + 'px';
+    tile.style.height = height.toFixed(2) + 'px';
+    tile.style.flexBasis = width.toFixed(2) + 'px';
+    tile.style.setProperty('--media-aspect', String(ratio));
+  });
+}
+
+function layoutGalleryCollage(grid) {
+  if (!grid || !grid.isConnected) return;
+  const tiles = Array.from(grid.querySelectorAll('.brand-gallery-tile'));
+  const gridWidth = grid.clientWidth;
+  if (!tiles.length || gridWidth < 1) return;
+
+  const gap = galleryGap(grid);
+  const targetHeight = galleryTargetHeight(gridWidth);
+  let row = [];
+
+  tiles.forEach(tile => {
+    const candidate = row.concat(tile);
+    const candidateHeight = rowHeightForWidth(candidate, gridWidth, gap);
+    if (candidateHeight > targetHeight) {
+      row = candidate;
+      return;
+    }
+
+    if (row.length) {
+      const previousHeight = rowHeightForWidth(row, gridWidth, gap);
+      const smallestCandidateRatio = Math.min(...candidate.map(item => Number.parseFloat(item.dataset.aspect) || 4 / 3));
+      const minimumRowItemWidth = gridWidth <= 460 ? 100 : 110;
+      const candidateWouldBeTooSmall = smallestCandidateRatio * candidateHeight < minimumRowItemWidth;
+      const previousIsComfortable = previousHeight <= targetHeight * 1.3;
+      const previousIsCloser = Math.abs(previousHeight - targetHeight) < Math.abs(candidateHeight - targetHeight);
+      if (previousIsComfortable && (candidateWouldBeTooSmall || previousIsCloser)) {
+        sizeGalleryRow(row, gridWidth, gap, previousHeight, true);
+        row = [tile];
+        return;
+      }
+    }
+
+    sizeGalleryRow(candidate, gridWidth, gap, candidateHeight, true);
+    row = [];
+  });
+
+  if (row.length) {
+    const fittedHeight = rowHeightForWidth(row, gridWidth, gap);
+    const smallestRatio = Math.min(...row.map(tile => Number.parseFloat(tile.dataset.aspect) || 4 / 3));
+    const minimumVisualWidth = gridWidth <= 460 ? 105 : 125;
+    const comfortableHeight = minimumVisualWidth / smallestRatio;
+    const lastRowHeight = Math.min(
+      fittedHeight,
+      targetHeight * 1.3,
+      Math.max(targetHeight, comfortableHeight)
+    );
+    sizeGalleryRow(row, gridWidth, gap, lastRowHeight, fittedHeight <= lastRowHeight);
+  }
+}
+
+function scheduleGalleryLayout(grid) {
+  if (galleryLayoutFrame) cancelAnimationFrame(galleryLayoutFrame);
+  galleryLayoutFrame = requestAnimationFrame(() => {
+    galleryLayoutFrame = null;
+    layoutGalleryCollage(grid);
+  });
+}
+
+function disconnectGalleryLayout() {
+  if (galleryResizeObserver) galleryResizeObserver.disconnect();
+  galleryResizeObserver = null;
+  if (galleryResizeHandler) window.removeEventListener('resize', galleryResizeHandler);
+  galleryResizeHandler = null;
+  if (galleryLayoutFrame) cancelAnimationFrame(galleryLayoutFrame);
+  galleryLayoutFrame = null;
+}
+
+function observeGalleryLayout(grid) {
+  disconnectGalleryLayout();
+  if (typeof ResizeObserver === 'function') {
+    let observedWidth = 0;
+    galleryResizeObserver = new ResizeObserver(entries => {
+      const width = entries[0] ? entries[0].contentRect.width : grid.clientWidth;
+      if (Math.abs(width - observedWidth) < 0.5) return;
+      observedWidth = width;
+      scheduleGalleryLayout(grid);
+    });
+    galleryResizeObserver.observe(grid);
+  } else {
+    galleryResizeHandler = () => scheduleGalleryLayout(grid);
+    window.addEventListener('resize', galleryResizeHandler, { passive: true });
+  }
+  scheduleGalleryLayout(grid);
+}
+
+function setGalleryTileAspect(tile, preview, grid) {
+  const applyRatio = (width, height) => {
+    if (!width || !height) return;
+    const ratio = width / height;
+    if (!Number.isFinite(ratio) || ratio <= 0) return;
+    tile.dataset.aspect = String(ratio);
+    scheduleGalleryLayout(grid);
+  };
+
+  if (preview instanceof HTMLImageElement) {
+    preview.addEventListener('load', () => applyRatio(preview.naturalWidth, preview.naturalHeight), { once: true });
+    if (preview.complete) applyRatio(preview.naturalWidth, preview.naturalHeight);
+  } else if (preview instanceof HTMLVideoElement) {
+    preview.addEventListener('loadedmetadata', () => applyRatio(preview.videoWidth, preview.videoHeight), { once: true });
+    if (preview.readyState >= 1) applyRatio(preview.videoWidth, preview.videoHeight);
+  }
+}
+
+function galleryTile(url, index, brand, grid) {
   const tile = button('brand-gallery-tile', 'Open media ' + (index + 1) + ' of ' + brandGallery(brand).length);
   tile.dataset.index = String(index);
+  tile.dataset.aspect = isExternalVideo(url) ? String(16 / 9) : String(4 / 3);
   tile.style.setProperty('--gallery-order', index);
 
   const preview = mediaElement(url, { title: '' });
   preview.classList.add('brand-gallery-preview');
+  if (preview instanceof HTMLImageElement && index < 16) preview.loading = 'eager';
   tile.appendChild(preview);
+  setGalleryTileAspect(tile, preview, grid);
 
   if (isVideo(url)) {
     const videoMark = document.createElement('span');
@@ -341,9 +483,10 @@ function renderGalleryBrand(brand, mount) {
 
   const grid = document.createElement('div');
   grid.className = 'brand-gallery-grid';
-  media.forEach((url, index) => grid.appendChild(galleryTile(url, index, brand)));
+  media.forEach((url, index) => grid.appendChild(galleryTile(url, index, brand, grid)));
   body.appendChild(grid);
   mount.appendChild(body);
+  observeGalleryLayout(grid);
 }
 
 function projectCard(project, index) {
@@ -427,6 +570,7 @@ function openBrandModal(brand, trigger) {
 
   closeMediaLightbox(false);
   closeCaseStudy(false);
+  disconnectGalleryLayout();
   currentBrand = brand;
   lastProjectTrigger = trigger || document.activeElement;
   previousBodyOverflow = document.body.style.overflow;
@@ -754,6 +898,7 @@ function closeProjectModal() {
   if (!modal) return;
   closeMediaLightbox(false);
   closeCaseStudy(false);
+  disconnectGalleryLayout();
   modal.classList.remove('is-open', 'is-brand-modal', 'is-gallery-brand', 'is-ready', 'has-case-study', 'has-lightbox');
   modal.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = previousBodyOverflow;

@@ -2507,17 +2507,19 @@ html.has-custom-cursor textarea { cursor: none; }
 /* Pure media-gallery brand — intentionally no captions or descriptions */
 .brand-gallery-body { padding: clamp(18px, 3.8vw, 44px); }
 .brand-gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-auto-flow: dense;
-  grid-auto-rows: 42px;
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
   gap: clamp(8px, 1.15vw, 14px);
 }
 .brand-gallery-tile {
   position: relative;
-  grid-column: span 4;
-  grid-row: span 6;
+  width: 280px;
+  height: 210px;
   min-width: 0;
+  flex: 0 0 280px;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 13px;
@@ -2529,16 +2531,12 @@ html.has-custom-cursor textarea { cursor: none; }
   transition:
     opacity .5s calc(var(--gallery-order) * 45ms) var(--ease-out),
     transform .5s calc(var(--gallery-order) * 45ms) var(--ease-out),
+    width .35s var(--ease-out),
+    height .35s var(--ease-out),
     border-color .3s var(--ease-out),
     box-shadow .35s var(--ease-out);
 }
 .project-modal.is-ready .brand-gallery-tile { opacity: 1; transform: none; }
-.brand-gallery-tile:nth-child(7n + 1),
-.brand-gallery-tile:nth-child(7n + 5) {
-  grid-column: span 6;
-  grid-row: span 8;
-}
-.brand-gallery-tile:nth-child(7n + 3) { grid-row: span 8; }
 .brand-gallery-tile:hover,
 .brand-gallery-tile:focus-visible {
   z-index: 2;
@@ -2555,13 +2553,12 @@ html.has-custom-cursor textarea { cursor: none; }
   height: 100%;
   align-items: center;
   justify-content: center;
-  object-fit: cover;
-  transition: transform .7s var(--ease-out), filter .45s var(--ease-out);
+  object-fit: contain;
+  transition: filter .45s var(--ease-out);
 }
 .brand-gallery-tile:hover .brand-gallery-preview,
 .brand-gallery-tile:focus-visible .brand-gallery-preview {
-  filter: brightness(.72) saturate(.92);
-  transform: scale(1.045);
+  filter: brightness(.76) saturate(.94);
 }
 .portfolio-video-placeholder {
   color: #fff;
@@ -3128,19 +3125,6 @@ html.has-custom-cursor textarea { cursor: none; }
     border-radius: 16px;
   }
   .portfolio-brand-hero { min-height: 300px; }
-  .brand-gallery-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-auto-rows: auto;
-  }
-  .brand-gallery-tile,
-  .brand-gallery-tile:nth-child(7n + 1),
-  .brand-gallery-tile:nth-child(7n + 3),
-  .brand-gallery-tile:nth-child(7n + 5) {
-    grid-column: span 1;
-    grid-row: auto;
-    aspect-ratio: 4 / 3;
-  }
-  .brand-gallery-tile:nth-child(5n + 1) { grid-column: span 2; aspect-ratio: 16 / 9; }
   .portfolio-projects-grid { grid-template-columns: 1fr; }
   .case-study-viewer,
   .case-study-stage { min-height: 0; height: min(60vw, 520px); }
