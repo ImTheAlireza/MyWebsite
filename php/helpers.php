@@ -27,6 +27,32 @@ function normalize_category_list($values) {
     return $result;
 }
 
+function normalize_brand($raw) {
+    $mode = clean_content_text(arr_get($raw, 'mode', 'projects'));
+    if ($mode !== 'gallery') $mode = 'projects';
+
+    $gallery = array();
+    if (isset($raw['gallery']) && is_array($raw['gallery'])) {
+        $seen = array();
+        foreach ($raw['gallery'] as $url) {
+            $url = clean_content_text($url);
+            if ($url === '' || isset($seen[$url])) continue;
+            $seen[$url] = true;
+            $gallery[] = $url;
+            if (count($gallery) >= 60) break;
+        }
+    }
+
+    return array(
+        'id' => isset($raw['id']) ? $raw['id'] : generate_uuid(),
+        'name' => clean_content_text(arr_get($raw, 'name', '')),
+        'thumbnail' => clean_content_text(arr_get($raw, 'thumbnail', '')),
+        'mode' => $mode,
+        'gallery' => array_values($gallery),
+        'order' => isset($raw['order']) ? intval($raw['order']) : 0
+    );
+}
+
 function normalize_project($raw) {
     $tools = array();
     if (isset($raw['tools'])) {
@@ -104,7 +130,13 @@ function collect_used_upload_urls() {
 
     $brands = arr_get($projectsData, 'brands', array());
     if (is_array($brands)) {
-        foreach ($brands as $brand) $add(arr_get($brand, 'thumbnail', ''));
+        foreach ($brands as $brand) {
+            $add(arr_get($brand, 'thumbnail', ''));
+            $brandGallery = arr_get($brand, 'gallery', array());
+            if (is_array($brandGallery)) {
+                foreach ($brandGallery as $mediaUrl) $add($mediaUrl);
+            }
+        }
     }
 
     $settings = json_read('settings.json');

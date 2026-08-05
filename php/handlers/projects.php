@@ -9,6 +9,7 @@ function list_projects() {
     $brands = arr_get($data, 'brands', array());
 
     $projects = array_map('normalize_project', $projects);
+    $brands = array_map('normalize_brand', is_array($brands) ? $brands : array());
 
     if (!$user) {
         $projects = array_values(array_filter($projects, function($p) {
