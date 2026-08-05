@@ -2505,7 +2505,11 @@ html.has-custom-cursor textarea { cursor: none; }
 }
 
 /* Pure media-gallery brand — intentionally no captions or descriptions */
-.brand-gallery-body { padding: clamp(18px, 3.8vw, 44px); }
+.brand-gallery-body {
+  position: relative;
+  min-height: 260px;
+  padding: clamp(18px, 3.8vw, 44px);
+}
 .brand-gallery-grid {
   display: flex;
   width: 100%;
@@ -2513,7 +2517,40 @@ html.has-custom-cursor textarea { cursor: none; }
   align-content: flex-start;
   align-items: flex-start;
   gap: clamp(8px, 1.15vw, 14px);
+  visibility: hidden;
+  opacity: 0;
 }
+.brand-gallery-grid.is-collage-ready {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity .28s var(--ease-out);
+}
+.brand-gallery-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-tertiary);
+  background: var(--bg-secondary);
+}
+.brand-gallery-loading > span {
+  width: 17px;
+  height: 17px;
+  border: 2px solid var(--border-hover);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: galleryLoaderSpin .75s linear infinite;
+}
+.brand-gallery-loading small {
+  font: 600 .62rem var(--font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+@keyframes galleryLoaderSpin { to { transform: rotate(360deg); } }
 .brand-gallery-tile {
   position: relative;
   width: 280px;
@@ -2536,7 +2573,7 @@ html.has-custom-cursor textarea { cursor: none; }
     border-color .3s var(--ease-out),
     box-shadow .35s var(--ease-out);
 }
-.project-modal.is-ready .brand-gallery-tile { opacity: 1; transform: none; }
+.brand-gallery-grid.is-collage-ready .brand-gallery-tile { opacity: 1; transform: none; }
 .brand-gallery-tile:hover,
 .brand-gallery-tile:focus-visible {
   z-index: 2;
@@ -2553,7 +2590,9 @@ html.has-custom-cursor textarea { cursor: none; }
   height: 100%;
   align-items: center;
   justify-content: center;
-  object-fit: contain;
+  object-fit: cover;
+  transform: scale(1.012);
+  backface-visibility: hidden;
   transition: filter .45s var(--ease-out);
 }
 .brand-gallery-tile:hover .brand-gallery-preview,

@@ -173,6 +173,17 @@ function brandGalleryPoster(brand, mediaUrl) {
   return matchingKey ? safeUrl(brand.galleryPosters[matchingKey]) : '';
 }
 
+function brandGalleryAspect(brand, mediaUrl) {
+  if (!brand || !brand.galleryAspects || typeof brand.galleryAspects !== 'object') return 0;
+  let value = brand.galleryAspects[mediaUrl];
+  if (value == null) {
+    const matchingKey = Object.keys(brand.galleryAspects).find(key => safeUrl(key) === mediaUrl);
+    if (matchingKey) value = brand.galleryAspects[matchingKey];
+  }
+  const ratio = Number(value);
+  return Number.isFinite(ratio) && ratio >= 0.05 && ratio <= 20 ? ratio : 0;
+}
+
 function projectMedia(project) {
   const gallery = uniqueMedia(project && project.gallery);
   const video = safeUrl(project && project.video);
@@ -439,35 +450,55 @@ function observeGalleryLayout(grid) {
   scheduleGalleryLayout(grid);
 }
 
-function setGalleryTileAspect(tile, preview, grid) {
-  const applyRatio = (width, height) => {
-    if (!width || !height) return;
-    const ratio = width / height;
-    if (!Number.isFinite(ratio) || ratio <= 0) return;
-    tile.dataset.aspect = String(ratio);
-    scheduleGalleryLayout(grid);
-  };
-
-  if (preview instanceof HTMLImageElement) {
-    preview.addEventListener('load', () => applyRatio(preview.naturalWidth, preview.naturalHeight), { once: true });
-    if (preview.complete) applyRatio(preview.naturalWidth, preview.naturalHeight);
-  } else if (preview instanceof HTMLVideoElement) {
-    preview.addEventListener('loadedmetadata', () => applyRatio(preview.videoWidth, preview.videoHeight), { once: true });
-    if (preview.readyState >= 1) applyRatio(preview.videoWidth, preview.videoHeight);
+function setGalleryTileAspect(tile, preview, grid, persistedAspect) {
+  const known = Number(persistedAspect);
+  if (Number.isFinite(known) && known >= 0.05 && known <= 20) {
+    tile.dataset.aspect = String(known);
+    return Promise.resolve(known);
   }
+
+  return new Promise(resolve => {
+    let settled = false;
+    const finish = (width, height) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      const measured = Number(width) / Number(height);
+      const ratio = Number.isFinite(measured) && measured >= 0.05 && measured <= 20
+        ? measured
+        : (Number.parseFloat(tile.dataset.aspect) || 4 / 3);
+      tile.dataset.aspect = String(ratio);
+      scheduleGalleryLayout(grid);
+      resolve(ratio);
+    };
+    const timeout = setTimeout(() => finish(0, 0), 4000);
+
+    if (preview instanceof HTMLImageElement) {
+      preview.addEventListener('load', () => finish(preview.naturalWidth, preview.naturalHeight), { once: true });
+      preview.addEventListener('error', () => finish(0, 0), { once: true });
+      if (preview.complete) finish(preview.naturalWidth, preview.naturalHeight);
+    } else if (preview instanceof HTMLVideoElement) {
+      preview.addEventListener('loadedmetadata', () => finish(preview.videoWidth, preview.videoHeight), { once: true });
+      preview.addEventListener('error', () => finish(0, 0), { once: true });
+      if (preview.readyState >= 1) finish(preview.videoWidth, preview.videoHeight);
+    } else {
+      finish(0, 0);
+    }
+  });
 }
 
 function galleryTile(url, index, brand, grid) {
   const tile = button('brand-gallery-tile', 'Open media ' + (index + 1) + ' of ' + brandGallery(brand).length);
   tile.dataset.index = String(index);
-  tile.dataset.aspect = isExternalVideo(url) ? String(16 / 9) : String(4 / 3);
+  const persistedAspect = brandGalleryAspect(brand, url);
+  tile.dataset.aspect = String(persistedAspect || (isVideo(url) ? 16 / 9 : 4 / 3));
   tile.style.setProperty('--gallery-order', index);
 
   const preview = mediaElement(url, { title: '', poster: brandGalleryPoster(brand, url) });
   preview.classList.add('brand-gallery-preview');
-  if (preview instanceof HTMLImageElement && index < 16) preview.loading = 'eager';
+  if (preview instanceof HTMLImageElement && (index < 16 || !persistedAspect)) preview.loading = 'eager';
   tile.appendChild(preview);
-  setGalleryTileAspect(tile, preview, grid);
+  tile.aspectReady = setGalleryTileAspect(tile, preview, grid, persistedAspect);
 
   if (isVideo(url)) {
     const videoMark = document.createElement('span');
@@ -490,12 +521,29 @@ function renderGalleryBrand(brand, mount) {
   body.className = 'brand-gallery-body';
   body.setAttribute('aria-label', brand.name + ' media gallery');
 
+  const loader = document.createElement('div');
+  loader.className = 'brand-gallery-loading';
+  loader.setAttribute('role', 'status');
+  loader.innerHTML = '<span aria-hidden="true"></span><small>Preparing gallery</small>';
+
   const grid = document.createElement('div');
   grid.className = 'brand-gallery-grid';
-  media.forEach((url, index) => grid.appendChild(galleryTile(url, index, brand, grid)));
-  body.appendChild(grid);
+  const tiles = media.map((url, index) => galleryTile(url, index, brand, grid));
+  tiles.forEach(tile => grid.appendChild(tile));
+  body.append(loader, grid);
   mount.appendChild(body);
-  observeGalleryLayout(grid);
+
+  Promise.all(tiles.map(tile => tile.aspectReady)).then(() => {
+    if (!grid.isConnected) return;
+    layoutGalleryCollage(grid);
+    observeGalleryLayout(grid);
+    requestAnimationFrame(() => {
+      if (!grid.isConnected) return;
+      grid.classList.add('is-collage-ready');
+      body.classList.add('is-collage-ready');
+      loader.remove();
+    });
+  });
 }
 
 function projectCard(project, index) {

@@ -14,6 +14,7 @@
   let editingProjectMedia = [];
   let editingBrandMedia = [];
   let editingBrandPosters = {};
+  let editingBrandAspects = {};
   let brandEditorTrigger = null;
   let projectEditorTrigger = null;
   let framePickerTrigger = null;
@@ -625,6 +626,67 @@
     try { return decodeURIComponent(raw); } catch { return raw; }
   }
 
+  function rememberBrandAspect(url, width, height) {
+    const ratio = Number(width) / Number(height);
+    if (!Number.isFinite(ratio) || ratio < 0.05 || ratio > 20) return false;
+    editingBrandAspects[url] = Number(ratio.toFixed(6));
+    return true;
+  }
+
+  function bindBrandAspectMeasurement(item, url) {
+    const media = item.querySelector('.brand-media-preview img, .brand-media-preview video');
+    if (!media) return;
+    if (media instanceof HTMLImageElement) {
+      const measure = () => rememberBrandAspect(url, media.naturalWidth, media.naturalHeight);
+      media.addEventListener('load', measure, { once: true });
+      if (media.complete) measure();
+    } else if (media instanceof HTMLVideoElement) {
+      const measure = () => rememberBrandAspect(url, media.videoWidth, media.videoHeight);
+      media.addEventListener('loadedmetadata', measure, { once: true });
+      if (media.readyState >= 1) measure();
+    }
+  }
+
+  function measureBrandMediaAspect(url) {
+    const known = Number(editingBrandAspects[url]);
+    if (Number.isFinite(known) && known >= 0.05 && known <= 20) return Promise.resolve(known);
+    return new Promise(resolve => {
+      let settled = false;
+      const finish = (width, height) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        rememberBrandAspect(url, width, height);
+        resolve(editingBrandAspects[url] || null);
+      };
+      const timer = setTimeout(() => finish(0, 0), 5000);
+      if (isDirectVideoUrl(url)) {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        video.addEventListener('loadedmetadata', () => finish(video.videoWidth, video.videoHeight), { once: true });
+        video.addEventListener('error', () => finish(0, 0), { once: true });
+        video.src = url;
+        video.load();
+      } else {
+        const image = new Image();
+        image.onload = () => finish(image.naturalWidth, image.naturalHeight);
+        image.onerror = () => finish(0, 0);
+        image.src = url;
+      }
+    });
+  }
+
+  async function ensureBrandMediaAspects() {
+    await Promise.all(editingBrandMedia.map(measureBrandMediaAspect));
+    editingBrandAspects = Object.fromEntries(
+      Object.entries(editingBrandAspects).filter(([mediaUrl, ratio]) =>
+        editingBrandMedia.includes(mediaUrl) && Number.isFinite(Number(ratio))
+      )
+    );
+  }
+
   function adminMediaPreview(url, alt, poster) {
     if (isDirectVideoUrl(url)) {
       const visual = poster
@@ -741,10 +803,12 @@
     let draggedIndex = null;
     list.querySelectorAll('.brand-media-item').forEach(item => {
       const index = Number(item.dataset.index);
+      bindBrandAspectMeasurement(item, editingBrandMedia[index]);
       item.querySelector('.brand-media-remove').addEventListener('click', () => {
         const removedUrl = editingBrandMedia[index];
         editingBrandMedia.splice(index, 1);
         delete editingBrandPosters[removedUrl];
+        delete editingBrandAspects[removedUrl];
         renderBrandMedia();
         hasUnsavedChanges = true;
       });
@@ -790,6 +854,9 @@
       editingBrandPosters = Object.fromEntries(
         Object.entries(editingBrandPosters).filter(([mediaUrl]) => editingBrandMedia.includes(mediaUrl))
       );
+      editingBrandAspects = Object.fromEntries(
+        Object.entries(editingBrandAspects).filter(([mediaUrl]) => editingBrandMedia.includes(mediaUrl))
+      );
       renderBrandMedia();
       if (!$('#brandThumbnail').value) {
         const firstImage = items.find(item => item.type === 'image' || !isDirectVideoUrl(item.url));
@@ -820,6 +887,9 @@
     editingBrandMedia = brand && Array.isArray(brand.gallery) ? brand.gallery.slice() : [];
     editingBrandPosters = brand && brand.galleryPosters && typeof brand.galleryPosters === 'object'
       ? { ...brand.galleryPosters }
+      : {};
+    editingBrandAspects = brand && brand.galleryAspects && typeof brand.galleryAspects === 'object'
+      ? { ...brand.galleryAspects }
       : {};
     const mode = getBrandMode(brand);
     const modeInput = document.querySelector('input[name="brandMode"][value="' + mode + '"]');
@@ -890,7 +960,8 @@
       thumbnail: $('#brandThumbnail').value.trim(),
       mode: modeInput ? modeInput.value : 'projects',
       gallery: editingBrandMedia.slice(),
-      galleryPosters: { ...editingBrandPosters }
+      galleryPosters: { ...editingBrandPosters },
+      galleryAspects: { ...editingBrandAspects }
     };
 
     if (!payload.name) {
@@ -911,8 +982,13 @@
 
     const saveButton = $('#saveBrandBtn');
     saveButton.disabled = true;
-    saveButton.textContent = 'Saving…';
+    saveButton.textContent = payload.mode === 'gallery' ? 'Preparing media…' : 'Saving…';
     try {
+      if (payload.mode === 'gallery') {
+        await ensureBrandMediaAspects();
+        payload.galleryAspects = { ...editingBrandAspects };
+      }
+      saveButton.textContent = 'Saving…';
       await api(id ? 'brands/' + encodeURIComponent(id) : 'brands', {
         method: id ? 'PUT' : 'POST',
         body: JSON.stringify(payload)
@@ -1038,6 +1114,7 @@
       const sourceWidth = videoFramePlayer.videoWidth;
       const sourceHeight = videoFramePlayer.videoHeight;
       if (!sourceWidth || !sourceHeight) throw new Error('This video frame is not ready yet');
+      rememberBrandAspect(framePickerMediaUrl, sourceWidth, sourceHeight);
       const scale = Math.min(1, 1600 / Math.max(sourceWidth, sourceHeight));
       const canvas = document.createElement('canvas');
       canvas.width = Math.max(1, Math.round(sourceWidth * scale));

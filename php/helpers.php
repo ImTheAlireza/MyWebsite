@@ -53,6 +53,16 @@ function normalize_brand($raw) {
         }
     }
 
+    $galleryAspects = array();
+    $rawAspects = arr_get($raw, 'galleryAspects', array());
+    if (is_array($rawAspects)) {
+        foreach ($gallery as $mediaUrl) {
+            if (!isset($rawAspects[$mediaUrl]) || !is_numeric($rawAspects[$mediaUrl])) continue;
+            $ratio = floatval($rawAspects[$mediaUrl]);
+            if ($ratio >= 0.05 && $ratio <= 20) $galleryAspects[$mediaUrl] = $ratio;
+        }
+    }
+
     return array(
         'id' => isset($raw['id']) ? $raw['id'] : generate_uuid(),
         'name' => clean_content_text(arr_get($raw, 'name', '')),
@@ -60,6 +70,7 @@ function normalize_brand($raw) {
         'mode' => $mode,
         'gallery' => array_values($gallery),
         'galleryPosters' => $galleryPosters,
+        'galleryAspects' => $galleryAspects,
         'order' => isset($raw['order']) ? intval($raw['order']) : 0
     );
 }
