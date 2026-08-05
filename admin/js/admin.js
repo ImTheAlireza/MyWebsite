@@ -13,8 +13,13 @@
   let editingId = null;
   let editingProjectMedia = [];
   let editingBrandMedia = [];
+  let editingBrandPosters = {};
   let brandEditorTrigger = null;
   let projectEditorTrigger = null;
+  let framePickerTrigger = null;
+  let framePickerMediaUrl = '';
+  let framePickerMediaIndex = -1;
+  let frameCaptureRunning = false;
   let hasUnsavedChanges = false;
 
   const $ = s => document.querySelector(s);
@@ -620,10 +625,12 @@
     try { return decodeURIComponent(raw); } catch { return raw; }
   }
 
-  function adminMediaPreview(url, alt) {
+  function adminMediaPreview(url, alt, poster) {
     if (isDirectVideoUrl(url)) {
-      return '<video src="' + esc(url) + '" muted playsinline preload="metadata" aria-label="' + esc(alt || 'Video') + '"></video>' +
-        '<span class="media-composer-video-badge" aria-label="Video"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m8 5 11 7-11 7Z"></path></svg></span>';
+      const visual = poster
+        ? '<img src="' + esc(poster) + '" alt="' + esc(alt || 'Video thumbnail') + '" loading="lazy">'
+        : '<video src="' + esc(url) + '" muted playsinline preload="metadata" aria-label="' + esc(alt || 'Video') + '"></video>';
+      return visual + '<span class="media-composer-video-badge" aria-label="Video"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m8 5 11 7-11 7Z"></path></svg></span>';
     }
     return '<img src="' + esc(url) + '" alt="' + esc(alt || '') + '" loading="lazy">';
   }
@@ -707,9 +714,17 @@
     const empty = $('#brandMediaEmpty');
     if (!list || !empty) return;
 
-    list.innerHTML = editingBrandMedia.map((url, index) =>
-      '<article class="brand-media-item" data-index="' + index + '" draggable="true">' +
-        '<div class="brand-media-preview">' + adminMediaPreview(url, 'Gallery media ' + (index + 1)) + '<span class="brand-media-order">' + String(index + 1).padStart(2, '0') + '</span></div>' +
+    list.innerHTML = editingBrandMedia.map((url, index) => {
+      const video = isDirectVideoUrl(url);
+      const poster = video ? editingBrandPosters[url] : '';
+      const frameButton = video
+        ? '<button type="button" class="brand-media-frame-button' + (poster ? ' has-frame' : '') + '" aria-label="' + (poster ? 'Change video thumbnail frame' : 'Choose video thumbnail frame') + '">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="m9 9 6 3-6 3Z"></path></svg>' +
+            '<span>' + (poster ? 'Change frame' : 'Choose frame') + '</span>' +
+          '</button>'
+        : '';
+      return '<article class="brand-media-item" data-index="' + index + '" draggable="true">' +
+        '<div class="brand-media-preview">' + adminMediaPreview(url, 'Gallery media ' + (index + 1), poster) + '<span class="brand-media-order">' + String(index + 1).padStart(2, '0') + '</span>' + frameButton + '</div>' +
         '<div class="brand-media-item-footer"><span title="' + esc(mediaFileName(url)) + '">' + esc(mediaFileName(url)) + '</span>' +
           '<div class="brand-media-actions">' +
             '<button type="button" class="brand-media-move" data-direction="-1" aria-label="Move media earlier" ' + (index === 0 ? 'disabled' : '') + '><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"></path></svg></button>' +
@@ -717,8 +732,8 @@
             '<button type="button" class="brand-media-remove" aria-label="Remove media"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6"></path></svg></button>' +
           '</div>' +
         '</div>' +
-      '</article>'
-    ).join('');
+      '</article>';
+    }).join('');
 
     list.classList.toggle('hidden', editingBrandMedia.length === 0);
     empty.classList.toggle('hidden', editingBrandMedia.length > 0);
@@ -727,10 +742,19 @@
     list.querySelectorAll('.brand-media-item').forEach(item => {
       const index = Number(item.dataset.index);
       item.querySelector('.brand-media-remove').addEventListener('click', () => {
+        const removedUrl = editingBrandMedia[index];
         editingBrandMedia.splice(index, 1);
+        delete editingBrandPosters[removedUrl];
         renderBrandMedia();
         hasUnsavedChanges = true;
       });
+      const frameButton = item.querySelector('.brand-media-frame-button');
+      if (frameButton) {
+        frameButton.addEventListener('click', event => {
+          event.stopPropagation();
+          openVideoFramePicker(editingBrandMedia[index], index, frameButton);
+        });
+      }
       item.querySelectorAll('.brand-media-move').forEach(button => {
         button.addEventListener('click', () => moveBrandMedia(index, Number(button.dataset.direction)));
       });
@@ -763,6 +787,9 @@
   function chooseBrandMedia() {
     openAssetPicker(items => {
       editingBrandMedia = items.map(item => item.url);
+      editingBrandPosters = Object.fromEntries(
+        Object.entries(editingBrandPosters).filter(([mediaUrl]) => editingBrandMedia.includes(mediaUrl))
+      );
       renderBrandMedia();
       if (!$('#brandThumbnail').value) {
         const firstImage = items.find(item => item.type === 'image' || !isDirectVideoUrl(item.url));
@@ -791,6 +818,9 @@
     $('#brandName').value = brand ? brand.name : '';
     $('#brandThumbnail').value = brand ? brand.thumbnail : '';
     editingBrandMedia = brand && Array.isArray(brand.gallery) ? brand.gallery.slice() : [];
+    editingBrandPosters = brand && brand.galleryPosters && typeof brand.galleryPosters === 'object'
+      ? { ...brand.galleryPosters }
+      : {};
     const mode = getBrandMode(brand);
     const modeInput = document.querySelector('input[name="brandMode"][value="' + mode + '"]');
     if (modeInput) modeInput.checked = true;
@@ -859,7 +889,8 @@
       name: $('#brandName').value.trim(),
       thumbnail: $('#brandThumbnail').value.trim(),
       mode: modeInput ? modeInput.value : 'projects',
-      gallery: editingBrandMedia.slice()
+      gallery: editingBrandMedia.slice(),
+      galleryPosters: { ...editingBrandPosters }
     };
 
     if (!payload.name) {
@@ -897,6 +928,218 @@
     }
   });
   $('#deleteBrandBtn').addEventListener('click', () => removeBrand($('#editingBrandId').value));
+
+  const videoFrameModal = $('#videoFrameModal');
+  const videoFramePlayer = $('#videoFramePlayer');
+  const videoFrameRange = $('#videoFrameRange');
+  const videoFrameCapture = $('#videoFrameCapture');
+  const videoFrameCaptureLabel = videoFrameCapture.querySelector('span');
+  const videoFrameLoading = $('#videoFrameLoading');
+  const videoFrameStatus = $('#videoFrameStatus');
+  const videoFramePlay = $('#videoFramePlay');
+  const videoFramePlayLabel = videoFramePlay.querySelector('span');
+
+  function formatFrameTime(seconds) {
+    const safe = Math.max(0, Number(seconds) || 0);
+    const minutes = Math.floor(safe / 60);
+    const remainder = Math.floor(safe % 60);
+    return minutes + ':' + String(remainder).padStart(2, '0');
+  }
+
+  function updateVideoFrameTime() {
+    const duration = Number.isFinite(videoFramePlayer.duration) ? videoFramePlayer.duration : 0;
+    if (!videoFrameRange.matches(':active')) videoFrameRange.value = String(videoFramePlayer.currentTime || 0);
+    const progress = duration > 0 ? Math.max(0, Math.min(100, ((videoFramePlayer.currentTime || 0) / duration) * 100)) : 0;
+    videoFrameRange.style.setProperty('--frame-progress', progress + '%');
+    $('#videoFrameCurrentTime').textContent = formatFrameTime(videoFramePlayer.currentTime);
+    $('#videoFrameDuration').textContent = formatFrameTime(duration);
+  }
+
+  function updateVideoFramePlayState() {
+    const playing = !videoFramePlayer.paused && !videoFramePlayer.ended;
+    videoFramePlay.classList.toggle('is-playing', playing);
+    videoFramePlayLabel.textContent = playing ? 'Pause' : 'Play';
+    videoFramePlay.setAttribute('aria-label', playing ? 'Pause video' : 'Play video');
+  }
+
+  function openVideoFramePicker(url, index, trigger) {
+    if (!url || !isDirectVideoUrl(url)) return;
+    framePickerTrigger = trigger || document.activeElement;
+    framePickerMediaUrl = url;
+    framePickerMediaIndex = index;
+    frameCaptureRunning = false;
+
+    videoFrameRange.disabled = true;
+    videoFrameRange.value = '0';
+    videoFrameCapture.disabled = true;
+    videoFrameCaptureLabel.textContent = 'Use this frame';
+    videoFrameLoading.classList.remove('hidden');
+    videoFrameStatus.textContent = 'Loading the video so you can choose an exact frame…';
+    $('#videoFrameCurrentTime').textContent = '0:00';
+    $('#videoFrameDuration').textContent = '0:00';
+    const hasPoster = !!editingBrandPosters[url];
+    $('#videoFrameExistingBadge').classList.toggle('hidden', !hasPoster);
+    $('#videoFrameRemove').classList.toggle('hidden', !hasPoster);
+
+    videoFramePlayer.pause();
+    videoFramePlayer.src = url;
+    videoFramePlayer.load();
+    updateVideoFramePlayState();
+    videoFrameModal.classList.remove('hidden');
+    videoFrameModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => $('#videoFrameClose').focus());
+  }
+
+  function closeVideoFramePicker() {
+    if (frameCaptureRunning) return;
+    videoFramePlayer.pause();
+    videoFramePlayer.removeAttribute('src');
+    videoFramePlayer.load();
+    videoFrameModal.classList.add('hidden');
+    videoFrameModal.setAttribute('aria-hidden', 'true');
+    const brandOpen = !$('#brandModal').classList.contains('hidden');
+    const projectOpen = !$('#projectModal').classList.contains('hidden');
+    document.body.style.overflow = (brandOpen || projectOpen) ? 'hidden' : '';
+    if (framePickerTrigger && document.contains(framePickerTrigger)) framePickerTrigger.focus();
+    framePickerTrigger = null;
+    framePickerMediaUrl = '';
+    framePickerMediaIndex = -1;
+  }
+
+  function seekVideoFrame(amount) {
+    if (!Number.isFinite(videoFramePlayer.duration)) return;
+    videoFramePlayer.pause();
+    const end = Math.max(0, videoFramePlayer.duration - 0.01);
+    videoFramePlayer.currentTime = Math.max(0, Math.min(end, videoFramePlayer.currentTime + amount));
+    updateVideoFramePlayState();
+  }
+
+  function canvasBlob(canvas) {
+    return new Promise((resolve, reject) => {
+      try {
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('The selected frame could not be rendered')), 'image/jpeg', 0.9);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  async function captureVideoFrame() {
+    if (frameCaptureRunning || !framePickerMediaUrl || videoFramePlayer.readyState < 2) return;
+    frameCaptureRunning = true;
+    videoFramePlayer.pause();
+    updateVideoFramePlayState();
+    videoFrameCapture.disabled = true;
+    videoFrameCaptureLabel.textContent = 'Capturing…';
+    videoFrameStatus.textContent = 'Rendering and saving your thumbnail…';
+
+    try {
+      const sourceWidth = videoFramePlayer.videoWidth;
+      const sourceHeight = videoFramePlayer.videoHeight;
+      if (!sourceWidth || !sourceHeight) throw new Error('This video frame is not ready yet');
+      const scale = Math.min(1, 1600 / Math.max(sourceWidth, sourceHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+      canvas.height = Math.max(1, Math.round(sourceHeight * scale));
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Your browser could not create the thumbnail');
+      context.drawImage(videoFramePlayer, 0, 0, canvas.width, canvas.height);
+      const blob = await canvasBlob(canvas);
+      const file = new File([blob], 'gallery-video-frame.jpg', { type: 'image/jpeg', lastModified: Date.now() });
+      const uploaded = await uploadAssetFile(file, (loaded, total) => {
+        const percent = total ? Math.min(99, Math.round((loaded / total) * 100)) : 0;
+        videoFrameStatus.textContent = 'Saving thumbnail… ' + percent + '%';
+      });
+      editingBrandPosters[framePickerMediaUrl] = uploaded.url;
+      const mediaIndex = framePickerMediaIndex;
+      frameCaptureRunning = false;
+      closeVideoFramePicker();
+      renderBrandMedia();
+      hasUnsavedChanges = true;
+      await loadAssets();
+      requestAnimationFrame(() => {
+        const button = document.querySelector('.brand-media-item[data-index="' + mediaIndex + '"] .brand-media-frame-button');
+        if (button) button.focus();
+      });
+      showToast('Video thumbnail frame saved', 'success');
+    } catch (error) {
+      frameCaptureRunning = false;
+      videoFrameCapture.disabled = false;
+      videoFrameCaptureLabel.textContent = 'Use this frame';
+      videoFrameStatus.textContent = 'Could not capture this frame. Try another point in the video.';
+      showToast('Frame capture failed: ' + error.message, 'error', 7000);
+    }
+  }
+
+  videoFramePlayer.addEventListener('loadedmetadata', () => {
+    const duration = Number.isFinite(videoFramePlayer.duration) ? videoFramePlayer.duration : 0;
+    videoFrameRange.max = String(Math.max(duration, 0.01));
+    videoFrameRange.disabled = duration <= 0;
+    const openingFrame = Math.min(Math.max(duration * 0.1, 0.1), Math.max(0, duration - 0.05));
+    if (duration > 0) videoFramePlayer.currentTime = openingFrame;
+    updateVideoFrameTime();
+  });
+  videoFramePlayer.addEventListener('loadeddata', () => {
+    videoFrameLoading.classList.add('hidden');
+    videoFrameCapture.disabled = false;
+    videoFrameStatus.textContent = 'Pause on the exact frame you want, then choose “Use this frame”.';
+  });
+  videoFramePlayer.addEventListener('timeupdate', updateVideoFrameTime);
+  videoFramePlayer.addEventListener('seeking', () => {
+    videoFrameCapture.disabled = true;
+    videoFrameStatus.textContent = 'Finding that frame…';
+  });
+  videoFramePlayer.addEventListener('seeked', () => {
+    videoFrameLoading.classList.add('hidden');
+    videoFrameCapture.disabled = false;
+    updateVideoFrameTime();
+    videoFrameStatus.textContent = 'Frame ready. Fine-tune it or use this frame.';
+  });
+  videoFramePlayer.addEventListener('play', updateVideoFramePlayState);
+  videoFramePlayer.addEventListener('pause', updateVideoFramePlayState);
+  videoFramePlayer.addEventListener('ended', updateVideoFramePlayState);
+  videoFramePlayer.addEventListener('error', () => {
+    videoFrameLoading.classList.add('hidden');
+    videoFrameCapture.disabled = true;
+    videoFrameStatus.textContent = 'This video cannot be previewed in your browser. Try an MP4 or WebM file.';
+  });
+  videoFramePlayer.addEventListener('click', () => videoFramePlay.click());
+  videoFrameRange.addEventListener('input', () => {
+    videoFramePlayer.pause();
+    videoFramePlayer.currentTime = Number(videoFrameRange.value) || 0;
+    updateVideoFrameTime();
+  });
+  videoFramePlay.addEventListener('click', () => {
+    if (videoFramePlayer.paused) videoFramePlayer.play().catch(() => {});
+    else videoFramePlayer.pause();
+  });
+  $('#videoFrameBack').addEventListener('click', () => seekVideoFrame(-0.5));
+  $('#videoFrameForward').addEventListener('click', () => seekVideoFrame(0.5));
+  $('#videoFrameCapture').addEventListener('click', captureVideoFrame);
+  $('#videoFrameClose').addEventListener('click', closeVideoFramePicker);
+  $('#videoFrameCancel').addEventListener('click', closeVideoFramePicker);
+  $('#videoFrameBackdrop').addEventListener('click', closeVideoFramePicker);
+  $('#videoFrameRemove').addEventListener('click', () => {
+    const mediaIndex = framePickerMediaIndex;
+    delete editingBrandPosters[framePickerMediaUrl];
+    closeVideoFramePicker();
+    renderBrandMedia();
+    hasUnsavedChanges = true;
+    requestAnimationFrame(() => {
+      const button = document.querySelector('.brand-media-item[data-index="' + mediaIndex + '"] .brand-media-frame-button');
+      if (button) button.focus();
+    });
+    showToast('Custom video frame removed', 'success');
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !videoFrameModal.classList.contains('hidden')) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      closeVideoFramePicker();
+    }
+  }, true);
+
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' &&
         $('#assetPickerModal').classList.contains('hidden') &&
@@ -3131,6 +3374,7 @@
     if (event.key !== 'Tab') return;
     let root = null;
     if (!$('#confirmDialog').classList.contains('hidden')) root = $('#confirmDialog .modal-content');
+    else if (!$('#videoFrameModal').classList.contains('hidden')) root = $('#videoFrameModal .modal-content');
     else if (!$('#assetPickerModal').classList.contains('hidden')) root = $('#assetPickerModal .modal-content');
     else if (!$('#brandModal').classList.contains('hidden')) root = $('#brandModal .modal-content');
     else if (!$('#projectModal').classList.contains('hidden')) root = $('#projectModal .modal-content');

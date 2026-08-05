@@ -125,6 +125,8 @@ function mediaElement(value, options = {}) {
   if (isDirectVideo(url)) {
     const video = document.createElement('video');
     video.src = url;
+    const poster = safeUrl(options.poster);
+    if (poster) video.poster = poster;
     video.playsInline = true;
     video.preload = viewer ? 'metadata' : 'metadata';
     video.controls = viewer;
@@ -162,6 +164,13 @@ function brandProjects(brand) {
 
 function brandGallery(brand) {
   return uniqueMedia(brand && brand.gallery);
+}
+
+function brandGalleryPoster(brand, mediaUrl) {
+  if (!brand || !brand.galleryPosters || typeof brand.galleryPosters !== 'object') return '';
+  if (brand.galleryPosters[mediaUrl]) return safeUrl(brand.galleryPosters[mediaUrl]);
+  const matchingKey = Object.keys(brand.galleryPosters).find(key => safeUrl(key) === mediaUrl);
+  return matchingKey ? safeUrl(brand.galleryPosters[matchingKey]) : '';
 }
 
 function projectMedia(project) {
@@ -454,7 +463,7 @@ function galleryTile(url, index, brand, grid) {
   tile.dataset.aspect = isExternalVideo(url) ? String(16 / 9) : String(4 / 3);
   tile.style.setProperty('--gallery-order', index);
 
-  const preview = mediaElement(url, { title: '' });
+  const preview = mediaElement(url, { title: '', poster: brandGalleryPoster(brand, url) });
   preview.classList.add('brand-gallery-preview');
   if (preview instanceof HTMLImageElement && index < 16) preview.loading = 'eager';
   tile.appendChild(preview);

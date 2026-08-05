@@ -43,12 +43,23 @@ function normalize_brand($raw) {
         }
     }
 
+    $galleryPosters = array();
+    $rawPosters = arr_get($raw, 'galleryPosters', array());
+    if (is_array($rawPosters)) {
+        foreach ($gallery as $mediaUrl) {
+            if (!isset($rawPosters[$mediaUrl])) continue;
+            $posterUrl = clean_content_text($rawPosters[$mediaUrl]);
+            if ($posterUrl !== '') $galleryPosters[$mediaUrl] = $posterUrl;
+        }
+    }
+
     return array(
         'id' => isset($raw['id']) ? $raw['id'] : generate_uuid(),
         'name' => clean_content_text(arr_get($raw, 'name', '')),
         'thumbnail' => clean_content_text(arr_get($raw, 'thumbnail', '')),
         'mode' => $mode,
         'gallery' => array_values($gallery),
+        'galleryPosters' => $galleryPosters,
         'order' => isset($raw['order']) ? intval($raw['order']) : 0
     );
 }
@@ -135,6 +146,10 @@ function collect_used_upload_urls() {
             $brandGallery = arr_get($brand, 'gallery', array());
             if (is_array($brandGallery)) {
                 foreach ($brandGallery as $mediaUrl) $add($mediaUrl);
+            }
+            $galleryPosters = arr_get($brand, 'galleryPosters', array());
+            if (is_array($galleryPosters)) {
+                foreach ($galleryPosters as $posterUrl) $add($posterUrl);
             }
         }
     }

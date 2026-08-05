@@ -221,21 +221,36 @@
           el.innerHTML = '';
           const timeline = document.createElement('div');
           timeline.className = 'timeline';
-          val.forEach(item => {
-            const row = document.createElement('div');
+          val.forEach((item, index) => {
+            const row = document.createElement('article');
             row.className = 'timeline-item';
+            row.style.setProperty('--entry-index', index);
+
+            const dateWrap = document.createElement('div');
+            dateWrap.className = 'timeline-date-wrap';
+            appendTextElement(dateWrap, 'span', 'timeline-date', item.date || '—');
+
             const marker = document.createElement('div');
             marker.className = 'timeline-marker';
+            marker.innerHTML = '<span></span>';
+
             const content = document.createElement('div');
             content.className = 'timeline-content';
-            appendTextElement(content, 'span', 'timeline-date', item.date);
-            appendTextElement(content, 'h3', 'timeline-title', item.title);
-            appendTextElement(content, 'span', 'timeline-subtitle', item.subtitle);
-            appendTextElement(content, 'p', 'timeline-desc', item.desc);
-            row.append(marker, content);
+            const meta = document.createElement('div');
+            meta.className = 'timeline-entry-meta';
+            appendTextElement(meta, 'span', 'timeline-entry-kind', key === 'experience' ? 'Professional' : 'Academic');
+            appendTextElement(meta, 'span', 'timeline-entry-number', String(index + 1).padStart(2, '0'));
+            content.appendChild(meta);
+            appendTextElement(content, 'h3', 'timeline-title', item.title || 'Untitled entry');
+            if (item.subtitle) appendTextElement(content, 'span', 'timeline-subtitle', item.subtitle);
+            if (item.desc) appendTextElement(content, 'p', 'timeline-desc', item.desc);
+            row.append(dateWrap, marker, content);
             timeline.appendChild(row);
           });
           el.appendChild(timeline);
+          requestAnimationFrame(() => {
+            if (typeof window.updateTimelineCount === 'function') window.updateTimelineCount();
+          });
         }
       } else {
         el.textContent = val;
@@ -436,6 +451,18 @@
   // ============================================
   // TIMELINE TABS
   // ============================================
+  window.updateTimelineCount = function updateTimelineCount() {
+    const countEl = document.getElementById('timelineCount');
+    const activePanel = document.querySelector('.timeline-panel.active');
+    if (!countEl || !activePanel) return;
+    const count = activePanel.querySelectorAll('.timeline-item').length;
+    const value = countEl.querySelector('span:last-child');
+    const label = String(count).padStart(2, '0') + ' ' + (count === 1 ? 'entry' : 'entries');
+    if (value) value.textContent = label;
+    else countEl.textContent = label;
+  };
+  window.updateTimelineCount();
+
   const tabOrder = ['experience', 'education'];
   let isTransitioning = false;
 
@@ -457,9 +484,13 @@
       const toIndex = tabOrder.indexOf(target);
       const goingRight = toIndex > fromIndex;
 
-      // Update tab states
+      // Update visual and accessible tab states.
       activeTab.classList.remove('active');
+      activeTab.setAttribute('aria-selected', 'false');
+      activeTab.tabIndex = -1;
       tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      tab.tabIndex = 0;
 
       if (typeof gsap !== 'undefined') {
         const tl = gsap.timeline({
@@ -476,9 +507,9 @@
         if (currentItems.length) {
           tl.to(currentItems, {
             opacity: 0,
-            y: -15,
-            duration: 0.2,
-            stagger: 0.03,
+            x: goingRight ? -22 : 22,
+            duration: 0.22,
+            stagger: 0.025,
             ease: 'power2.in'
           });
         }
@@ -493,12 +524,14 @@
         // 3. Switch panels
         tl.call(() => {
           currentPanel.classList.remove('active');
+          currentPanel.hidden = true;
           currentPanel.style.cssText = '';
           // Reset current items
           currentItems.forEach(item => {
             item.style.opacity = '';
             item.style.transform = '';
           });
+          nextPanel.hidden = false;
           nextPanel.classList.add('active');
         });
 
@@ -512,11 +545,11 @@
         const nextItems = nextPanel.querySelectorAll('.timeline-item');
         if (nextItems.length) {
           tl.fromTo(nextItems,
-            { opacity: 0, y: 25 },
+            { opacity: 0, x: goingRight ? 24 : -24 },
             {
               opacity: 1,
-              y: 0,
-              duration: 0.4,
+              x: 0,
+              duration: 0.42,
               stagger: 0.08,
               ease: 'power3.out'
             },
@@ -525,11 +558,28 @@
         }
       } else {
         currentPanel.classList.remove('active');
+        currentPanel.hidden = true;
+        nextPanel.hidden = false;
         nextPanel.classList.add('active');
         if (typeof window.updateTimelineCount === 'function') {
           window.updateTimelineCount();
         }
       }
+    });
+  });
+
+  const timelineTabs = Array.from(document.querySelectorAll('.timeline-tab'));
+  timelineTabs.forEach((tab, index) => {
+    tab.addEventListener('keydown', event => {
+      let targetIndex = index;
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') targetIndex = (index + 1) % timelineTabs.length;
+      else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') targetIndex = (index - 1 + timelineTabs.length) % timelineTabs.length;
+      else if (event.key === 'Home') targetIndex = 0;
+      else if (event.key === 'End') targetIndex = timelineTabs.length - 1;
+      else return;
+      event.preventDefault();
+      timelineTabs[targetIndex].focus();
+      timelineTabs[targetIndex].click();
     });
   });
 

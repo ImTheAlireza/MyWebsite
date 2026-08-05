@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/admin.css?v=20260805-1">
+  <link rel="stylesheet" href="css/admin.css?v=20260805-3">
 </head>
 <body>
   <!-- Login Screen -->
@@ -988,7 +988,7 @@
         <section id="brandGallerySection" class="brand-editor-section brand-gallery-editor hidden" aria-labelledby="brandGalleryHeading">
           <div class="brand-editor-section-heading brand-media-heading">
             <span class="brand-editor-step">03</span>
-            <div><h4 id="brandGalleryHeading">Gallery media</h4><p>Choose images and videos, then arrange the order visitors will browse.</p></div>
+            <div><h4 id="brandGalleryHeading">Gallery media</h4><p>Choose media, set a thumbnail frame for each video, then arrange the order.</p></div>
             <button type="button" id="addBrandMediaBtn" class="btn btn-ghost btn-sm">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
               Add media
@@ -1259,6 +1259,62 @@
     </div>
   </div>
 
+  <!-- Video thumbnail frame picker -->
+  <div id="videoFrameModal" class="modal video-frame-modal hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="videoFrameTitle">
+    <div class="modal-backdrop" id="videoFrameBackdrop"></div>
+    <div class="modal-content video-frame-dialog" tabindex="-1">
+      <div class="modal-header video-frame-header">
+        <div>
+          <span class="modal-eyebrow">Gallery thumbnail</span>
+          <h3 id="videoFrameTitle">Choose a video frame</h3>
+          <p>Move through the video and capture the frame visitors should see.</p>
+        </div>
+        <button type="button" id="videoFrameClose" class="modal-close-btn" aria-label="Close frame picker">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="video-frame-body">
+        <div class="video-frame-stage">
+          <video id="videoFramePlayer" muted playsinline preload="auto" crossorigin="anonymous"></video>
+          <div id="videoFrameLoading" class="video-frame-loading">
+            <span class="asset-picker-upload-spinner" aria-hidden="true"></span>
+            <span>Preparing video…</span>
+          </div>
+          <span id="videoFrameExistingBadge" class="video-frame-existing hidden">Custom frame active</span>
+        </div>
+        <div class="video-frame-controls">
+          <div class="video-frame-transport">
+            <button type="button" id="videoFrameBack" class="video-frame-icon-btn" aria-label="Move back half a second">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m11 17-5-5 5-5"></path><path d="M18 17V7"></path></svg>
+            </button>
+            <button type="button" id="videoFramePlay" class="video-frame-play" aria-label="Play video">
+              <svg class="video-frame-play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m8 5 11 7-11 7Z"></path></svg>
+              <svg class="video-frame-pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM14 5h4v14h-4z"></path></svg>
+              <span>Play</span>
+            </button>
+            <button type="button" id="videoFrameForward" class="video-frame-icon-btn" aria-label="Move forward half a second">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m13 17 5-5-5-5"></path><path d="M6 17V7"></path></svg>
+            </button>
+          </div>
+          <div class="video-frame-scrubber">
+            <input type="range" id="videoFrameRange" min="0" max="1" step="0.01" value="0" disabled aria-label="Video position">
+            <div class="video-frame-time"><span id="videoFrameCurrentTime">0:00</span><span id="videoFrameDuration">0:00</span></div>
+          </div>
+        </div>
+        <div id="videoFrameStatus" class="video-frame-status" aria-live="polite">Pause on the exact frame you want, then choose “Use this frame”.</div>
+      </div>
+      <div class="video-frame-footer">
+        <button type="button" id="videoFrameRemove" class="btn btn-ghost hidden">Remove custom frame</button>
+        <span class="modal-footer-spacer"></span>
+        <button type="button" id="videoFrameCancel" class="btn btn-ghost">Cancel</button>
+        <button type="button" id="videoFrameCapture" class="btn btn-primary" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4 16 7h4a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h4l1.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+          <span>Use this frame</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Live Preview -->
   <div id="previewOverlay" class="preview-overlay hidden">
     <div class="preview-toolbar">
@@ -1311,6 +1367,6 @@
     </button>
   </div>
 
-  <script src="js/admin.js?v=20260805-1"></script>
+  <script src="js/admin.js?v=20260805-3"></script>
 </body>
 </html>
