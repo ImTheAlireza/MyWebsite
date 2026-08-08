@@ -3902,16 +3902,22 @@ html.has-custom-cursor textarea { cursor: none; }
 .testimonials-marquee {
   position: relative;
   overflow: hidden;
-  padding: 10px 0 40px;
-  margin-top: 10px;
+  padding: 28px 12px 48px;
+  margin-top: 18px;
+  /* narrower visible range — stays inside container and shows ~2.5 cards */
+  max-width: 100%;
+  isolation: isolate;
 }
 .testimonials-viewport {
   overflow: hidden;
+  overflow-y: visible;
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
+  padding: 8px 0 16px;
+  margin: -8px 0;
 }
 .testimonials-viewport.is-dragging {
   cursor: grabbing;
@@ -3932,11 +3938,11 @@ html.has-custom-cursor textarea { cursor: none; }
 .testimonial-card {
   position: relative;
   isolation: isolate;
-  flex: 0 0 clamp(300px, 42vw, 480px);
+  flex: 0 0 clamp(280px, 34vw, 400px);
   min-width: 0;
-  padding: clamp(26px, 3.2vw, 36px);
+  padding: clamp(22px, 2.6vw, 28px);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 18px;
   background: var(--bg-secondary);
   transition: border-color .35s var(--ease-out), transform .4s var(--ease-out), box-shadow .35s var(--ease-out);
 }
