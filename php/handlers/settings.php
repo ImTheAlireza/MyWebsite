@@ -68,10 +68,27 @@ function normalize_categories($values) {
     return normalize_category_list($values);
 }
 
+function deep_clean_text($value) {
+    if (is_array($value)) {
+        $cleaned = array();
+        foreach ($value as $k => $v) {
+            $cleaned[$k] = deep_clean_text($v);
+        }
+        return $cleaned;
+    }
+    if (is_string($value)) {
+        return clean_content_text($value);
+    }
+    return $value;
+}
+
 function get_settings() {
     global $DEFAULT_SETTINGS;
     $data = json_read('settings.json');
     $settings = array_merge($DEFAULT_SETTINGS, is_array($data) ? $data : array());
+    $settings['categories'] = normalize_categories(arr_get($settings, 'categories', array()));
+    // Decode any previously html-encoded entities (e.g. I&#039;ve) so panel shows correct text
+    $settings = deep_clean_text($settings);
     $settings['categories'] = normalize_categories(arr_get($settings, 'categories', array()));
     send_json($settings);
 }
@@ -94,36 +111,36 @@ function update_settings() {
             if (!is_array($value)) continue;
             $patch[$key] = array_map(function($item) {
                 return array(
-                    'date' => sanitize((string)arr_get($item, 'date', '')),
-                    'title' => sanitize((string)arr_get($item, 'title', '')),
-                    'subtitle' => sanitize((string)arr_get($item, 'subtitle', '')),
-                    'desc' => sanitize((string)arr_get($item, 'desc', '')),
+                    'date' => clean_content_text((string)arr_get($item, 'date', '')),
+                    'title' => clean_content_text((string)arr_get($item, 'title', '')),
+                    'subtitle' => clean_content_text((string)arr_get($item, 'subtitle', '')),
+                    'desc' => clean_content_text((string)arr_get($item, 'desc', '')),
                 );
             }, $value);
         } elseif ($key === 'services') {
             if (!is_array($value)) continue;
             $patch[$key] = array_map(function($item) {
                 return array(
-                    'icon' => sanitize((string)arr_get($item, 'icon', 'play')),
-                    'title' => sanitize((string)arr_get($item, 'title', '')),
-                    'desc' => sanitize((string)arr_get($item, 'desc', '')),
+                    'icon' => clean_content_text((string)arr_get($item, 'icon', 'play')),
+                    'title' => clean_content_text((string)arr_get($item, 'title', '')),
+                    'desc' => clean_content_text((string)arr_get($item, 'desc', '')),
                 );
             }, $value);
         } elseif ($key === 'process') {
             if (!is_array($value)) continue;
             $patch[$key] = array_map(function($item) {
                 return array(
-                    'title' => sanitize((string)arr_get($item, 'title', '')),
-                    'desc' => sanitize((string)arr_get($item, 'desc', '')),
+                    'title' => clean_content_text((string)arr_get($item, 'title', '')),
+                    'desc' => clean_content_text((string)arr_get($item, 'desc', '')),
                 );
             }, $value);
         } elseif ($key === 'testimonials') {
             if (!is_array($value)) continue;
             $patch[$key] = array_map(function($item) {
                 return array(
-                    'quote' => sanitize((string)arr_get($item, 'quote', '')),
-                    'name' => sanitize((string)arr_get($item, 'name', '')),
-                    'role' => sanitize((string)arr_get($item, 'role', '')),
+                    'quote' => clean_content_text((string)arr_get($item, 'quote', '')),
+                    'name' => clean_content_text((string)arr_get($item, 'name', '')),
+                    'role' => clean_content_text((string)arr_get($item, 'role', '')),
                 );
             }, $value);
         } elseif ($key === 'categories') {
@@ -133,7 +150,9 @@ function update_settings() {
             $n = floatval($value);
             if (is_finite($n)) $patch[$key] = $n;
         } else {
-            $patch[$key] = is_string($value) ? sanitize($value) : $value;
+            // Use clean_content_text for all textual content to preserve apostrophes and quotes
+            // Only keep raw for already sanitized URLs which are handled via clean_content_text as well
+            $patch[$key] = is_string($value) ? clean_content_text($value) : $value;
         }
     }
 
