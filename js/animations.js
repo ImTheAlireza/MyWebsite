@@ -236,6 +236,15 @@
     window.updateTimelineCount = updateTimelineCount;
   }
 
+  // Services section
+  create3DSectionReveal('.services', {
+    rotateX: 10,
+    rotateY: -2,
+    translateY: 70,
+    duration: 1.2,
+    start: 'top 82%'
+  });
+
   // Work section — 3D tilt from above
   create3DSectionReveal('.work', {
     rotateX: 8,
@@ -245,6 +254,24 @@
     start: 'top 80%'
   });
 
+  // Process section
+  create3DSectionReveal('.process-section', {
+    rotateX: 8,
+    rotateY: 1,
+    translateY: 60,
+    duration: 1.2,
+    start: 'top 80%'
+  });
+
+  // Testimonials section
+  create3DSectionReveal('.testimonials-section', {
+    rotateX: 10,
+    rotateY: -1,
+    translateY: 70,
+    duration: 1.3,
+    start: 'top 82%'
+  });
+
   // Contact section — 3D tilt from below
   create3DSectionReveal('.contact', {
     rotateX: 10,
@@ -252,6 +279,67 @@
     translateY: 70,
     duration: 1.3,
     start: 'top 82%'
+  });
+
+  // Services cards stagger
+  gsap.utils.toArray('.services-grid').forEach(grid => {
+    ScrollTrigger.create({
+      trigger: grid,
+      start: 'top 78%',
+      onEnter: () => {
+        gsap.fromTo(grid.querySelectorAll('.service-card'),
+          { opacity: 0, y: 30, rotateX: 6 },
+          { opacity: 1, y: 0, rotateX: 0, duration: 0.7, stagger: 0.12, ease: 'power3.out', clearProps: 'transform' }
+        );
+      },
+      once: true
+    });
+  });
+
+  // Process steps stagger
+  gsap.utils.toArray('.process-timeline').forEach(tl => {
+    ScrollTrigger.create({
+      trigger: tl,
+      start: 'top 78%',
+      onEnter: () => {
+        gsap.fromTo(tl.querySelectorAll('.process-step'),
+          { opacity: 0, y: 24 },
+          { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: 'power3.out' }
+        );
+      },
+      once: true
+    });
+  });
+
+  // Testimonials stagger
+  gsap.utils.toArray('.testimonials-grid').forEach(grid => {
+    ScrollTrigger.create({
+      trigger: grid,
+      start: 'top 78%',
+      onEnter: () => {
+        gsap.fromTo(grid.querySelectorAll('.testimonial-card'),
+          { opacity: 0, y: 28, rotateY: -4 },
+          { opacity: 1, y: 0, rotateY: 0, duration: 0.7, stagger: 0.15, ease: 'power3.out', clearProps: 'transform' }
+        );
+      },
+      once: true
+    });
+  });
+
+  // Brand CTA card reveal
+  ScrollTrigger.create({
+    trigger: '.work-grid',
+    start: 'top 75%',
+    onEnter: () => {
+      const cta = document.querySelector('.brand-card-cta');
+      if (cta) {
+        gsap.fromTo(cta,
+          { opacity: 0, scale: 0.92, y: 20 },
+          { opacity: 1, scale: 1, y: 0, duration: 0.7, ease: 'back.out(1.2)', clearProps: 'transform' }
+        );
+      }
+    },
+    once: true
   });
 
   // ============================================
@@ -455,38 +543,67 @@
   });
 
   // ============================================
-  // ANIMATED STATS COUNTER
+  // ANIMATED STATS COUNTER — reads latest value at scroll time
   // ============================================
+  function animateHeroStat(stat) {
+    if (!stat) return;
+    const raw = (stat.textContent || '').trim();
+    if (!raw) return;
+    const match = raw.match(/^(\d+)/);
+    if (!match) {
+      // Non-numeric like "Rasht" — just ensure visible, no counter
+      return;
+    }
+    const targetNum = parseInt(match[1], 10);
+    const suffix = raw.slice(match[1].length);
+    // Reset to 0 for animation
+    gsap.fromTo(stat,
+      { textContent: 0 },
+      {
+        textContent: targetNum,
+        duration: 2,
+        ease: 'power2.out',
+        snap: { textContent: 1 },
+        onUpdate: function() {
+          const current = Math.round(gsap.getProperty(stat, 'textContent'));
+          stat.textContent = current + suffix;
+        },
+        onComplete: function() {
+          stat.textContent = targetNum + suffix;
+        }
+      }
+    );
+  }
+
   const heroStats = document.querySelectorAll('.hero-stat-value');
   if (heroStats.length) {
     heroStats.forEach(stat => {
-      const text = stat.textContent;
-      const numMatch = text.match(/^(\d+)/);
-      if (!numMatch) return;
-
-      const targetNum = parseInt(numMatch[1]);
-      const suffix = text.replace(numMatch[1], '');
-
       ScrollTrigger.create({
         trigger: stat,
-        start: 'top 90%',
-        onEnter: () => {
-          gsap.fromTo(stat,
-            { textContent: '0' },
-            {
-              textContent: targetNum,
-              duration: 2,
-              ease: 'power2.out',
-              snap: { textContent: 1 },
-              onUpdate: function() {
-                stat.textContent = Math.round(gsap.getProperty(stat, 'textContent')) + suffix;
-              }
-            }
-          );
-        },
+        start: 'top 95%',
+        onEnter: () => animateHeroStat(stat),
         once: true
       });
     });
+    // Expose refresh so settings update can re-animate or update after API load
+    window.refreshHeroStats = function() {
+      document.querySelectorAll('.hero-stat-value').forEach(s => {
+        // If already animated, just set final value from current DOM (which was just updated by applySettings)
+        // Kill any existing tween on this element
+        gsap.killTweensOf(s);
+        const raw = (s.textContent || '').trim();
+        const m = raw.match(/^(\d+)/);
+        if (!m) return; // keep "Rasht" as is
+        // Re-trigger animation with new value if in viewport, otherwise set directly
+        const rect = s.getBoundingClientRect();
+        const inView = rect.top < window.innerHeight && rect.bottom > 0;
+        if (inView) {
+          animateHeroStat(s);
+        } else {
+          // Will animate when scrolled into view, keep raw for now
+        }
+      });
+    };
   }
 
 

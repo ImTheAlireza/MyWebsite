@@ -231,10 +231,9 @@ function renderProjects() {
     const heading = document.createElement('h3');
     heading.textContent = 'No brands published yet';
     const copy = document.createElement('p');
-    copy.textContent = 'New work will appear here soon.';
+    copy.textContent = 'Add brands in the admin panel. Meanwhile, you can still reach out.';
     empty.append(heading, copy);
     grid.appendChild(empty);
-    return;
   }
 
   visibleBrands.forEach((brand, index) => {
@@ -270,6 +269,27 @@ function renderProjects() {
     card.addEventListener('click', () => openBrandModal(brand, card));
     grid.appendChild(card);
   });
+
+  // CTA Card — always last, invites next collaboration
+  const cta = document.createElement('a');
+  cta.href = '#contact';
+  cta.className = 'brand-card-cta';
+  cta.setAttribute('data-cursor', 'link');
+  cta.setAttribute('aria-label', 'Let\'s work together - Contact');
+  cta.innerHTML = '' +
+    '<span class=\"brand-card-cta-icon\">' +
+      '<svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" aria-hidden=\"true\"><line x1=\"12\" y1=\"5\" x2=\"12\" y2=\"19\"></line><line x1=\"5\" y1=\"12\" x2=\"19\" y2=\"12\"></line></svg>' +
+    '</span>' +
+    '<span class=\"brand-card-cta-title\">Your brand next?</span>' +
+    '<span class=\"brand-card-cta-sub\">Let\'s create something that converts. Available for new projects.</span>' +
+    '<span class=\"brand-card-cta-action\"><span>Let\'s talk</span><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m9 18 6-6-6-6\"></path></svg></span>';
+  cta.addEventListener('click', (e) => {
+    e.preventDefault();
+    const target = document.getElementById('contact');
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  });
+  grid.appendChild(cta);
+
   document.dispatchEvent(new CustomEvent('projects:rendered'));
 }
 

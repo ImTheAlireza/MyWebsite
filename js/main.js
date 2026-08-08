@@ -164,6 +164,166 @@
     }
   }
 
+
+  // ============================================
+  // TESTIMONIALS SLIDER — auto scroll, fade, draggable
+  // ============================================
+  let testimonialsSlider = {
+    offset: 0,
+    half: 0,
+    speed: 0.6,
+    paused: false,
+    dragging: false,
+    startX: 0,
+    startOffset: 0,
+    raf: null,
+    velocity: 0,
+    lastX: 0,
+    lastTime: 0
+  };
+
+  function initTestimonialsSlider() {
+    const viewport = document.getElementById('testimonialsViewport');
+    const track = document.getElementById('testimonialsGrid');
+    if (!viewport || !track) return;
+    if (!track.children.length) return;
+
+    // Cleanup previous
+    if (testimonialsSlider.raf) cancelAnimationFrame(testimonialsSlider.raf);
+    // Remove old clones
+    track.querySelectorAll('[data-clone]').forEach(el => el.remove());
+
+    const originals = Array.from(track.children);
+    if (!originals.length) return;
+
+    // Duplicate to ensure enough width for infinite loop (at least 2.5x viewport)
+    const viewportW = viewport.clientWidth || 800;
+    // Ensure we have at least 4 cards minimum for smooth loop
+    let needed = originals.length;
+    if (originals.length < 4) {
+      // duplicate originals until we have at least 6
+      const times = Math.ceil(6 / originals.length);
+      for (let t = 1; t < times; t++) {
+        originals.forEach(card => {
+          const c = card.cloneNode(true);
+          c.setAttribute('data-clone', 'true');
+          c.setAttribute('aria-hidden', 'true');
+          track.appendChild(c);
+        });
+      }
+    }
+
+    // Now duplicate whole set once for seamless loop
+    const allOriginalsNow = Array.from(track.children);
+    allOriginalsNow.forEach(card => {
+      const clone = card.cloneNode(true);
+      clone.setAttribute('data-clone', 'true');
+      clone.setAttribute('aria-hidden', 'true');
+      track.appendChild(clone);
+    });
+
+    // Reset state
+    testimonialsSlider.offset = 0;
+    testimonialsSlider.paused = false;
+    testimonialsSlider.dragging = false;
+    track.style.transform = 'translate3d(0,0,0)';
+
+    // Calculate half width after layout
+    requestAnimationFrame(() => {
+      testimonialsSlider.half = track.scrollWidth / 2;
+      // Start tick
+      function tick() {
+        if (!testimonialsSlider.paused && !testimonialsSlider.dragging) {
+          testimonialsSlider.offset -= testimonialsSlider.speed;
+          if (testimonialsSlider.offset <= -testimonialsSlider.half) {
+            testimonialsSlider.offset += testimonialsSlider.half;
+          }
+          track.style.transform = `translate3d(${testimonialsSlider.offset}px,0,0)`;
+        }
+        testimonialsSlider.raf = requestAnimationFrame(tick);
+      }
+      tick();
+    });
+
+    // Only bind events once
+    if (!viewport.dataset.sliderBound) {
+      viewport.dataset.sliderBound = '1';
+
+      viewport.addEventListener('mouseenter', () => {
+        testimonialsSlider.paused = true;
+      });
+      viewport.addEventListener('mouseleave', () => {
+        if (!testimonialsSlider.dragging) testimonialsSlider.paused = false;
+      });
+
+      const onDown = (e) => {
+        testimonialsSlider.dragging = true;
+        testimonialsSlider.paused = true;
+        viewport.classList.add('is-dragging');
+        testimonialsSlider.startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        testimonialsSlider.startOffset = testimonialsSlider.offset;
+        testimonialsSlider.lastX = testimonialsSlider.startX;
+        testimonialsSlider.lastTime = Date.now();
+        testimonialsSlider.velocity = 0;
+      };
+
+      const onMove = (e) => {
+        if (!testimonialsSlider.dragging) return;
+        const x = e.type.includes('touch') ? (e.touches[0] ? e.touches[0].clientX : testimonialsSlider.lastX) : e.clientX;
+        const dx = x - testimonialsSlider.startX;
+        let newOffset = testimonialsSlider.startOffset + dx;
+
+        // Infinite wrap while dragging
+        if (newOffset > 0) {
+          newOffset -= testimonialsSlider.half;
+          testimonialsSlider.startOffset -= testimonialsSlider.half;
+        } else if (newOffset <= -testimonialsSlider.half) {
+          newOffset += testimonialsSlider.half;
+          testimonialsSlider.startOffset += testimonialsSlider.half;
+        }
+
+        testimonialsSlider.offset = newOffset;
+        track.style.transform = `translate3d(${newOffset}px,0,0)`;
+
+        const now = Date.now();
+        const dt = now - testimonialsSlider.lastTime;
+        if (dt > 0) {
+          testimonialsSlider.velocity = (x - testimonialsSlider.lastX) / dt;
+          testimonialsSlider.lastX = x;
+          testimonialsSlider.lastTime = now;
+        }
+        if (e.type === 'touchmove') e.preventDefault();
+      };
+
+      const onUp = () => {
+        if (!testimonialsSlider.dragging) return;
+        testimonialsSlider.dragging = false;
+        viewport.classList.remove('is-dragging');
+        const momentum = testimonialsSlider.velocity * 180;
+        if (Math.abs(momentum) > 8) {
+          testimonialsSlider.offset += momentum;
+          if (testimonialsSlider.offset > 0) testimonialsSlider.offset -= testimonialsSlider.half;
+          if (testimonialsSlider.offset <= -testimonialsSlider.half) testimonialsSlider.offset += testimonialsSlider.half;
+          track.style.transform = `translate3d(${testimonialsSlider.offset}px,0,0)`;
+        }
+        setTimeout(() => { testimonialsSlider.paused = false; }, 500);
+      };
+
+      viewport.addEventListener('mousedown', onDown);
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+      viewport.addEventListener('touchstart', onDown, { passive: false });
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('touchend', onUp);
+
+      window.addEventListener('resize', () => {
+        testimonialsSlider.half = track.scrollWidth / 2;
+      });
+    }
+  }
+
+  window.initTestimonialsSlider = initTestimonialsSlider;
+
   function appendTextElement(parent, tagName, className, text) {
     const el = document.createElement(tagName);
     if (className) el.className = className;
@@ -252,6 +412,98 @@
             if (typeof window.updateTimelineCount === 'function') window.updateTimelineCount();
           });
         }
+      } else if (key === 'services') {
+        if (Array.isArray(val)) {
+          el.innerHTML = '';
+          const iconMap = {
+            play: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
+            share: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5 15.4 6.5M15.7 17.5 8.5 10.5"/></svg>',
+            monitor: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+            film: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M2 7h20M7 2v20M17 2v20"/></svg>',
+            spark: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 13.5 8.5H20l-5.5 4 2 6.5L12 15l-4.5 4 2-6.5L4 8.5h6.5L12 2z"/></svg>',
+            zap: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>'
+          };
+          val.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'service-card';
+            card.style.setProperty('--service-index', index);
+            const icon = document.createElement('div');
+            icon.className = 'service-icon';
+            icon.innerHTML = iconMap[item.icon] || iconMap.play;
+            const title = document.createElement('h3');
+            title.className = 'service-title';
+            title.textContent = item.title || 'Untitled service';
+            const desc = document.createElement('p');
+            desc.className = 'service-desc';
+            desc.textContent = item.desc || '';
+            const meta = document.createElement('div');
+            meta.className = 'service-meta';
+            meta.innerHTML = '<span></span>' + String(index + 1).padStart(2, '0') + ' • Service';
+            card.append(icon, title, desc, meta);
+            el.appendChild(card);
+          });
+        }
+      } else if (key === 'process') {
+        if (Array.isArray(val)) {
+          el.innerHTML = '';
+          val.forEach((item, index) => {
+            const step = document.createElement('div');
+            step.className = 'process-step';
+            step.style.setProperty('--step-index', index);
+            const num = document.createElement('div');
+            num.className = 'process-step-number';
+            num.textContent = String(index + 1).padStart(2, '0');
+            const title = document.createElement('h3');
+            title.className = 'process-step-title';
+            title.textContent = item.title || 'Step';
+            const desc = document.createElement('p');
+            desc.className = 'process-step-desc';
+            desc.textContent = item.desc || '';
+            const arrow = document.createElement('div');
+            arrow.className = 'process-step-arrow';
+            arrow.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>';
+            step.append(num, title, desc, arrow);
+            el.appendChild(step);
+          });
+        }
+      } else if (key === 'testimonials') {
+        if (Array.isArray(val)) {
+          el.innerHTML = '';
+          val.forEach((item) => {
+            const card = document.createElement('div');
+            card.className = 'testimonial-card';
+            const mark = document.createElement('div');
+            mark.className = 'testimonial-quote-mark';
+            mark.textContent = '“';
+            const quote = document.createElement('p');
+            quote.className = 'testimonial-quote';
+            quote.textContent = item.quote || '';
+            const author = document.createElement('div');
+            author.className = 'testimonial-author';
+            const avatar = document.createElement('div');
+            avatar.className = 'testimonial-avatar';
+            const initials = (item.name || '?').split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
+            avatar.textContent = initials;
+            const info = document.createElement('div');
+            info.className = 'testimonial-author-info';
+            const name = document.createElement('div');
+            name.className = 'testimonial-author-name';
+            name.textContent = item.name || 'Anonymous';
+            const role = document.createElement('div');
+            role.className = 'testimonial-author-role';
+            role.textContent = item.role || '';
+            info.append(name, role);
+            author.append(avatar, info);
+            card.append(mark, quote, author);
+            el.appendChild(card);
+          });
+          // Init slider after rendering testimonials
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              if (typeof window.initTestimonialsSlider === 'function') window.initTestimonialsSlider();
+            }, 100);
+          });
+        }
       } else {
         el.textContent = val;
       }
@@ -280,6 +532,12 @@
         portraitLight.style.setProperty('--portrait-opacity', settings.heroPortraitLightOpacity ?? 0.12);
         portraitLight.style.setProperty('--portrait-scale', settings.heroPortraitLightScale ?? 1);
       }
+    }
+
+    // After settings applied, refresh hero stats animation to use latest values
+    if (typeof window.refreshHeroStats === 'function') {
+      // Small delay to ensure DOM updated and ScrollTrigger ready
+      setTimeout(() => window.refreshHeroStats(), 100);
     }
   }
 
@@ -630,7 +888,7 @@
   // ============================================
   const scrollProgressFill = document.querySelector('.scroll-progress-fill');
   const scrollDots = document.querySelectorAll('.scroll-dot');
-  const sections = ['hero', 'about', 'timeline', 'work', 'contact'];
+  const sections = ['hero', 'about', 'services', 'timeline', 'work', 'process', 'testimonials', 'contact'];
 
   if (scrollProgressFill && scrollDots.length) {
     window.addEventListener('scroll', () => {
