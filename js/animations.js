@@ -202,14 +202,17 @@
         // Stagger timeline items in
         const activeItems = document.querySelectorAll('.timeline-panel.active .timeline-item');
         if (activeItems.length) {
-          gsap.to(activeItems, {
-            opacity: 1,
-            y: 0,
-            duration: 0.6,
-            stagger: 0.12,
-            ease: 'power3.out',
-            delay: 0.3
-          });
+          gsap.fromTo(activeItems,
+            { opacity: 0, y: 24 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.65,
+              stagger: 0.1,
+              ease: 'power3.out',
+              delay: 0.22
+            }
+          );
         }
       },
       once: true
@@ -222,7 +225,10 @@
       if (!countEl || !activePanel) return;
       const items = activePanel.querySelectorAll('.timeline-item');
       const count = items.length;
-      countEl.textContent = count + ' item' + (count !== 1 ? 's' : '');
+      const value = countEl.querySelector('span:last-child');
+      const label = String(count).padStart(2, '0') + ' ' + (count === 1 ? 'entry' : 'entries');
+      if (value) value.textContent = label;
+      else countEl.textContent = label;
     }
     updateTimelineCount();
 

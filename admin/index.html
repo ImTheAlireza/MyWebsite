@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/admin.css?v=20260728-4">
+  <link rel="stylesheet" href="css/admin.css?v=20260805-6">
 </head>
 <body>
   <!-- Login Screen -->
@@ -153,7 +153,7 @@
         <div class="view-header">
           <div>
             <h2>Projects</h2>
-            <p class="view-subtitle">Manage projects and the brands that group them</p>
+            <p class="view-subtitle">Manage case studies, media galleries, and the brands that contain them</p>
           </div>
           <button id="addProjectBtn" class="btn btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -190,10 +190,10 @@
             </button>
           </div>
         </div>
-        <p class="projects-hint">Projects are grouped by brand on the public site · Drag to reorder · Drafts stay hidden</p>
+        <p class="projects-hint">Each brand can show case studies or a media-only gallery · Drag projects to reorder · Drafts stay hidden</p>
         <section class="brand-manager" id="brandsManager" aria-labelledby="brandsHeading">
           <div class="brand-manager-header">
-            <div><span class="eyebrow">Portfolio structure</span><h3 id="brandsHeading">Brands</h3><p>Create visual brand hubs, then assign each project to one.</p></div>
+            <div><span class="eyebrow">Portfolio structure</span><h3 id="brandsHeading">Brands</h3><p>Create a case-study hub or a clean media gallery for each brand.</p></div>
             <button type="button" id="addBrandBtn" class="btn btn-primary btn-sm">+ Add brand</button>
           </div>
           <div id="brandsList" class="brands-grid"></div>
@@ -914,15 +914,117 @@
   </div>
 
   <!-- Brand editor -->
-  <div id="brandModal" class="modal hidden" aria-hidden="true"><div class="modal-backdrop" id="brandModalBackdrop"></div><div class="modal-content brand-editor-modal"><div class="modal-header"><div><span class="modal-eyebrow">Portfolio structure</span><h3 id="brandModalTitle">Create brand</h3></div><button type="button" id="brandModalClose" class="modal-close-btn" aria-label="Close">×</button></div><form id="brandForm" class="modal-form"><input id="editingBrandId" type="hidden"><div class="form-group"><label for="brandName">Brand name</label><input id="brandName" required maxlength="80" placeholder="e.g. Nike" autocomplete="off"></div><div class="form-group"><label>Brand cover image</label><p class="field-help">This image represents the brand in your public portfolio.</p><input id="brandThumbnail" required type="hidden"><input id="brandThumbnailFile" type="file" accept="image/*" class="hidden"><button type="button" id="browseBrandThumbnailBtn" class="brand-cover-picker"><img id="brandThumbnailPreview" alt=""><span class="brand-cover-empty"><b>Choose from Assets</b><small>Select an uploaded image for this brand</small></span><span class="brand-cover-change">Choose image</span></button></div><div class="modal-footer"><button type="button" id="deleteBrandBtn" class="btn btn-ghost hidden" style="color:var(--danger)">Delete</button><span class="modal-footer-spacer"></span><button type="button" id="cancelBrandBtn" class="btn btn-ghost">Cancel</button><button class="btn btn-primary" type="submit">Save brand</button></div></form></div></div>
+  <div id="brandModal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="brandModalTitle">
+    <div class="modal-backdrop" id="brandModalBackdrop"></div>
+    <div class="modal-content brand-editor-modal" tabindex="-1">
+      <div class="modal-header brand-editor-header">
+        <div>
+          <span class="modal-eyebrow">Portfolio structure</span>
+          <h3 id="brandModalTitle">Create brand</h3>
+          <p id="brandModalSubtitle">Choose how visitors explore this brand.</p>
+        </div>
+        <button type="button" id="brandModalClose" class="modal-close-btn" aria-label="Close brand editor">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <form id="brandForm" class="modal-form brand-editor-form">
+        <input id="editingBrandId" type="hidden">
+
+        <section class="brand-editor-section" aria-labelledby="brandDetailsHeading">
+          <div class="brand-editor-section-heading">
+            <span class="brand-editor-step">01</span>
+            <div><h4 id="brandDetailsHeading">Brand details</h4><p>Name the brand and choose its public experience.</p></div>
+          </div>
+          <div class="form-group">
+            <label for="brandName">Brand name</label>
+            <input id="brandName" required maxlength="80" placeholder="e.g. Nike" autocomplete="off">
+          </div>
+          <fieldset class="brand-mode-fieldset">
+            <legend>What should visitors see?</legend>
+            <div class="brand-mode-options">
+              <label class="brand-mode-option">
+                <input type="radio" name="brandMode" value="projects" checked>
+                <span class="brand-mode-icon" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M8 9h8M8 13h5"></path></svg>
+                </span>
+                <span><strong>Case studies</strong><small>Projects with titles, descriptions, roles and tools</small></span>
+                <span class="brand-mode-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="brand-mode-option">
+                <input type="radio" name="brandMode" value="gallery">
+                <span class="brand-mode-icon" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
+                </span>
+                <span><strong>Media gallery</strong><small>Only images and videos — no project copy or tools</small></span>
+                <span class="brand-mode-check" aria-hidden="true">✓</span>
+              </label>
+            </div>
+            <p id="brandModeNotice" class="brand-mode-notice hidden"></p>
+          </fieldset>
+        </section>
+
+        <section class="brand-editor-section" aria-labelledby="brandCoverHeading">
+          <div class="brand-editor-section-heading">
+            <span class="brand-editor-step">02</span>
+            <div><h4 id="brandCoverHeading">Cover image</h4><p>The image visitors see on the main portfolio grid.</p></div>
+          </div>
+          <input id="brandThumbnail" required type="hidden">
+          <button type="button" id="browseBrandThumbnailBtn" class="brand-cover-picker">
+            <img id="brandThumbnailPreview" class="hidden" alt="Brand cover preview">
+            <span class="brand-cover-empty">
+              <span class="brand-cover-empty-icon" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="m21 15-5-5L5 21"></path></svg>
+              </span>
+              <b>Choose a cover image</b>
+              <small>Pick one from your uploaded Assets</small>
+            </span>
+            <span class="brand-cover-change">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+              Replace cover
+            </span>
+          </button>
+        </section>
+
+        <section id="brandGallerySection" class="brand-editor-section brand-gallery-editor hidden" aria-labelledby="brandGalleryHeading">
+          <div class="brand-editor-section-heading brand-media-heading">
+            <span class="brand-editor-step">03</span>
+            <div><h4 id="brandGalleryHeading">Gallery media</h4><p>Choose media, set a thumbnail frame for each video, then arrange the order.</p></div>
+            <button type="button" id="addBrandMediaBtn" class="btn btn-ghost btn-sm">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add media
+            </button>
+          </div>
+          <div id="brandMediaList" class="brand-media-list" aria-live="polite"></div>
+          <button type="button" id="brandMediaEmpty" class="brand-media-empty">
+            <span aria-hidden="true">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><path d="M17.5 14v7M14 17.5h7"></path></svg>
+            </span>
+            <strong>Add your first image or video</strong>
+            <small>You can select several files at once</small>
+          </button>
+        </section>
+
+        <div class="modal-footer brand-editor-footer">
+          <button type="button" id="deleteBrandBtn" class="btn btn-ghost hidden brand-delete-btn">Delete brand</button>
+          <span class="modal-footer-spacer"></span>
+          <button type="button" id="cancelBrandBtn" class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-primary" type="submit" id="saveBrandBtn">Save brand</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Project Edit Modal -->
-  <div id="projectModal" class="modal hidden">
+  <div id="projectModal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
     <div class="modal-backdrop" id="modalBackdrop"></div>
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="modalTitle">Add Project</h3>
-        <button id="modalClose" class="modal-close-btn" aria-label="Close">
+    <div class="modal-content project-editor-modal" tabindex="-1">
+      <div class="modal-header project-editor-header">
+        <div>
+          <span class="modal-eyebrow">Case study</span>
+          <h3 id="modalTitle">Add Project</h3>
+          <p>Create the project details and arrange its media.</p>
+        </div>
+        <button id="modalClose" class="modal-close-btn" aria-label="Close project editor">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -1075,7 +1177,7 @@
   </div>
 
   <!-- Confirm Dialog -->
-  <div id="confirmDialog" class="modal hidden">
+  <div id="confirmDialog" class="modal hidden" role="alertdialog" aria-modal="true" aria-hidden="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
     <div class="modal-backdrop" id="confirmBackdrop"></div>
     <div class="modal-content confirm-dialog">
       <div class="modal-body">
@@ -1097,24 +1199,118 @@
   </div>
 
   <!-- Asset Picker Modal -->
-  <div id="assetPickerModal" class="modal hidden">
+  <div id="assetPickerModal" class="modal asset-picker-modal hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="assetPickerTitle">
     <div class="modal-backdrop" id="assetPickerBackdrop"></div>
-    <div class="modal-content" style="max-width:720px">
-      <div class="modal-header">
-        <h3 id="assetPickerTitle">Browse Assets</h3>
-        <button id="assetPickerClose" class="modal-close-btn" aria-label="Close">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
+    <div class="modal-content asset-picker-dialog" tabindex="-1">
+      <div class="modal-header asset-picker-header">
+        <div>
+          <span class="modal-eyebrow">Media library</span>
+          <h3 id="assetPickerTitle">Choose media</h3>
+          <p id="assetPickerSubtitle">Select an uploaded file or add a new one.</p>
+        </div>
+        <div class="asset-picker-header-actions">
+          <input type="file" id="assetPickerUploadInput" class="hidden" accept="image/*,video/*" multiple>
+          <button type="button" id="assetPickerUploadBtn" class="btn btn-ghost btn-sm">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4"></path><polyline points="7 9 12 4 17 9"></polyline><path d="M20 15v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4"></path></svg>
+            Upload new
+          </button>
+          <button id="assetPickerClose" class="modal-close-btn" type="button" aria-label="Close media library">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+      <div class="asset-picker-toolbar">
+        <label class="asset-picker-search" for="assetPickerSearch">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="search" id="assetPickerSearch" placeholder="Search your media…" autocomplete="off">
+          <kbd>/</kbd>
+        </label>
+        <div id="assetPickerFilters" class="asset-picker-filters" role="group" aria-label="Filter media type">
+          <button type="button" class="active" data-picker-view="all">All media</button>
+          <button type="button" data-picker-view="image">Images</button>
+          <button type="button" data-picker-view="video">Videos</button>
+        </div>
+      </div>
+      <div id="assetPickerUploadStatus" class="asset-picker-upload-status hidden" aria-live="polite">
+        <span class="asset-picker-upload-spinner" aria-hidden="true"></span>
+        <span id="assetPickerUploadText">Uploading media…</span>
+      </div>
+      <div class="asset-picker-body">
+        <div id="assetPickerGrid" class="asset-picker-grid"></div>
+        <div id="assetPickerEmpty" class="asset-picker-empty hidden">
+          <span class="asset-picker-empty-icon" aria-hidden="true">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="m21 15-5-5L5 21"></path></svg>
+          </span>
+          <strong>No matching media</strong>
+          <p id="assetPickerEmptyText">Upload an image or video to get started.</p>
+          <button type="button" id="assetPickerEmptyUpload" class="btn btn-primary btn-sm">Upload media</button>
+        </div>
+      </div>
+      <div id="assetPickerFooter" class="asset-picker-footer hidden">
+        <div class="asset-picker-selection-copy">
+          <strong id="assetPickerSelectionCount">0 selected</strong>
+          <span>Click media to select or remove it</span>
+        </div>
+        <div class="asset-picker-footer-actions">
+          <button type="button" id="assetPickerCancel" class="btn btn-ghost">Cancel</button>
+          <button type="button" id="assetPickerConfirm" class="btn btn-primary" disabled>Add media</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video thumbnail frame picker -->
+  <div id="videoFrameModal" class="modal video-frame-modal hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="videoFrameTitle">
+    <div class="modal-backdrop" id="videoFrameBackdrop"></div>
+    <div class="modal-content video-frame-dialog" tabindex="-1">
+      <div class="modal-header video-frame-header">
+        <div>
+          <span class="modal-eyebrow">Gallery thumbnail</span>
+          <h3 id="videoFrameTitle">Choose a video frame</h3>
+          <p>Move through the video and capture the frame visitors should see.</p>
+        </div>
+        <button type="button" id="videoFrameClose" class="modal-close-btn" aria-label="Close frame picker">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
-      <div style="padding:16px">
-        <input type="text" id="assetPickerSearch" placeholder="Search assets..." style="width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);margin-bottom:16px;font-size:0.875rem">
-        <div id="assetPickerGrid" class="assets-grid" style="max-height:400px;overflow-y:auto"></div>
-        <div id="assetPickerEmpty" class="empty-state hidden" style="padding:40px 20px">
-          <p id="assetPickerEmptyText">No assets found. Upload files in the Assets tab first.</p>
+      <div class="video-frame-body">
+        <div class="video-frame-stage">
+          <video id="videoFramePlayer" muted playsinline preload="auto" crossorigin="anonymous"></video>
+          <div id="videoFrameLoading" class="video-frame-loading">
+            <span class="asset-picker-upload-spinner" aria-hidden="true"></span>
+            <span>Preparing video…</span>
+          </div>
+          <span id="videoFrameExistingBadge" class="video-frame-existing hidden">Custom frame active</span>
         </div>
+        <div class="video-frame-controls">
+          <div class="video-frame-transport">
+            <button type="button" id="videoFrameBack" class="video-frame-icon-btn" aria-label="Move back half a second">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m11 17-5-5 5-5"></path><path d="M18 17V7"></path></svg>
+            </button>
+            <button type="button" id="videoFramePlay" class="video-frame-play" aria-label="Play video">
+              <svg class="video-frame-play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m8 5 11 7-11 7Z"></path></svg>
+              <svg class="video-frame-pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM14 5h4v14h-4z"></path></svg>
+              <span>Play</span>
+            </button>
+            <button type="button" id="videoFrameForward" class="video-frame-icon-btn" aria-label="Move forward half a second">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m13 17 5-5-5-5"></path><path d="M6 17V7"></path></svg>
+            </button>
+          </div>
+          <div class="video-frame-scrubber">
+            <input type="range" id="videoFrameRange" min="0" max="1" step="0.01" value="0" disabled aria-label="Video position">
+            <div class="video-frame-time"><span id="videoFrameCurrentTime">0:00</span><span id="videoFrameDuration">0:00</span></div>
+          </div>
+        </div>
+        <div id="videoFrameStatus" class="video-frame-status" aria-live="polite">Pause on the exact frame you want, then choose “Use this frame”.</div>
+      </div>
+      <div class="video-frame-footer">
+        <button type="button" id="videoFrameRemove" class="btn btn-ghost hidden">Remove custom frame</button>
+        <span class="modal-footer-spacer"></span>
+        <button type="button" id="videoFrameCancel" class="btn btn-ghost">Cancel</button>
+        <button type="button" id="videoFrameCapture" class="btn btn-primary" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4 16 7h4a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h4l1.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+          <span>Use this frame</span>
+        </button>
       </div>
     </div>
   </div>
@@ -1171,6 +1367,6 @@
     </button>
   </div>
 
-  <script src="js/admin.js?v=20260728-4"></script>
+  <script src="js/admin.js?v=20260805-6"></script>
 </body>
 </html>

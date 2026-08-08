@@ -27,6 +27,54 @@ function normalize_category_list($values) {
     return $result;
 }
 
+function normalize_brand($raw) {
+    $mode = clean_content_text(arr_get($raw, 'mode', 'projects'));
+    if ($mode !== 'gallery') $mode = 'projects';
+
+    $gallery = array();
+    if (isset($raw['gallery']) && is_array($raw['gallery'])) {
+        $seen = array();
+        foreach ($raw['gallery'] as $url) {
+            $url = clean_content_text($url);
+            if ($url === '' || isset($seen[$url])) continue;
+            $seen[$url] = true;
+            $gallery[] = $url;
+            if (count($gallery) >= 60) break;
+        }
+    }
+
+    $galleryPosters = array();
+    $rawPosters = arr_get($raw, 'galleryPosters', array());
+    if (is_array($rawPosters)) {
+        foreach ($gallery as $mediaUrl) {
+            if (!isset($rawPosters[$mediaUrl])) continue;
+            $posterUrl = clean_content_text($rawPosters[$mediaUrl]);
+            if ($posterUrl !== '') $galleryPosters[$mediaUrl] = $posterUrl;
+        }
+    }
+
+    $galleryAspects = array();
+    $rawAspects = arr_get($raw, 'galleryAspects', array());
+    if (is_array($rawAspects)) {
+        foreach ($gallery as $mediaUrl) {
+            if (!isset($rawAspects[$mediaUrl]) || !is_numeric($rawAspects[$mediaUrl])) continue;
+            $ratio = floatval($rawAspects[$mediaUrl]);
+            if ($ratio >= 0.05 && $ratio <= 20) $galleryAspects[$mediaUrl] = $ratio;
+        }
+    }
+
+    return array(
+        'id' => isset($raw['id']) ? $raw['id'] : generate_uuid(),
+        'name' => clean_content_text(arr_get($raw, 'name', '')),
+        'thumbnail' => clean_content_text(arr_get($raw, 'thumbnail', '')),
+        'mode' => $mode,
+        'gallery' => array_values($gallery),
+        'galleryPosters' => $galleryPosters,
+        'galleryAspects' => $galleryAspects,
+        'order' => isset($raw['order']) ? intval($raw['order']) : 0
+    );
+}
+
 function normalize_project($raw) {
     $tools = array();
     if (isset($raw['tools'])) {
@@ -104,7 +152,17 @@ function collect_used_upload_urls() {
 
     $brands = arr_get($projectsData, 'brands', array());
     if (is_array($brands)) {
-        foreach ($brands as $brand) $add(arr_get($brand, 'thumbnail', ''));
+        foreach ($brands as $brand) {
+            $add(arr_get($brand, 'thumbnail', ''));
+            $brandGallery = arr_get($brand, 'gallery', array());
+            if (is_array($brandGallery)) {
+                foreach ($brandGallery as $mediaUrl) $add($mediaUrl);
+            }
+            $galleryPosters = arr_get($brand, 'galleryPosters', array());
+            if (is_array($galleryPosters)) {
+                foreach ($galleryPosters as $posterUrl) $add($posterUrl);
+            }
+        }
     }
 
     $settings = json_read('settings.json');

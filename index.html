@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260728-5">
+  <link rel="stylesheet" href="css/style.css?v=20260805-6">
 
   <!-- Favicon (inline SVG) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>▶</text></svg>">
@@ -233,32 +233,37 @@
   <!-- Experience & Education -->
   <section class="section timeline-section" id="timeline">
     <div class="container">
-      <div class="section-header">
-        <span class="section-number">02</span>
-        <h2 class="section-title">Experience & Education</h2>
-      </div>
-      <div class="timeline-controls">
-        <div class="timeline-tabs">
-          <button class="timeline-tab active" data-tab="experience" data-cursor="link">
-            <span class="timeline-tab-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-            </span>
-            Experience
-          </button>
-          <button class="timeline-tab" data-tab="education" data-cursor="link">
-            <span class="timeline-tab-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c0 2 4 3 6 3s6-1 6-3v-5"></path></svg>
-            </span>
-            Education
-          </button>
-          <div class="timeline-tab-indicator"></div>
+      <div class="section-header timeline-section-header">
+        <div class="timeline-section-title">
+          <span class="section-number">02</span>
+          <h2 class="section-title">Experience & Education</h2>
         </div>
-        <div class="timeline-count" id="timelineCount"></div>
+        <p class="timeline-section-intro">The work, collaborations, and learning that shaped how I think and create.</p>
       </div>
-      <div class="timeline-panels">
-        <div class="timeline-track"></div>
-        <div class="timeline-panel active" data-panel="experience" data-setting="experience"></div>
-        <div class="timeline-panel" data-panel="education" data-setting="education"></div>
+      <div class="timeline-explorer">
+        <div class="timeline-orbit" aria-hidden="true"></div>
+        <div class="timeline-controls">
+          <div class="timeline-tabs" role="tablist" aria-label="Career timeline">
+            <button class="timeline-tab active" id="experienceTab" role="tab" aria-selected="true" aria-controls="experiencePanel" data-tab="experience" data-cursor="link">
+              <span class="timeline-tab-icon">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="3"></rect><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2"></path></svg>
+              </span>
+              <span class="timeline-tab-copy"><strong>Experience</strong><small>Professional chapters</small></span>
+            </button>
+            <button class="timeline-tab" id="educationTab" role="tab" aria-selected="false" aria-controls="educationPanel" tabindex="-1" data-tab="education" data-cursor="link">
+              <span class="timeline-tab-icon">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 9 9-5 9 5-9 5-9-5Z"></path><path d="M7 12v5c2.8 2 7.2 2 10 0v-5M21 9v6"></path></svg>
+              </span>
+              <span class="timeline-tab-copy"><strong>Education</strong><small>Learning & growth</small></span>
+            </button>
+          </div>
+          <div class="timeline-count" id="timelineCount" aria-live="polite"><span class="timeline-count-dot"></span><span>0 entries</span></div>
+        </div>
+        <div class="timeline-panels">
+          <div class="timeline-track" aria-hidden="true"></div>
+          <div class="timeline-panel active" id="experiencePanel" role="tabpanel" aria-labelledby="experienceTab" data-panel="experience" data-setting="experience"></div>
+          <div class="timeline-panel" id="educationPanel" role="tabpanel" aria-labelledby="educationTab" data-panel="education" data-setting="education" hidden></div>
+        </div>
       </div>
     </div>
   </section>
@@ -276,40 +281,22 @@
     </div>
   </section>
 
-  <!-- Project Modal -->
-  <div class="project-modal" id="projectModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
+  <!-- Brand work dialog -->
+  <div class="project-modal" id="projectModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="portfolioModalTitle">
     <div class="modal-backdrop" id="modalBackdrop"></div>
-    <div class="modal-content">
-      <button class="modal-close" id="modalClose" data-cursor="link" aria-label="Close project">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <div class="modal-content portfolio-dialog" tabindex="-1">
+      <button class="modal-close" id="modalClose" data-cursor="link" aria-label="Close brand">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
         </svg>
       </button>
-      <div class="modal-video" id="modalVideo"></div>
-      <div class="modal-info">
-        <div class="modal-meta">
-          <span class="modal-category" id="modalCategory"></span>
-          <span class="modal-year" id="modalYear"></span>
-        </div>
-        <div class="modal-title-row">
-          <h3 class="modal-title" id="modalTitle"></h3>
-          <button type="button" class="modal-like-button" id="modalLikeButton" aria-label="Like this project" aria-pressed="false" disabled>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"></path>
-              <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-            </svg>
-            <span id="modalLikeLabel">Like project</span>
-            <strong id="modalLikeCount">0</strong>
-          </button>
-        </div>
-        <p class="modal-description" id="modalDescription"></p>
-        <div class="modal-tools" id="modalTools"></div>
-        <div class="modal-role">
-          <span class="modal-role-label">Role</span>
-          <span class="modal-role-value" id="modalRole"></span>
-        </div>
-      </div>
+      <button type="button" class="modal-like-button portfolio-case-like" id="modalLikeButton" aria-label="Like this project" aria-pressed="false" disabled hidden>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"></path><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+        <span id="modalLikeLabel">Like project</span>
+        <strong id="modalLikeCount">0</strong>
+      </button>
+      <div id="portfolioModalContent" class="portfolio-modal-content"></div>
     </div>
   </div>
 
@@ -428,9 +415,9 @@
   <!-- Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script type="module" src="js/data.js?v=20260728-5"></script>
-  <script type="module" src="js/main.js?v=20260728-5"></script>
-  <script type="module" src="js/animations.js?v=20260728-5"></script>
-  <script src="js/tracking.js?v=20260728-5"></script>
+  <script type="module" src="js/data.js?v=20260805-6"></script>
+  <script type="module" src="js/main.js?v=20260805-6"></script>
+  <script type="module" src="js/animations.js?v=20260805-6"></script>
+  <script src="js/tracking.js?v=20260805-6"></script>
 </body>
 </html>

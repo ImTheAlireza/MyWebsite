@@ -12,6 +12,15 @@
   let assets = [];
   let editingId = null;
   let editingProjectMedia = [];
+  let editingBrandMedia = [];
+  let editingBrandPosters = {};
+  let editingBrandAspects = {};
+  let brandEditorTrigger = null;
+  let projectEditorTrigger = null;
+  let framePickerTrigger = null;
+  let framePickerMediaUrl = '';
+  let framePickerMediaIndex = -1;
+  let frameCaptureRunning = false;
   let hasUnsavedChanges = false;
 
   const $ = s => document.querySelector(s);
@@ -424,7 +433,7 @@
   function checkProjectWarnings() {
     const el = $('#projectWarnings');
     if (!el) return;
-    const untagged = projects.filter(p => !p.category || String(p.category).trim() === '');
+    const untagged = projects.filter(p => !p.brand || String(p.brand).trim() === '');
     const drafts = projects.filter(p => p.published === false);
     const issues = [];
     if (untagged.length) {
@@ -556,9 +565,10 @@
     if (!projects.length) {
       list.innerHTML = '';
       if (empty) {
+        const hasGalleryBrand = brands.some(brand => getBrandMode(brand) === 'gallery');
         empty.classList.remove('hidden');
-        empty.querySelector('h3') && (empty.querySelector('h3').textContent = 'No projects yet');
-        empty.querySelector('p') && (empty.querySelector('p').textContent = 'Add your first project to get started');
+        empty.querySelector('h3') && (empty.querySelector('h3').textContent = hasGalleryBrand ? 'No case studies yet' : 'No projects yet');
+        empty.querySelector('p') && (empty.querySelector('p').textContent = hasGalleryBrand ? 'Your media galleries are ready. Add a project only when you need a full case study.' : 'Add your first project to get started');
       }
       return;
     }
@@ -586,35 +596,714 @@
     });
   });
 
+  function getBrandMode(brand) {
+    return brand && brand.mode === 'gallery' ? 'gallery' : 'projects';
+  }
+
   function populateCategoryDropdown(selectedValue) {
-    const sel = $('#projectBrand'); if (!sel) return;
+    const sel = $('#projectBrand');
+    if (!sel) return;
+
     const requested = selectedValue == null ? sel.value : String(selectedValue || '');
-    sel.innerHTML = '<option value="">Select a brand</option>' + brands.map(b => '<option value="' + esc(String(b.id)) + '">' + esc(b.name) + '</option>').join('');
+    const choices = brands.filter(brand => getBrandMode(brand) === 'projects' || String(brand.id) === requested);
+    const options = choices.map(brand => {
+      const isGallery = getBrandMode(brand) === 'gallery';
+      const suffix = isGallery ? ' (gallery only)' : '';
+      return '<option value="' + esc(String(brand.id)) + '">' + esc(brand.name + suffix) + '</option>';
+    }).join('');
+
+    sel.innerHTML = '<option value="">' + (choices.length ? 'Select a brand' : 'Create a case-study brand first') + '</option>' + options;
     sel.value = requested;
   }
-  function brandName(id) { const b=brands.find(b=>String(b.id)===String(id)); return b ? b.name : 'No brand'; }
-  function renderBrands() {
-    const list=$('#brandsList'), empty=$('#brandsEmpty'); if(!list)return;
-    list.innerHTML=brands.map(b=>{ const count=projects.filter(p=>String(p.brand)===String(b.id)).length; return '<article class="brand-admin-card" data-id="'+esc(String(b.id))+'"><img src="'+esc(b.thumbnail)+'" alt=""><div class="brand-admin-card-body"><strong>'+esc(b.name)+'</strong><span>'+count+' project'+(count===1?'':'s')+'</span></div><button type="button" class="brand-edit-btn" data-id="'+esc(String(b.id))+'">Edit</button></article>'; }).join('');
-    empty && empty.classList.toggle('hidden',brands.length>0); $$('.brand-edit-btn').forEach(btn=>btn.onclick=()=>openBrandEditor(btn.dataset.id));
+
+  function brandName(id) {
+    const brand = brands.find(item => String(item.id) === String(id));
+    return brand ? brand.name : 'No brand';
   }
-  function previewBrandThumbnail() { const img=$('#brandThumbnailPreview'), url=$('#brandThumbnail').value.trim(); if(!url){img.classList.add('hidden');return;} img.src=url; img.classList.remove('hidden'); }
-  function openBrandEditor(id) { const brand=id&&brands.find(b=>String(b.id)===String(id)); $('#brandForm').reset(); $('#editingBrandId').value=brand?brand.id:''; $('#brandModalTitle').textContent=brand?'Edit brand':'Add brand'; $('#brandName').value=brand?brand.name:''; $('#brandThumbnail').value=brand?brand.thumbnail:''; $('#deleteBrandBtn').classList.toggle('hidden',!brand); previewBrandThumbnail(); $('#brandModal').classList.remove('hidden'); document.body.style.overflow='hidden'; $('#brandName').focus(); }
-  function closeBrandEditor(){ $('#brandModal').classList.add('hidden'); document.body.style.overflow=''; }
-  async function removeBrand(id){const brand=brands.find(b=>String(b.id)===String(id)),count=projects.filter(p=>String(p.brand)===String(id)).length;const confirmed=await showConfirm('Delete brand', 'Delete "'+(brand?brand.name:'this brand')+'"?'+(count?' '+count+' project(s) will become unassigned.':''));if(!confirmed)return;await api('brands/'+encodeURIComponent(id),{method:'DELETE'});closeBrandEditor();await loadProjects();showToast('Brand deleted','success');}
-  $('#addBrandBtn').addEventListener('click',()=>openBrandEditor()); $('#brandModalClose').addEventListener('click',closeBrandEditor); $('#brandModalBackdrop').addEventListener('click',closeBrandEditor); $('#cancelBrandBtn').addEventListener('click',closeBrandEditor); $('#brandThumbnail').addEventListener('input',previewBrandThumbnail);
-  $('#browseBrandThumbnailBtn').addEventListener('click',()=>openAssetPicker(url=>{ $('#brandThumbnail').value=url; previewBrandThumbnail(); },'image'));
-  $('#brandForm').addEventListener('submit',async e=>{e.preventDefault();const id=$('#editingBrandId').value, payload={name:$('#brandName').value.trim(),thumbnail:$('#brandThumbnail').value.trim()};if(!payload.name||!payload.thumbnail)return;try{await api(id?'brands/'+encodeURIComponent(id):'brands',{method:id?'PUT':'POST',body:JSON.stringify(payload)});closeBrandEditor();await loadProjects();showToast(id?'Brand updated':'Brand created','success');}catch(err){showToast('Could not save brand: '+err.message,'error');}}); $('#deleteBrandBtn').addEventListener('click',()=>removeBrand($('#editingBrandId').value));
+
+  function mediaFileName(url) {
+    const raw = String(url || '').split(/[?#]/)[0].split('/').pop() || 'Media';
+    try { return decodeURIComponent(raw); } catch { return raw; }
+  }
+
+  function rememberBrandAspect(url, width, height) {
+    const ratio = Number(width) / Number(height);
+    if (!Number.isFinite(ratio) || ratio < 0.05 || ratio > 20) return false;
+    editingBrandAspects[url] = Number(ratio.toFixed(6));
+    return true;
+  }
+
+  function bindBrandAspectMeasurement(item, url) {
+    const media = item.querySelector('.brand-media-preview img, .brand-media-preview video');
+    if (!media) return;
+    if (media instanceof HTMLImageElement) {
+      const measure = () => rememberBrandAspect(url, media.naturalWidth, media.naturalHeight);
+      media.addEventListener('load', measure, { once: true });
+      if (media.complete) measure();
+    } else if (media instanceof HTMLVideoElement) {
+      const measure = () => rememberBrandAspect(url, media.videoWidth, media.videoHeight);
+      media.addEventListener('loadedmetadata', measure, { once: true });
+      if (media.readyState >= 1) measure();
+    }
+  }
+
+  function measureBrandMediaAspect(url) {
+    const known = Number(editingBrandAspects[url]);
+    if (Number.isFinite(known) && known >= 0.05 && known <= 20) return Promise.resolve(known);
+    return new Promise(resolve => {
+      let settled = false;
+      const finish = (width, height) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        rememberBrandAspect(url, width, height);
+        resolve(editingBrandAspects[url] || null);
+      };
+      const timer = setTimeout(() => finish(0, 0), 5000);
+      if (isDirectVideoUrl(url)) {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        video.addEventListener('loadedmetadata', () => finish(video.videoWidth, video.videoHeight), { once: true });
+        video.addEventListener('error', () => finish(0, 0), { once: true });
+        video.src = url;
+        video.load();
+      } else {
+        const image = new Image();
+        image.onload = () => finish(image.naturalWidth, image.naturalHeight);
+        image.onerror = () => finish(0, 0);
+        image.src = url;
+      }
+    });
+  }
+
+  async function ensureBrandMediaAspects() {
+    await Promise.all(editingBrandMedia.map(measureBrandMediaAspect));
+    editingBrandAspects = Object.fromEntries(
+      Object.entries(editingBrandAspects).filter(([mediaUrl, ratio]) =>
+        editingBrandMedia.includes(mediaUrl) && Number.isFinite(Number(ratio))
+      )
+    );
+  }
+
+  function adminMediaPreview(url, alt, poster) {
+    if (isDirectVideoUrl(url)) {
+      const visual = poster
+        ? '<img src="' + esc(poster) + '" alt="' + esc(alt || 'Video thumbnail') + '" loading="lazy">'
+        : '<video src="' + esc(url) + '" muted playsinline preload="metadata" aria-label="' + esc(alt || 'Video') + '"></video>';
+      return visual + '<span class="media-composer-video-badge" aria-label="Video"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m8 5 11 7-11 7Z"></path></svg></span>';
+    }
+    return '<img src="' + esc(url) + '" alt="' + esc(alt || '') + '" loading="lazy">';
+  }
+
+  function renderBrands() {
+    const list = $('#brandsList');
+    const empty = $('#brandsEmpty');
+    if (!list) return;
+
+    list.innerHTML = brands.map(brand => {
+      const mode = getBrandMode(brand);
+      const projectCount = projects.filter(project => String(project.brand) === String(brand.id)).length;
+      const mediaCount = Array.isArray(brand.gallery) ? brand.gallery.length : 0;
+      const count = mode === 'gallery' ? mediaCount : projectCount;
+      const countLabel = mode === 'gallery'
+        ? count + ' media item' + (count === 1 ? '' : 's')
+        : count + ' project' + (count === 1 ? '' : 's');
+      const modeLabel = mode === 'gallery' ? 'Gallery' : 'Case studies';
+
+      return '<article class="brand-admin-card" data-id="' + esc(String(brand.id)) + '">' +
+        '<div class="brand-admin-cover"><img src="' + esc(brand.thumbnail) + '" alt="" loading="lazy"></div>' +
+        '<div class="brand-admin-card-body"><span class="brand-admin-mode is-' + mode + '">' + modeLabel + '</span><strong>' + esc(brand.name) + '</strong><span>' + countLabel + '</span></div>' +
+        '<button type="button" class="brand-edit-btn" data-id="' + esc(String(brand.id)) + '" aria-label="Edit ' + esc(brand.name) + '">Edit</button>' +
+      '</article>';
+    }).join('');
+
+    if (empty) empty.classList.toggle('hidden', brands.length > 0);
+    $$('.brand-edit-btn').forEach(button => {
+      button.addEventListener('click', () => openBrandEditor(button.dataset.id));
+    });
+    $$('.brand-admin-card').forEach(card => {
+      card.addEventListener('click', event => {
+        if (event.target.closest('button')) return;
+        openBrandEditor(card.dataset.id);
+      });
+    });
+    populateCategoryDropdown();
+  }
+
+  function previewBrandThumbnail() {
+    const image = $('#brandThumbnailPreview');
+    const url = $('#brandThumbnail').value.trim();
+    if (!url) {
+      image.removeAttribute('src');
+      image.classList.add('hidden');
+      return;
+    }
+    image.src = url;
+    image.classList.remove('hidden');
+  }
+
+  function updateBrandModeUI() {
+    const checked = document.querySelector('input[name="brandMode"]:checked');
+    const mode = checked ? checked.value : 'projects';
+    const gallerySection = $('#brandGallerySection');
+    const notice = $('#brandModeNotice');
+    const brandId = $('#editingBrandId').value;
+    const attachedProjects = projects.filter(project => String(project.brand) === String(brandId)).length;
+
+    gallerySection.classList.toggle('hidden', mode !== 'gallery');
+    if (mode === 'gallery' && attachedProjects) {
+      notice.textContent = attachedProjects + ' existing project' + (attachedProjects === 1 ? '' : 's') + ' will stay saved but will be hidden while this brand uses a media gallery.';
+      notice.classList.remove('hidden');
+    } else {
+      notice.textContent = '';
+      notice.classList.add('hidden');
+    }
+  }
+
+  function moveBrandMedia(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= editingBrandMedia.length) return;
+    const item = editingBrandMedia.splice(index, 1)[0];
+    editingBrandMedia.splice(target, 0, item);
+    renderBrandMedia();
+    hasUnsavedChanges = true;
+  }
+
+  function renderBrandMedia() {
+    const list = $('#brandMediaList');
+    const empty = $('#brandMediaEmpty');
+    if (!list || !empty) return;
+
+    list.innerHTML = editingBrandMedia.map((url, index) => {
+      const video = isDirectVideoUrl(url);
+      const poster = video ? editingBrandPosters[url] : '';
+      const frameButton = video
+        ? '<button type="button" class="brand-media-frame-button' + (poster ? ' has-frame' : '') + '" aria-label="' + (poster ? 'Change video thumbnail frame' : 'Choose video thumbnail frame') + '">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="m9 9 6 3-6 3Z"></path></svg>' +
+            '<span>' + (poster ? 'Change frame' : 'Choose frame') + '</span>' +
+          '</button>'
+        : '';
+      return '<article class="brand-media-item" data-index="' + index + '" draggable="true">' +
+        '<div class="brand-media-preview">' + adminMediaPreview(url, 'Gallery media ' + (index + 1), poster) + '<span class="brand-media-order">' + String(index + 1).padStart(2, '0') + '</span>' + frameButton + '</div>' +
+        '<div class="brand-media-item-footer"><span title="' + esc(mediaFileName(url)) + '">' + esc(mediaFileName(url)) + '</span>' +
+          '<div class="brand-media-actions">' +
+            '<button type="button" class="brand-media-move" data-direction="-1" aria-label="Move media earlier" ' + (index === 0 ? 'disabled' : '') + '><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"></path></svg></button>' +
+            '<button type="button" class="brand-media-move" data-direction="1" aria-label="Move media later" ' + (index === editingBrandMedia.length - 1 ? 'disabled' : '') + '><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg></button>' +
+            '<button type="button" class="brand-media-remove" aria-label="Remove media"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6"></path></svg></button>' +
+          '</div>' +
+        '</div>' +
+      '</article>';
+    }).join('');
+
+    list.classList.toggle('hidden', editingBrandMedia.length === 0);
+    empty.classList.toggle('hidden', editingBrandMedia.length > 0);
+
+    let draggedIndex = null;
+    list.querySelectorAll('.brand-media-item').forEach(item => {
+      const index = Number(item.dataset.index);
+      bindBrandAspectMeasurement(item, editingBrandMedia[index]);
+      item.querySelector('.brand-media-remove').addEventListener('click', () => {
+        const removedUrl = editingBrandMedia[index];
+        editingBrandMedia.splice(index, 1);
+        delete editingBrandPosters[removedUrl];
+        delete editingBrandAspects[removedUrl];
+        renderBrandMedia();
+        hasUnsavedChanges = true;
+      });
+      const frameButton = item.querySelector('.brand-media-frame-button');
+      if (frameButton) {
+        frameButton.addEventListener('click', event => {
+          event.stopPropagation();
+          openVideoFramePicker(editingBrandMedia[index], index, frameButton);
+        });
+      }
+      item.querySelectorAll('.brand-media-move').forEach(button => {
+        button.addEventListener('click', () => moveBrandMedia(index, Number(button.dataset.direction)));
+      });
+      item.addEventListener('dragstart', event => {
+        draggedIndex = index;
+        item.classList.add('is-dragging');
+        event.dataTransfer.effectAllowed = 'move';
+      });
+      item.addEventListener('dragend', () => {
+        draggedIndex = null;
+        item.classList.remove('is-dragging');
+        list.querySelectorAll('.brand-media-item').forEach(card => card.classList.remove('is-drop-target'));
+      });
+      item.addEventListener('dragover', event => {
+        event.preventDefault();
+        if (draggedIndex !== null && draggedIndex !== index) item.classList.add('is-drop-target');
+      });
+      item.addEventListener('dragleave', () => item.classList.remove('is-drop-target'));
+      item.addEventListener('drop', event => {
+        event.preventDefault();
+        if (draggedIndex === null || draggedIndex === index) return;
+        const moved = editingBrandMedia.splice(draggedIndex, 1)[0];
+        editingBrandMedia.splice(index, 0, moved);
+        renderBrandMedia();
+        hasUnsavedChanges = true;
+      });
+    });
+  }
+
+  function chooseBrandMedia() {
+    openAssetPicker(items => {
+      editingBrandMedia = items.map(item => item.url);
+      editingBrandPosters = Object.fromEntries(
+        Object.entries(editingBrandPosters).filter(([mediaUrl]) => editingBrandMedia.includes(mediaUrl))
+      );
+      editingBrandAspects = Object.fromEntries(
+        Object.entries(editingBrandAspects).filter(([mediaUrl]) => editingBrandMedia.includes(mediaUrl))
+      );
+      renderBrandMedia();
+      if (!$('#brandThumbnail').value) {
+        const firstImage = items.find(item => item.type === 'image' || !isDirectVideoUrl(item.url));
+        if (firstImage) {
+          $('#brandThumbnail').value = firstImage.url;
+          previewBrandThumbnail();
+        }
+      }
+      hasUnsavedChanges = true;
+    }, 'media', {
+      multiple: true,
+      selected: editingBrandMedia,
+      title: 'Choose gallery media',
+      subtitle: 'Select every image and video you want visitors to browse.',
+      confirmLabel: 'Use selected media'
+    });
+  }
+
+  function openBrandEditor(id) {
+    const brand = id && brands.find(item => String(item.id) === String(id));
+    brandEditorTrigger = document.activeElement;
+    $('#brandForm').reset();
+    $('#editingBrandId').value = brand ? brand.id : '';
+    $('#brandModalTitle').textContent = brand ? 'Edit ' + brand.name : 'Create brand';
+    $('#brandModalSubtitle').textContent = brand ? 'Update how visitors explore this brand.' : 'Choose how visitors explore this brand.';
+    $('#brandName').value = brand ? brand.name : '';
+    $('#brandThumbnail').value = brand ? brand.thumbnail : '';
+    editingBrandMedia = brand && Array.isArray(brand.gallery) ? brand.gallery.slice() : [];
+    editingBrandPosters = brand && brand.galleryPosters && typeof brand.galleryPosters === 'object'
+      ? { ...brand.galleryPosters }
+      : {};
+    editingBrandAspects = brand && brand.galleryAspects && typeof brand.galleryAspects === 'object'
+      ? { ...brand.galleryAspects }
+      : {};
+    const mode = getBrandMode(brand);
+    const modeInput = document.querySelector('input[name="brandMode"][value="' + mode + '"]');
+    if (modeInput) modeInput.checked = true;
+    $('#deleteBrandBtn').classList.toggle('hidden', !brand);
+    previewBrandThumbnail();
+    renderBrandMedia();
+    updateBrandModeUI();
+    $('#brandModal').classList.remove('hidden');
+    $('#brandModal').setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    hasUnsavedChanges = false;
+    requestAnimationFrame(() => $('#brandName').focus());
+  }
+
+  function closeBrandEditor() {
+    $('#brandModal').classList.add('hidden');
+    $('#brandModal').setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    hasUnsavedChanges = false;
+    if (brandEditorTrigger && document.contains(brandEditorTrigger)) brandEditorTrigger.focus();
+    brandEditorTrigger = null;
+  }
+
+  async function removeBrand(id) {
+    const brand = brands.find(item => String(item.id) === String(id));
+    const count = projects.filter(project => String(project.brand) === String(id)).length;
+    const galleryCount = brand && Array.isArray(brand.gallery) ? brand.gallery.length : 0;
+    let detail = '';
+    if (count) detail += ' ' + count + ' project' + (count === 1 ? '' : 's') + ' will become unassigned.';
+    if (galleryCount) detail += ' Its ' + galleryCount + ' gallery item' + (galleryCount === 1 ? '' : 's') + ' will no longer be shown.';
+    const confirmed = await showConfirm('Delete brand', 'Delete “' + (brand ? brand.name : 'this brand') + '”?' + detail);
+    if (!confirmed) return;
+    try {
+      await api('brands/' + encodeURIComponent(id), { method: 'DELETE' });
+      closeBrandEditor();
+      await loadProjects();
+      showToast('Brand deleted', 'success');
+    } catch (error) {
+      showToast('Could not delete brand: ' + error.message, 'error');
+    }
+  }
+
+  $('#addBrandBtn').addEventListener('click', () => openBrandEditor());
+  $('#brandModalClose').addEventListener('click', closeBrandEditor);
+  $('#brandModalBackdrop').addEventListener('click', closeBrandEditor);
+  $('#cancelBrandBtn').addEventListener('click', closeBrandEditor);
+  $('#brandThumbnail').addEventListener('input', previewBrandThumbnail);
+  document.querySelectorAll('input[name="brandMode"]').forEach(input => input.addEventListener('change', updateBrandModeUI));
+  $('#addBrandMediaBtn').addEventListener('click', chooseBrandMedia);
+  $('#brandMediaEmpty').addEventListener('click', chooseBrandMedia);
+  $('#browseBrandThumbnailBtn').addEventListener('click', () => {
+    openAssetPicker((url) => {
+      $('#brandThumbnail').value = url;
+      previewBrandThumbnail();
+      hasUnsavedChanges = true;
+    }, 'image', {
+      title: 'Choose a brand cover',
+      subtitle: 'Pick the image visitors will see on the portfolio grid.'
+    });
+  });
+  $('#brandForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const id = $('#editingBrandId').value;
+    const modeInput = document.querySelector('input[name="brandMode"]:checked');
+    const payload = {
+      name: $('#brandName').value.trim(),
+      thumbnail: $('#brandThumbnail').value.trim(),
+      mode: modeInput ? modeInput.value : 'projects',
+      gallery: editingBrandMedia.slice(),
+      galleryPosters: { ...editingBrandPosters },
+      galleryAspects: { ...editingBrandAspects }
+    };
+
+    if (!payload.name) {
+      showToast('Enter a brand name', 'error');
+      $('#brandName').focus();
+      return;
+    }
+    if (!payload.thumbnail) {
+      showToast('Choose a cover image', 'error');
+      $('#browseBrandThumbnailBtn').focus();
+      return;
+    }
+    if (payload.mode === 'gallery' && !payload.gallery.length) {
+      showToast('Add at least one image or video to the gallery', 'error', 5000);
+      $('#brandMediaEmpty').focus();
+      return;
+    }
+
+    const saveButton = $('#saveBrandBtn');
+    saveButton.disabled = true;
+    saveButton.textContent = payload.mode === 'gallery' ? 'Preparing media…' : 'Saving…';
+    try {
+      if (payload.mode === 'gallery') {
+        await ensureBrandMediaAspects();
+        payload.galleryAspects = { ...editingBrandAspects };
+      }
+      saveButton.textContent = 'Saving…';
+      await api(id ? 'brands/' + encodeURIComponent(id) : 'brands', {
+        method: id ? 'PUT' : 'POST',
+        body: JSON.stringify(payload)
+      });
+      closeBrandEditor();
+      await loadProjects();
+      showToast(id ? 'Brand updated' : 'Brand created', 'success');
+    } catch (error) {
+      showToast('Could not save brand: ' + error.message, 'error', 6000);
+    } finally {
+      saveButton.disabled = false;
+      saveButton.textContent = 'Save brand';
+    }
+  });
+  $('#deleteBrandBtn').addEventListener('click', () => removeBrand($('#editingBrandId').value));
+
+  const videoFrameModal = $('#videoFrameModal');
+  const videoFramePlayer = $('#videoFramePlayer');
+  const videoFrameRange = $('#videoFrameRange');
+  const videoFrameCapture = $('#videoFrameCapture');
+  const videoFrameCaptureLabel = videoFrameCapture.querySelector('span');
+  const videoFrameLoading = $('#videoFrameLoading');
+  const videoFrameStatus = $('#videoFrameStatus');
+  const videoFramePlay = $('#videoFramePlay');
+  const videoFramePlayLabel = videoFramePlay.querySelector('span');
+
+  function formatFrameTime(seconds) {
+    const safe = Math.max(0, Number(seconds) || 0);
+    const minutes = Math.floor(safe / 60);
+    const remainder = Math.floor(safe % 60);
+    return minutes + ':' + String(remainder).padStart(2, '0');
+  }
+
+  function updateVideoFrameTime() {
+    const duration = Number.isFinite(videoFramePlayer.duration) ? videoFramePlayer.duration : 0;
+    if (!videoFrameRange.matches(':active')) videoFrameRange.value = String(videoFramePlayer.currentTime || 0);
+    const progress = duration > 0 ? Math.max(0, Math.min(100, ((videoFramePlayer.currentTime || 0) / duration) * 100)) : 0;
+    videoFrameRange.style.setProperty('--frame-progress', progress + '%');
+    $('#videoFrameCurrentTime').textContent = formatFrameTime(videoFramePlayer.currentTime);
+    $('#videoFrameDuration').textContent = formatFrameTime(duration);
+  }
+
+  function updateVideoFramePlayState() {
+    const playing = !videoFramePlayer.paused && !videoFramePlayer.ended;
+    videoFramePlay.classList.toggle('is-playing', playing);
+    videoFramePlayLabel.textContent = playing ? 'Pause' : 'Play';
+    videoFramePlay.setAttribute('aria-label', playing ? 'Pause video' : 'Play video');
+  }
+
+  function openVideoFramePicker(url, index, trigger) {
+    if (!url || !isDirectVideoUrl(url)) return;
+    framePickerTrigger = trigger || document.activeElement;
+    framePickerMediaUrl = url;
+    framePickerMediaIndex = index;
+    frameCaptureRunning = false;
+
+    videoFrameRange.disabled = true;
+    videoFrameRange.value = '0';
+    videoFrameCapture.disabled = true;
+    videoFrameCaptureLabel.textContent = 'Use this frame';
+    videoFrameLoading.classList.remove('hidden');
+    videoFrameStatus.textContent = 'Loading the video so you can choose an exact frame…';
+    $('#videoFrameCurrentTime').textContent = '0:00';
+    $('#videoFrameDuration').textContent = '0:00';
+    const hasPoster = !!editingBrandPosters[url];
+    $('#videoFrameExistingBadge').classList.toggle('hidden', !hasPoster);
+    $('#videoFrameRemove').classList.toggle('hidden', !hasPoster);
+
+    videoFramePlayer.pause();
+    videoFramePlayer.src = url;
+    videoFramePlayer.load();
+    updateVideoFramePlayState();
+    videoFrameModal.classList.remove('hidden');
+    videoFrameModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => $('#videoFrameClose').focus());
+  }
+
+  function closeVideoFramePicker() {
+    if (frameCaptureRunning) return;
+    videoFramePlayer.pause();
+    videoFramePlayer.removeAttribute('src');
+    videoFramePlayer.load();
+    videoFrameModal.classList.add('hidden');
+    videoFrameModal.setAttribute('aria-hidden', 'true');
+    const brandOpen = !$('#brandModal').classList.contains('hidden');
+    const projectOpen = !$('#projectModal').classList.contains('hidden');
+    document.body.style.overflow = (brandOpen || projectOpen) ? 'hidden' : '';
+    if (framePickerTrigger && document.contains(framePickerTrigger)) framePickerTrigger.focus();
+    framePickerTrigger = null;
+    framePickerMediaUrl = '';
+    framePickerMediaIndex = -1;
+  }
+
+  function seekVideoFrame(amount) {
+    if (!Number.isFinite(videoFramePlayer.duration)) return;
+    videoFramePlayer.pause();
+    const end = Math.max(0, videoFramePlayer.duration - 0.01);
+    videoFramePlayer.currentTime = Math.max(0, Math.min(end, videoFramePlayer.currentTime + amount));
+    updateVideoFramePlayState();
+  }
+
+  function canvasBlob(canvas) {
+    return new Promise((resolve, reject) => {
+      try {
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('The selected frame could not be rendered')), 'image/jpeg', 0.9);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  async function captureVideoFrame() {
+    if (frameCaptureRunning || !framePickerMediaUrl || videoFramePlayer.readyState < 2) return;
+    frameCaptureRunning = true;
+    videoFramePlayer.pause();
+    updateVideoFramePlayState();
+    videoFrameCapture.disabled = true;
+    videoFrameCaptureLabel.textContent = 'Capturing…';
+    videoFrameStatus.textContent = 'Rendering and saving your thumbnail…';
+
+    try {
+      const sourceWidth = videoFramePlayer.videoWidth;
+      const sourceHeight = videoFramePlayer.videoHeight;
+      if (!sourceWidth || !sourceHeight) throw new Error('This video frame is not ready yet');
+      rememberBrandAspect(framePickerMediaUrl, sourceWidth, sourceHeight);
+      const scale = Math.min(1, 1600 / Math.max(sourceWidth, sourceHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+      canvas.height = Math.max(1, Math.round(sourceHeight * scale));
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Your browser could not create the thumbnail');
+      context.drawImage(videoFramePlayer, 0, 0, canvas.width, canvas.height);
+      const blob = await canvasBlob(canvas);
+      const file = new File([blob], 'gallery-video-frame.jpg', { type: 'image/jpeg', lastModified: Date.now() });
+      const uploaded = await uploadAssetFile(file, (loaded, total) => {
+        const percent = total ? Math.min(99, Math.round((loaded / total) * 100)) : 0;
+        videoFrameStatus.textContent = 'Saving thumbnail… ' + percent + '%';
+      });
+      editingBrandPosters[framePickerMediaUrl] = uploaded.url;
+      const mediaIndex = framePickerMediaIndex;
+      frameCaptureRunning = false;
+      closeVideoFramePicker();
+      renderBrandMedia();
+      hasUnsavedChanges = true;
+      await loadAssets();
+      requestAnimationFrame(() => {
+        const button = document.querySelector('.brand-media-item[data-index="' + mediaIndex + '"] .brand-media-frame-button');
+        if (button) button.focus();
+      });
+      showToast('Video thumbnail frame saved', 'success');
+    } catch (error) {
+      frameCaptureRunning = false;
+      videoFrameCapture.disabled = false;
+      videoFrameCaptureLabel.textContent = 'Use this frame';
+      videoFrameStatus.textContent = 'Could not capture this frame. Try another point in the video.';
+      showToast('Frame capture failed: ' + error.message, 'error', 7000);
+    }
+  }
+
+  videoFramePlayer.addEventListener('loadedmetadata', () => {
+    const duration = Number.isFinite(videoFramePlayer.duration) ? videoFramePlayer.duration : 0;
+    videoFrameRange.max = String(Math.max(duration, 0.01));
+    videoFrameRange.disabled = duration <= 0;
+    const openingFrame = Math.min(Math.max(duration * 0.1, 0.1), Math.max(0, duration - 0.05));
+    if (duration > 0) videoFramePlayer.currentTime = openingFrame;
+    updateVideoFrameTime();
+  });
+  videoFramePlayer.addEventListener('loadeddata', () => {
+    videoFrameLoading.classList.add('hidden');
+    videoFrameCapture.disabled = false;
+    videoFrameStatus.textContent = 'Pause on the exact frame you want, then choose “Use this frame”.';
+  });
+  videoFramePlayer.addEventListener('timeupdate', updateVideoFrameTime);
+  videoFramePlayer.addEventListener('seeking', () => {
+    videoFrameCapture.disabled = true;
+    videoFrameStatus.textContent = 'Finding that frame…';
+  });
+  videoFramePlayer.addEventListener('seeked', () => {
+    videoFrameLoading.classList.add('hidden');
+    videoFrameCapture.disabled = false;
+    updateVideoFrameTime();
+    videoFrameStatus.textContent = 'Frame ready. Fine-tune it or use this frame.';
+  });
+  videoFramePlayer.addEventListener('play', updateVideoFramePlayState);
+  videoFramePlayer.addEventListener('pause', updateVideoFramePlayState);
+  videoFramePlayer.addEventListener('ended', updateVideoFramePlayState);
+  videoFramePlayer.addEventListener('error', () => {
+    videoFrameLoading.classList.add('hidden');
+    videoFrameCapture.disabled = true;
+    videoFrameStatus.textContent = 'This video cannot be previewed in your browser. Try an MP4 or WebM file.';
+  });
+  videoFramePlayer.addEventListener('click', () => videoFramePlay.click());
+  videoFrameRange.addEventListener('input', () => {
+    videoFramePlayer.pause();
+    videoFramePlayer.currentTime = Number(videoFrameRange.value) || 0;
+    updateVideoFrameTime();
+  });
+  videoFramePlay.addEventListener('click', () => {
+    if (videoFramePlayer.paused) videoFramePlayer.play().catch(() => {});
+    else videoFramePlayer.pause();
+  });
+  $('#videoFrameBack').addEventListener('click', () => seekVideoFrame(-0.5));
+  $('#videoFrameForward').addEventListener('click', () => seekVideoFrame(0.5));
+  $('#videoFrameCapture').addEventListener('click', captureVideoFrame);
+  $('#videoFrameClose').addEventListener('click', closeVideoFramePicker);
+  $('#videoFrameCancel').addEventListener('click', closeVideoFramePicker);
+  $('#videoFrameBackdrop').addEventListener('click', closeVideoFramePicker);
+  $('#videoFrameRemove').addEventListener('click', () => {
+    const mediaIndex = framePickerMediaIndex;
+    delete editingBrandPosters[framePickerMediaUrl];
+    closeVideoFramePicker();
+    renderBrandMedia();
+    hasUnsavedChanges = true;
+    requestAnimationFrame(() => {
+      const button = document.querySelector('.brand-media-item[data-index="' + mediaIndex + '"] .brand-media-frame-button');
+      if (button) button.focus();
+    });
+    showToast('Custom video frame removed', 'success');
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !videoFrameModal.classList.contains('hidden')) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      closeVideoFramePicker();
+    }
+  }, true);
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' &&
+        $('#assetPickerModal').classList.contains('hidden') &&
+        !$('#brandModal').classList.contains('hidden') &&
+        $('#confirmDialog').classList.contains('hidden')) {
+      closeBrandEditor();
+    }
+  });
 
   function renderProjectMedia() {
-    const list=$('#projectMediaList'), empty=$('#projectMediaEmpty'); if(!list)return;
-    list.innerHTML=editingProjectMedia.map((url,index)=>{const video=/\.(mp4|webm|mov|m4v|ogv|ogg|avi|mkv)(\?.*)?$/i.test(url);return '<div class="project-media-item" data-index="'+index+'">'+(video?'<video src="'+esc(url)+'" muted preload="metadata"></video>':'<img src="'+esc(url)+'" alt="">')+'<span>'+esc(url.split('/').pop()||'Media')+'</span><div><button type="button" class="project-media-move" data-direction="-1" '+(index===0?'disabled':'')+'>↑</button><button type="button" class="project-media-move" data-direction="1" '+(index===editingProjectMedia.length-1?'disabled':'')+'>↓</button><button type="button" class="project-media-remove">×</button></div></div>';}).join('');
-    empty && empty.classList.toggle('hidden',editingProjectMedia.length>0);
-    $$('.project-media-item').forEach(item=>{const index=Number(item.dataset.index);item.querySelector('.project-media-remove').onclick=()=>{editingProjectMedia.splice(index,1);renderProjectMedia();};item.querySelectorAll('.project-media-move').forEach(btn=>btn.onclick=()=>{const target=index+Number(btn.dataset.direction);[editingProjectMedia[index],editingProjectMedia[target]]=[editingProjectMedia[target],editingProjectMedia[index]];renderProjectMedia();});});
+    const list = $('#projectMediaList');
+    const empty = $('#projectMediaEmpty');
+    if (!list) return;
+
+    list.innerHTML = editingProjectMedia.map((url, index) =>
+      '<article class="project-media-item" data-index="' + index + '" draggable="true">' +
+        '<div class="project-media-preview">' + adminMediaPreview(url, 'Project media ' + (index + 1)) + '<span>' + String(index + 1).padStart(2, '0') + '</span></div>' +
+        '<div class="project-media-copy"><strong title="' + esc(mediaFileName(url)) + '">' + esc(mediaFileName(url)) + '</strong><small>' + (isDirectVideoUrl(url) ? 'Video' : 'Image') + '</small></div>' +
+        '<div class="project-media-actions">' +
+          '<button type="button" class="project-media-move" data-direction="-1" aria-label="Move media earlier" ' + (index === 0 ? 'disabled' : '') + '><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"></path></svg></button>' +
+          '<button type="button" class="project-media-move" data-direction="1" aria-label="Move media later" ' + (index === editingProjectMedia.length - 1 ? 'disabled' : '') + '><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg></button>' +
+          '<button type="button" class="project-media-remove" aria-label="Remove media"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6"></path></svg></button>' +
+        '</div>' +
+      '</article>'
+    ).join('');
+    if (empty) empty.classList.toggle('hidden', editingProjectMedia.length > 0);
+
+    let draggedIndex = null;
+    list.querySelectorAll('.project-media-item').forEach(item => {
+      const index = Number(item.dataset.index);
+      item.querySelector('.project-media-remove').addEventListener('click', () => {
+        editingProjectMedia.splice(index, 1);
+        renderProjectMedia();
+        hasUnsavedChanges = true;
+      });
+      item.querySelectorAll('.project-media-move').forEach(button => {
+        button.addEventListener('click', () => {
+          const target = index + Number(button.dataset.direction);
+          if (target < 0 || target >= editingProjectMedia.length) return;
+          const moved = editingProjectMedia.splice(index, 1)[0];
+          editingProjectMedia.splice(target, 0, moved);
+          renderProjectMedia();
+          hasUnsavedChanges = true;
+        });
+      });
+      item.addEventListener('dragstart', event => {
+        draggedIndex = index;
+        item.classList.add('is-dragging');
+        event.dataTransfer.effectAllowed = 'move';
+      });
+      item.addEventListener('dragend', () => {
+        draggedIndex = null;
+        item.classList.remove('is-dragging');
+        list.querySelectorAll('.project-media-item').forEach(card => card.classList.remove('is-drop-target'));
+      });
+      item.addEventListener('dragover', event => {
+        event.preventDefault();
+        if (draggedIndex !== null && draggedIndex !== index) item.classList.add('is-drop-target');
+      });
+      item.addEventListener('dragleave', () => item.classList.remove('is-drop-target'));
+      item.addEventListener('drop', event => {
+        event.preventDefault();
+        if (draggedIndex === null || draggedIndex === index) return;
+        const moved = editingProjectMedia.splice(draggedIndex, 1)[0];
+        editingProjectMedia.splice(index, 0, moved);
+        renderProjectMedia();
+        hasUnsavedChanges = true;
+      });
+    });
   }
-  $('#addProjectMediaBtn').addEventListener('click',()=>openAssetPicker(url=>{if(!editingProjectMedia.includes(url)){editingProjectMedia.push(url);renderProjectMedia();}},'all'));
+
+  $('#addProjectMediaBtn').addEventListener('click', () => {
+    openAssetPicker(items => {
+      editingProjectMedia = items.map(item => item.url);
+      renderProjectMedia();
+      hasUnsavedChanges = true;
+    }, 'media', {
+      multiple: true,
+      selected: editingProjectMedia,
+      title: 'Choose project media',
+      subtitle: 'Select images and videos for this case study.',
+      confirmLabel: 'Use selected media'
+    });
+  });
 
   function openAddProject() {
+    projectEditorTrigger = document.activeElement;
     editingId = null;
     $('#modalTitle').textContent = 'Add Project';
     $('#projectForm').reset();
@@ -626,13 +1315,16 @@
     $('#deleteProjectBtn').classList.add('hidden');
     populateCategoryDropdown();
     $('#projectModal').classList.remove('hidden');
+    $('#projectModal').setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
     hasUnsavedChanges = false;
+    requestAnimationFrame(() => $('#projectTitle').focus());
   }
 
   function openEditProject(id) {
     const p = findProject(id);
     if (!p) return;
+    projectEditorTrigger = document.activeElement;
     editingId = p.id;
     $('#modalTitle').textContent = 'Edit Project';
     $('#projectId').value = p.id;
@@ -652,8 +1344,10 @@
     else uploads.thumb.clearImage();
     $('#deleteProjectBtn').classList.remove('hidden');
     $('#projectModal').classList.remove('hidden');
+    $('#projectModal').setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
     hasUnsavedChanges = false;
+    requestAnimationFrame(() => $('#projectTitle').focus());
   }
 
   function closeModal() {
@@ -661,9 +1355,12 @@
       // allow close without blocking — form is modal; user can cancel intentionally
     }
     $('#projectModal').classList.add('hidden');
+    $('#projectModal').setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
     editingId = null;
     hasUnsavedChanges = false;
+    if (projectEditorTrigger && document.contains(projectEditorTrigger)) projectEditorTrigger.focus();
+    projectEditorTrigger = null;
   }
 
   $('#addProjectBtn').addEventListener('click', openAddProject);
@@ -673,6 +1370,7 @@
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' &&
         $('#assetPickerModal').classList.contains('hidden') &&
+        $('#confirmDialog').classList.contains('hidden') &&
         !$('#projectModal').classList.contains('hidden')) closeModal();
   });
 
@@ -1484,90 +2182,289 @@
   // ASSET PICKER
   // ============================================
   let pickerCallback = null;
-  let pickerFilter = 'all';
+  let pickerBaseFilter = 'all';
+  let pickerView = 'all';
+  let pickerOptions = {};
+  let pickerSelection = new Set();
+  let pickerInitialOrder = [];
+  let pickerTrigger = null;
+  let pickerUploading = false;
+
   const pickerModal = $('#assetPickerModal');
   const pickerGrid = $('#assetPickerGrid');
   const pickerEmpty = $('#assetPickerEmpty');
   const pickerEmptyText = $('#assetPickerEmptyText');
   const pickerTitle = $('#assetPickerTitle');
+  const pickerSubtitle = $('#assetPickerSubtitle');
   const pickerSearch = $('#assetPickerSearch');
+  const pickerFilters = $('#assetPickerFilters');
+  const pickerFooter = $('#assetPickerFooter');
+  const pickerSelectionCount = $('#assetPickerSelectionCount');
+  const pickerConfirm = $('#assetPickerConfirm');
+  const pickerUploadInput = $('#assetPickerUploadInput');
+  const pickerUploadBtn = $('#assetPickerUploadBtn');
+  const pickerUploadStatus = $('#assetPickerUploadStatus');
+  const pickerUploadText = $('#assetPickerUploadText');
 
-  function openAssetPicker(callback, filter) {
-    pickerCallback = callback;
-    pickerFilter = filter || 'all';
-    pickerModal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-    pickerSearch.value = '';
-    pickerTitle.textContent = pickerFilter === 'video' ? 'Choose a Project Video' : 'Browse Assets';
-    pickerSearch.placeholder = pickerFilter === 'video' ? 'Search videos...' : 'Search assets...';
-    pickerEmptyText.textContent = pickerFilter === 'video'
-      ? 'No videos found. Upload one in the Assets tab first.'
-      : 'No assets found. Upload files in the Assets tab first.';
-    renderPickerAssets(assets);
+  function inferAssetType(url) {
+    if (isDirectVideoUrl(url)) return 'video';
+    if (/\.(pdf|doc|docx|txt|rtf)(\?.*)?$/i.test(url || '')) return 'document';
+    return 'image';
   }
 
-  function closeAssetPicker() {
-    pickerModal.classList.add('hidden');
-    const projectModalOpen = !$('#projectModal').classList.contains('hidden');
-    const brandModalOpen = !$('#brandModal').classList.contains('hidden');
-    document.body.style.overflow = (projectModalOpen || brandModalOpen) ? 'hidden' : '';
-    pickerCallback = null;
+  function pickerMatchesBase(asset) {
+    if (pickerBaseFilter === 'media') return asset.type === 'image' || asset.type === 'video';
+    if (pickerBaseFilter === 'image') return asset.type === 'image';
+    if (pickerBaseFilter === 'video') return asset.type === 'video';
+    if (pickerBaseFilter === 'document') return asset.type === 'document' || /\.(pdf|doc|docx|txt|rtf)$/i.test(asset.filename || '');
+    return true;
   }
 
-  function renderPickerAssets(list) {
-    let filtered = list;
-    if (pickerFilter === 'image') filtered = list.filter(f => f.type === 'image');
-    else if (pickerFilter === 'video') filtered = list.filter(f => f.type === 'video');
-    else if (pickerFilter === 'document') filtered = list.filter(f => f.type === 'document' || /\.(pdf|doc|docx|txt)$/i.test(f.filename));
+  function getPickerSelectedItems() {
+    const orderedUrls = [];
+    pickerInitialOrder.forEach(url => {
+      if (pickerSelection.has(url) && !orderedUrls.includes(url)) orderedUrls.push(url);
+    });
+    assets.forEach(asset => {
+      if (pickerSelection.has(asset.url) && !orderedUrls.includes(asset.url)) orderedUrls.push(asset.url);
+    });
+    pickerSelection.forEach(url => {
+      if (!orderedUrls.includes(url)) orderedUrls.push(url);
+    });
+
+    return orderedUrls.map(url => {
+      const asset = assets.find(item => item.url === url);
+      return asset || { url, filename: mediaFileName(url), type: inferAssetType(url), sizeFormatted: '' };
+    });
+  }
+
+  function updatePickerSelectionUI() {
+    const count = pickerSelection.size;
+    pickerSelectionCount.textContent = count + ' selected';
+    pickerConfirm.disabled = false;
+    pickerConfirm.textContent = pickerOptions.confirmLabel || (count === 1 ? 'Use selected file' : 'Use selected media');
+
+    pickerGrid.querySelectorAll('.picker-card').forEach(card => {
+      const selected = pickerSelection.has(card.dataset.url);
+      card.classList.toggle('is-selected', selected);
+      card.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+  }
+
+  function renderPickerAssets() {
+    const query = pickerSearch.value.toLowerCase().trim();
+    const filtered = assets.filter(asset => {
+      if (!pickerMatchesBase(asset)) return false;
+      if (pickerView !== 'all' && asset.type !== pickerView) return false;
+      return !query || String(asset.filename || '').toLowerCase().includes(query);
+    });
 
     if (!filtered.length) {
       pickerGrid.innerHTML = '';
       pickerEmpty.classList.remove('hidden');
+      pickerEmpty.querySelector('strong').textContent = query ? 'No matching media' : 'Nothing here yet';
+      pickerEmptyText.textContent = query
+        ? 'Try another search or clear the current filter.'
+        : (pickerBaseFilter === 'video' ? 'Upload a video to get started.' : 'Upload media without leaving this window.');
+      updatePickerSelectionUI();
       return;
     }
     pickerEmpty.classList.add('hidden');
 
-    const typeIcons = {
-      image: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>',
-      document: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>',
-      video: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>',
-      other: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>'
-    };
-
-    pickerGrid.innerHTML = filtered.map(f => {
-      const isImg = f.type === 'image';
-      const isVideo = f.type === 'video';
-      const preview = isImg
-        ? '<img src="' + esc(f.url) + '" alt="' + esc(f.filename) + '" loading="lazy" onerror="this.style.display=\'none\'">'
+    const fileIcon = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>';
+    pickerGrid.innerHTML = filtered.map(asset => {
+      const isImage = asset.type === 'image';
+      const isVideo = asset.type === 'video';
+      const preview = isImage
+        ? '<img src="' + esc(asset.url) + '" alt="" loading="lazy">'
         : (isVideo
-            ? '<video src="' + esc(f.url) + '" muted playsinline preload="metadata" aria-label="' + esc(f.filename) + '"></video><span class="asset-video-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 3 21 12 7 21 7 3"></polygon></svg></span>'
-            : '<div class="asset-icon" style="color:var(--text-dim)">' + (typeIcons[f.type] || typeIcons.other) + '</div>');
+            ? '<video src="' + esc(asset.url) + '" muted playsinline preload="metadata" aria-hidden="true"></video><span class="picker-video-mark" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m8 5 11 7-11 7Z"></path></svg></span>'
+            : '<span class="picker-file-icon" aria-hidden="true">' + fileIcon + '</span>');
+      const selected = pickerSelection.has(asset.url);
+      const typeLabel = asset.type ? asset.type.charAt(0).toUpperCase() + asset.type.slice(1) : 'File';
 
-      return '<div class="asset-card picker-card" data-url="' + esc(f.url) + '" data-name="' + esc(f.filename) + '" style="cursor:pointer">' +
-        '<div class="asset-preview' + (isVideo ? ' asset-preview-picker' : '') + '">' + preview + '</div>' +
-        '<div class="asset-info"><div class="asset-name" title="' + esc(f.filename) + '">' + esc(f.filename) + '</div>' +
-        '<div class="asset-meta">' + f.sizeFormatted + '</div></div>' +
-      '</div>';
+      return '<button type="button" class="picker-card' + (selected ? ' is-selected' : '') + '" data-url="' + esc(asset.url) + '" data-name="' + esc(asset.filename) + '" aria-pressed="' + (selected ? 'true' : 'false') + '">' +
+        '<span class="picker-card-preview">' + preview +
+          '<span class="picker-selected-mark" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"></path></svg></span>' +
+        '</span>' +
+        '<span class="picker-card-copy"><strong title="' + esc(asset.filename) + '">' + esc(asset.filename) + '</strong><small>' + esc(typeLabel) + (asset.sizeFormatted ? ' · ' + esc(asset.sizeFormatted) : '') + '</small></span>' +
+      '</button>';
     }).join('');
 
-    $$('.picker-card').forEach(card => {
+    pickerGrid.querySelectorAll('.picker-card').forEach(card => {
       card.addEventListener('click', () => {
-        if (pickerCallback) pickerCallback(card.dataset.url, card.dataset.name);
-        closeAssetPicker();
+        const asset = assets.find(item => item.url === card.dataset.url) || {
+          url: card.dataset.url,
+          filename: card.dataset.name,
+          type: inferAssetType(card.dataset.url)
+        };
+
+        if (!pickerOptions.multiple) {
+          const callback = pickerCallback;
+          closeAssetPicker();
+          if (callback) callback(asset.url, asset.filename, asset);
+          return;
+        }
+
+        if (pickerSelection.has(asset.url)) pickerSelection.delete(asset.url);
+        else pickerSelection.add(asset.url);
+        updatePickerSelectionUI();
       });
     });
+    updatePickerSelectionUI();
   }
 
-  pickerSearch.addEventListener('input', () => {
-    const q = pickerSearch.value.toLowerCase();
-    const filtered = assets.filter(f => f.filename.toLowerCase().includes(q));
-    renderPickerAssets(filtered);
-  });
+  function openAssetPicker(callback, filter, options) {
+    pickerCallback = callback;
+    pickerBaseFilter = filter || 'all';
+    pickerOptions = options || {};
+    pickerView = 'all';
+    pickerInitialOrder = Array.isArray(pickerOptions.selected) ? pickerOptions.selected.slice() : [];
+    pickerSelection = new Set(pickerInitialOrder);
+    pickerTrigger = document.activeElement;
+    pickerSearch.value = '';
 
+    const defaults = {
+      image: ['Choose an image', 'Select an image from your media library.'],
+      video: ['Choose a video', 'Select a video from your media library.'],
+      document: ['Choose a document', 'Select a document from your file library.'],
+      media: ['Choose media', 'Select images and videos from your media library.'],
+      all: ['Browse assets', 'Select a file from your library.']
+    };
+    const fallback = defaults[pickerBaseFilter] || defaults.all;
+    pickerTitle.textContent = pickerOptions.title || fallback[0];
+    pickerSubtitle.textContent = pickerOptions.subtitle || fallback[1];
+    pickerSearch.placeholder = pickerBaseFilter === 'video' ? 'Search videos…' : (pickerBaseFilter === 'document' ? 'Search documents…' : 'Search your media…');
+
+    const filterable = pickerBaseFilter === 'media' || pickerBaseFilter === 'all';
+    pickerFilters.classList.toggle('hidden', !filterable);
+    pickerFilters.querySelectorAll('button').forEach(button => button.classList.toggle('active', button.dataset.pickerView === 'all'));
+    pickerFooter.classList.toggle('hidden', !pickerOptions.multiple);
+
+    if (pickerBaseFilter === 'image') pickerUploadInput.accept = 'image/*';
+    else if (pickerBaseFilter === 'video') pickerUploadInput.accept = 'video/*';
+    else if (pickerBaseFilter === 'document') pickerUploadInput.accept = '.pdf,.txt,.rtf';
+    else pickerUploadInput.accept = 'image/*,video/*';
+    pickerUploadInput.multiple = !!pickerOptions.multiple;
+
+    pickerModal.classList.remove('hidden');
+    pickerModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    renderPickerAssets();
+    requestAnimationFrame(() => pickerSearch.focus());
+  }
+
+  function closeAssetPicker() {
+    if (pickerUploading) return;
+    pickerModal.classList.add('hidden');
+    pickerModal.setAttribute('aria-hidden', 'true');
+    pickerUploadStatus.classList.add('hidden');
+    pickerUploadInput.value = '';
+    const projectModalOpen = !$('#projectModal').classList.contains('hidden');
+    const brandModalOpen = !$('#brandModal').classList.contains('hidden');
+    document.body.style.overflow = (projectModalOpen || brandModalOpen) ? 'hidden' : '';
+    pickerCallback = null;
+    if (pickerTrigger && document.contains(pickerTrigger)) pickerTrigger.focus();
+    pickerTrigger = null;
+  }
+
+  function pickerFileAllowed(file) {
+    if (pickerBaseFilter === 'image') return file.type.startsWith('image/');
+    if (pickerBaseFilter === 'video') return file.type.startsWith('video/');
+    if (pickerBaseFilter === 'document') return /\.(pdf|txt|rtf)$/i.test(file.name);
+    if (pickerBaseFilter === 'media') return file.type.startsWith('image/') || file.type.startsWith('video/');
+    return true;
+  }
+
+  async function uploadFilesFromPicker(fileList) {
+    const files = Array.from(fileList || []).filter(file => {
+      if (file.size > 50 * 1024 * 1024) {
+        showToast(file.name + ' is too large. Max 50MB.', 'error', 5000);
+        return false;
+      }
+      if (!pickerFileAllowed(file)) {
+        showToast(file.name + ' is not the file type needed here.', 'error', 5000);
+        return false;
+      }
+      return true;
+    });
+    pickerUploadInput.value = '';
+    if (!files.length) return;
+
+    pickerUploading = true;
+    pickerUploadBtn.disabled = true;
+    pickerUploadStatus.classList.remove('hidden', 'is-complete', 'is-error');
+    const uploadedUrls = [];
+
+    for (let index = 0; index < files.length; index++) {
+      const file = files[index];
+      pickerUploadText.textContent = 'Uploading ' + file.name + ' · ' + (index + 1) + ' of ' + files.length;
+      try {
+        const result = await uploadAssetFile(file, (loaded, total) => {
+          const percent = total ? Math.min(99, Math.round((loaded / total) * 100)) : 0;
+          pickerUploadText.textContent = 'Uploading ' + file.name + ' · ' + percent + '%';
+        });
+        uploadedUrls.push(result.url);
+      } catch (error) {
+        showToast('Could not upload ' + file.name + ': ' + error.message, 'error', 7000);
+      }
+    }
+
+    if (uploadedUrls.length) {
+      await loadAssets();
+      if (pickerOptions.multiple) {
+        uploadedUrls.forEach(url => pickerSelection.add(url));
+        renderPickerAssets();
+        pickerUploadStatus.classList.add('is-complete');
+        pickerUploadText.textContent = uploadedUrls.length + ' new file' + (uploadedUrls.length === 1 ? '' : 's') + ' uploaded and selected';
+      } else {
+        const selected = assets.find(asset => asset.url === uploadedUrls[0]);
+        const callback = pickerCallback;
+        pickerUploading = false;
+        pickerUploadBtn.disabled = false;
+        pickerUploadStatus.classList.add('is-complete');
+        if (callback) callback(uploadedUrls[0], selected ? selected.filename : mediaFileName(uploadedUrls[0]), selected || null);
+        closeAssetPicker();
+        return;
+      }
+    } else {
+      pickerUploadStatus.classList.add('is-error');
+      pickerUploadText.textContent = 'No files were uploaded. Please try again.';
+    }
+
+    pickerUploading = false;
+    pickerUploadBtn.disabled = false;
+  }
+
+  pickerSearch.addEventListener('input', renderPickerAssets);
+  pickerFilters.querySelectorAll('button').forEach(button => {
+    button.addEventListener('click', () => {
+      pickerView = button.dataset.pickerView;
+      pickerFilters.querySelectorAll('button').forEach(item => item.classList.toggle('active', item === button));
+      renderPickerAssets();
+    });
+  });
+  pickerUploadBtn.addEventListener('click', () => pickerUploadInput.click());
+  $('#assetPickerEmptyUpload').addEventListener('click', () => pickerUploadInput.click());
+  pickerUploadInput.addEventListener('change', event => uploadFilesFromPicker(event.target.files));
   $('#assetPickerClose').addEventListener('click', closeAssetPicker);
+  $('#assetPickerCancel').addEventListener('click', closeAssetPicker);
   $('#assetPickerBackdrop').addEventListener('click', closeAssetPicker);
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && !pickerModal.classList.contains('hidden')) closeAssetPicker();
+  pickerConfirm.addEventListener('click', () => {
+    const callback = pickerCallback;
+    const selectedItems = getPickerSelectedItems();
+    closeAssetPicker();
+    if (callback) callback(selectedItems);
+  });
+  document.addEventListener('keydown', event => {
+    if (pickerModal.classList.contains('hidden')) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeAssetPicker();
+    } else if (event.key === '/' && document.activeElement !== pickerSearch) {
+      event.preventDefault();
+      pickerSearch.focus();
+    }
   });
 
   // Browse buttons — images
@@ -2115,6 +3012,7 @@
   // CONFIRM DIALOG
   // ============================================
   let confirmResolve = null;
+  let confirmTrigger = null;
   const confirmDialog = $('#confirmDialog');
   const confirmTitle = $('#confirmTitle');
   const confirmMessage = $('#confirmMessage');
@@ -2125,21 +3023,33 @@
   function showConfirm(title, message, okLabel = 'Delete') {
     return new Promise(resolve => {
       confirmResolve = resolve;
+      confirmTrigger = document.activeElement;
       confirmTitle.textContent = title;
       confirmMessage.textContent = message;
       confirmOk.textContent = okLabel;
       confirmDialog.classList.remove('hidden');
+      confirmDialog.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(() => confirmCancel.focus());
     });
   }
 
   function closeConfirm(result) {
     confirmDialog.classList.add('hidden');
+    confirmDialog.setAttribute('aria-hidden', 'true');
     if (confirmResolve) { confirmResolve(result); confirmResolve = null; }
+    if (confirmTrigger && document.contains(confirmTrigger)) confirmTrigger.focus();
+    confirmTrigger = null;
   }
 
   if (confirmOk) confirmOk.addEventListener('click', () => closeConfirm(true));
   if (confirmCancel) confirmCancel.addEventListener('click', () => closeConfirm(false));
   if (confirmBackdrop) confirmBackdrop.addEventListener('click', () => closeConfirm(false));
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !confirmDialog.classList.contains('hidden')) {
+      event.preventDefault();
+      closeConfirm(false);
+    }
+  });
 
   // ============================================
   // MOBILE NAV
@@ -2535,6 +3445,31 @@
 
   // Clear on save
   document.addEventListener('submit', () => { hasUnsavedChanges = false; }, true);
+
+  // Keep keyboard focus inside the top-most editor.
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Tab') return;
+    let root = null;
+    if (!$('#confirmDialog').classList.contains('hidden')) root = $('#confirmDialog .modal-content');
+    else if (!$('#videoFrameModal').classList.contains('hidden')) root = $('#videoFrameModal .modal-content');
+    else if (!$('#assetPickerModal').classList.contains('hidden')) root = $('#assetPickerModal .modal-content');
+    else if (!$('#brandModal').classList.contains('hidden')) root = $('#brandModal .modal-content');
+    else if (!$('#projectModal').classList.contains('hidden')) root = $('#projectModal .modal-content');
+    if (!root) return;
+
+    const focusable = Array.from(root.querySelectorAll('button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'))
+      .filter(element => element.offsetParent !== null && !element.closest('.hidden'));
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
 
   // ============================================
   // INIT
