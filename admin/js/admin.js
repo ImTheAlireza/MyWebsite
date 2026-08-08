@@ -2577,10 +2577,17 @@
     $$('.timeline-admin-card .move-btn').forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();
+        // Sync edits before moving
+        try {
+          const _c = collectTimelineData();
+          experienceData = _c.experience;
+          educationData = _c.education;
+        } catch {}
         const card = btn.closest('.timeline-admin-card');
         const type = card.dataset.type;
         const index = parseInt(card.dataset.index);
         const dir = btn.dataset.dir;
+        // Re-read after sync to get correct index
         const arr = type === 'experience' ? experienceData : educationData;
         const swap = dir === 'up' ? index - 1 : index + 1;
         if (swap < 0 || swap >= arr.length) return;
@@ -2592,6 +2599,11 @@
     $$('.timeline-admin-card .delete-btn').forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();
+        try {
+          const _c = collectTimelineData();
+          experienceData = _c.experience;
+          educationData = _c.education;
+        } catch {}
         const card = btn.closest('.timeline-admin-card');
         const type = card.dataset.type;
         const index = parseInt(card.dataset.index);
@@ -2627,6 +2639,12 @@
 
   const addExpBtn = $('#addExperienceBtn');
   if (addExpBtn) addExpBtn.addEventListener('click', () => {
+    // Sync any unsaved edits before adding new entry
+    try {
+      const _cur = collectTimelineData();
+      experienceData = _cur.experience;
+      educationData = _cur.education;
+    } catch {}
     experienceData.push({ date: '', title: '', subtitle: '', desc: '' });
     renderTimelineLists();
     // Auto-expand the new card
@@ -2640,6 +2658,11 @@
 
   const addEduBtn = $('#addEducationBtn');
   if (addEduBtn) addEduBtn.addEventListener('click', () => {
+    try {
+      const _cur = collectTimelineData();
+      experienceData = _cur.experience;
+      educationData = _cur.education;
+    } catch {}
     educationData.push({ date: '', title: '', subtitle: '', desc: '' });
     renderTimelineLists();
     const cards = $$('#educationList .timeline-admin-card');
@@ -2656,8 +2679,16 @@
     saveTimelineBtn.disabled = true;
     saveTimelineBtn.textContent = 'Saving...';
     try {
-      // Partial merge — only experience/education keys (server-side schema)
-      await api('settings', { method: 'PUT', body: JSON.stringify(data) });
+      const saved = await api('settings', { method: 'PUT', body: JSON.stringify(data) });
+      // Sync local arrays from server response or collected data
+      if (saved) {
+        if (Array.isArray(saved.experience)) experienceData = JSON.parse(JSON.stringify(saved.experience));
+        if (Array.isArray(saved.education)) educationData = JSON.parse(JSON.stringify(saved.education));
+      } else {
+        experienceData = JSON.parse(JSON.stringify(data.experience));
+        educationData = JSON.parse(JSON.stringify(data.education));
+      }
+      renderTimelineLists();
       hasUnsavedChanges = false;
       showToast('Timeline saved!', 'success');
       const success = $('#timelineSuccess');
@@ -2668,6 +2699,421 @@
       saveTimelineBtn.disabled = false;
       saveTimelineBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Save Changes';
     }
+  });
+
+
+  // ============================================
+  // SERVICES MANAGEMENT
+  // ============================================
+  let servicesData = [];
+  let processData = [];
+  let testimonialsData = [];
+
+  function renderServiceCard(item, index, total) {
+    return `
+      <div class="timeline-admin-card" data-type="service" data-index="${index}">
+        <div class="card-header">
+          <span class="card-grip">${gripSvg}</span>
+          <span class="card-number">${index + 1}</span>
+          <div class="card-preview">
+            <div class="card-preview-title">${esc(item.title || 'Untitled service')}</div>
+            <div class="card-preview-sub">${esc(item.icon || 'play')} · ${esc((item.desc || '').slice(0,60))}</div>
+          </div>
+          <div class="card-actions-bar">
+            <button type="button" class="card-action-btn move-btn" data-dir="up" title="Move up" ${index === 0 ? 'disabled style="opacity:0.3;pointer-events:none"' : ''}>${upSvg}</button>
+            <button type="button" class="card-action-btn move-btn" data-dir="down" title="Move down" ${index === total - 1 ? 'disabled style="opacity:0.3;pointer-events:none"' : ''}>${downSvg}</button>
+            <button type="button" class="card-action-btn delete-btn" title="Remove">${trashSvg}</button>
+          </div>
+          <span class="card-chevron">${chevronSvg}</span>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <label>Icon (play, share, monitor, film, spark, zap)</label>
+            <input type="text" name="icon" value="${esc(item.icon || 'play')}" placeholder="play">
+          </div>
+          <div class="form-row">
+            <label>Title</label>
+            <input type="text" name="title" value="${esc(item.title || '')}" placeholder="Explainer Videos">
+          </div>
+          <div class="form-row">
+            <label>Description</label>
+            <textarea name="desc" rows="2" placeholder="What this service delivers...">${esc(item.desc || '')}</textarea>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderServicesList() {
+    const list = $('#servicesList');
+    const empty = $('#servicesEmpty');
+    const count = $('#servicesCount');
+    if (!list) return;
+    list.innerHTML = servicesData.map((item, i) => renderServiceCard(item, i, servicesData.length)).join('');
+    if (empty) empty.classList.toggle('hidden', servicesData.length > 0);
+    if (count) count.textContent = servicesData.length + ' entr' + (servicesData.length === 1 ? 'y' : 'ies');
+    $$('#servicesList .timeline-admin-card .card-header').forEach(h => {
+      h.addEventListener('click', () => h.parentElement.classList.toggle('expanded'));
+    });
+    $$('#servicesList .card-actions-bar').forEach(bar => bar.addEventListener('click', e => e.stopPropagation()));
+    $$('#servicesList .move-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        try { servicesData = collectServicesData(); } catch {}
+        const card = btn.closest('.timeline-admin-card');
+        const index = parseInt(card.dataset.index);
+        const dir = btn.dataset.dir;
+        const swap = dir === 'up' ? index - 1 : index + 1;
+        if (swap < 0 || swap >= servicesData.length) return;
+        [servicesData[index], servicesData[swap]] = [servicesData[swap], servicesData[index]];
+        renderServicesList();
+      });
+    });
+    $$('#servicesList .delete-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        try { servicesData = collectServicesData(); } catch {}
+        const card = btn.closest('.timeline-admin-card');
+        const index = parseInt(card.dataset.index);
+        servicesData.splice(index, 1);
+        renderServicesList();
+      });
+    });
+  }
+
+  async function loadServices() {
+    try {
+      const data = await api('settings');
+      servicesData = Array.isArray(data.services) ? JSON.parse(JSON.stringify(data.services)) : [];
+      if ($('#servicesTitle')) $('#servicesTitle').value = data.servicesTitle || '';
+      if ($('#servicesIntro')) $('#servicesIntro').value = data.servicesIntro || '';
+      renderServicesList();
+    } catch (e) { console.error(e); }
+  }
+
+  function collectServicesData() {
+    const result = [];
+    $$('#servicesList .timeline-admin-card').forEach(card => {
+      result.push({
+        icon: card.querySelector('[name="icon"]').value.trim() || 'play',
+        title: card.querySelector('[name="title"]').value.trim(),
+        desc: card.querySelector('[name="desc"]').value.trim()
+      });
+    });
+    return result;
+  }
+
+  const addServiceBtn = $('#addServiceBtn');
+  if (addServiceBtn) addServiceBtn.addEventListener('click', () => {
+    try { servicesData = collectServicesData(); } catch {}
+    servicesData.push({ icon: 'play', title: '', desc: '' });
+    renderServicesList();
+    const cards = $$('#servicesList .timeline-admin-card');
+    const last = cards[cards.length - 1];
+    if (last) { last.classList.add('expanded'); last.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+  });
+
+  const saveServicesBtn = $('#saveServicesBtn');
+  if (saveServicesBtn) saveServicesBtn.addEventListener('click', async () => {
+    const collected = collectServicesData();
+    const payload = {
+      servicesTitle: $('#servicesTitle').value.trim(),
+      servicesIntro: $('#servicesIntro').value.trim(),
+      services: collected
+    };
+    saveServicesBtn.disabled = true;
+    saveServicesBtn.textContent = 'Saving...';
+    try {
+      const saved = await api('settings', { method: 'PUT', body: JSON.stringify(payload) });
+      // Sync local data from what we just saved or from server response
+      if (saved && Array.isArray(saved.services)) servicesData = JSON.parse(JSON.stringify(saved.services));
+      else servicesData = JSON.parse(JSON.stringify(collected));
+      renderServicesList();
+      showToast('Services saved!', 'success');
+      const el = $('#servicesSuccess');
+      if (el) { el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 2500); }
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+    finally { saveServicesBtn.disabled = false; saveServicesBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Save Changes'; }
+  });
+
+  // ============================================
+  // PROCESS MANAGEMENT
+  // ============================================
+  function renderProcessCard(item, index, total) {
+    return `
+      <div class="timeline-admin-card" data-type="process" data-index="${index}">
+        <div class="card-header">
+          <span class="card-grip">${gripSvg}</span>
+          <span class="card-number">${String(index + 1).padStart(2, '0')}</span>
+          <div class="card-preview">
+            <div class="card-preview-title">${esc(item.title || 'Untitled step')}</div>
+            <div class="card-preview-sub">${esc((item.desc || '').slice(0,70))}</div>
+          </div>
+          <div class="card-actions-bar">
+            <button type="button" class="card-action-btn move-btn" data-dir="up" ${index === 0 ? 'disabled style="opacity:0.3;pointer-events:none"' : ''}>${upSvg}</button>
+            <button type="button" class="card-action-btn move-btn" data-dir="down" ${index === total - 1 ? 'disabled style="opacity:0.3;pointer-events:none"' : ''}>${downSvg}</button>
+            <button type="button" class="card-action-btn delete-btn">${trashSvg}</button>
+          </div>
+          <span class="card-chevron">${chevronSvg}</span>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <label>Step Title</label>
+            <input type="text" name="title" value="${esc(item.title || '')}" placeholder="Brief & Strategy">
+          </div>
+          <div class="form-row">
+            <label>Description</label>
+            <textarea name="desc" rows="2" placeholder="Explain this step...">${esc(item.desc || '')}</textarea>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderProcessList() {
+    const list = $('#processList');
+    const empty = $('#processEmpty');
+    const count = $('#processCount');
+    if (!list) return;
+    list.innerHTML = processData.map((item, i) => renderProcessCard(item, i, processData.length)).join('');
+    if (empty) empty.classList.toggle('hidden', processData.length > 0);
+    if (count) count.textContent = processData.length + ' entr' + (processData.length === 1 ? 'y' : 'ies');
+    $$('#processList .timeline-admin-card .card-header').forEach(h => {
+      h.addEventListener('click', () => h.parentElement.classList.toggle('expanded'));
+    });
+    $$('#processList .card-actions-bar').forEach(bar => bar.addEventListener('click', e => e.stopPropagation()));
+    $$('#processList .move-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        try { processData = collectProcessData(); } catch {}
+        const card = btn.closest('.timeline-admin-card');
+        const index = parseInt(card.dataset.index);
+        const dir = btn.dataset.dir;
+        const swap = dir === 'up' ? index - 1 : index + 1;
+        if (swap < 0 || swap >= processData.length) return;
+        [processData[index], processData[swap]] = [processData[swap], processData[index]];
+        renderProcessList();
+      });
+    });
+    $$('#processList .delete-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        try { processData = collectProcessData(); } catch {}
+        const card = btn.closest('.timeline-admin-card');
+        const index = parseInt(card.dataset.index);
+        processData.splice(index, 1);
+        renderProcessList();
+      });
+    });
+  }
+
+  async function loadProcess() {
+    try {
+      const data = await api('settings');
+      processData = Array.isArray(data.process) ? JSON.parse(JSON.stringify(data.process)) : [];
+      if ($('#processTitle')) $('#processTitle').value = data.processTitle || '';
+      if ($('#processIntro')) $('#processIntro').value = data.processIntro || '';
+      renderProcessList();
+    } catch (e) { console.error(e); }
+  }
+
+  function collectProcessData() {
+    const result = [];
+    $$('#processList .timeline-admin-card').forEach(card => {
+      result.push({
+        title: card.querySelector('[name="title"]').value.trim(),
+        desc: card.querySelector('[name="desc"]').value.trim()
+      });
+    });
+    return result;
+  }
+
+  const addProcessBtn = $('#addProcessBtn');
+  if (addProcessBtn) addProcessBtn.addEventListener('click', () => {
+    try { processData = collectProcessData(); } catch {}
+    processData.push({ title: '', desc: '' });
+    renderProcessList();
+    const cards = $$('#processList .timeline-admin-card');
+    const last = cards[cards.length - 1];
+    if (last) { last.classList.add('expanded'); last.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+  });
+
+  const saveProcessBtn = $('#saveProcessBtn');
+  if (saveProcessBtn) saveProcessBtn.addEventListener('click', async () => {
+    const collected = collectProcessData();
+    const payload = {
+      processTitle: $('#processTitle').value.trim(),
+      processIntro: $('#processIntro').value.trim(),
+      process: collected
+    };
+    saveProcessBtn.disabled = true;
+    saveProcessBtn.textContent = 'Saving...';
+    try {
+      const saved = await api('settings', { method: 'PUT', body: JSON.stringify(payload) });
+      if (saved && Array.isArray(saved.process)) processData = JSON.parse(JSON.stringify(saved.process));
+      else processData = JSON.parse(JSON.stringify(collected));
+      renderProcessList();
+      showToast('Process saved!', 'success');
+      const el = $('#processSuccess');
+      if (el) { el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 2500); }
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+    finally { saveProcessBtn.disabled = false; saveProcessBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Save Changes'; }
+  });
+
+  // ============================================
+  // TESTIMONIALS MANAGEMENT
+  // ============================================
+  function renderTestimonialCard(item, index, total) {
+    return `
+      <div class="timeline-admin-card" data-type="testimonial" data-index="${index}">
+        <div class="card-header">
+          <span class="card-grip">${gripSvg}</span>
+          <span class="card-number">${index + 1}</span>
+          <div class="card-preview">
+            <div class="card-preview-title">${esc(item.name || 'Anonymous')}</div>
+            <div class="card-preview-sub">${esc(item.role || '')} · ${esc((item.quote || '').slice(0,50))}</div>
+          </div>
+          <div class="card-actions-bar">
+            <button type="button" class="card-action-btn move-btn" data-dir="up" ${index === 0 ? 'disabled style="opacity:0.3;pointer-events:none"' : ''}>${upSvg}</button>
+            <button type="button" class="card-action-btn move-btn" data-dir="down" ${index === total - 1 ? 'disabled style="opacity:0.3;pointer-events:none"' : ''}>${downSvg}</button>
+            <button type="button" class="card-action-btn delete-btn">${trashSvg}</button>
+          </div>
+          <span class="card-chevron">${chevronSvg}</span>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <label>Quote</label>
+            <textarea name="quote" rows="3" placeholder="Client feedback...">${esc(item.quote || '')}</textarea>
+          </div>
+          <div class="form-row">
+            <label>Name</label>
+            <input type="text" name="name" value="${esc(item.name || '')}" placeholder="Sarah K.">
+          </div>
+          <div class="form-row">
+            <label>Role / Company</label>
+            <input type="text" name="role" value="${esc(item.role || '')}" placeholder="Marketing Lead, TechFlow">
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderTestimonialsList() {
+    const list = $('#testimonialsList');
+    const empty = $('#testimonialsEmpty');
+    const count = $('#testimonialsCount');
+    if (!list) return;
+    list.innerHTML = testimonialsData.map((item, i) => renderTestimonialCard(item, i, testimonialsData.length)).join('');
+    if (empty) empty.classList.toggle('hidden', testimonialsData.length > 0);
+    if (count) count.textContent = testimonialsData.length + ' entr' + (testimonialsData.length === 1 ? 'y' : 'ies');
+    $$('#testimonialsList .timeline-admin-card .card-header').forEach(h => {
+      h.addEventListener('click', () => h.parentElement.classList.toggle('expanded'));
+    });
+    $$('#testimonialsList .card-actions-bar').forEach(bar => bar.addEventListener('click', e => e.stopPropagation()));
+    $$('#testimonialsList .move-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        try { testimonialsData = collectTestimonialsData(); } catch {}
+        const card = btn.closest('.timeline-admin-card');
+        const index = parseInt(card.dataset.index);
+        const dir = btn.dataset.dir;
+        const swap = dir === 'up' ? index - 1 : index + 1;
+        if (swap < 0 || swap >= testimonialsData.length) return;
+        [testimonialsData[index], testimonialsData[swap]] = [testimonialsData[swap], testimonialsData[index]];
+        renderTestimonialsList();
+      });
+    });
+    $$('#testimonialsList .delete-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        try { testimonialsData = collectTestimonialsData(); } catch {}
+        const card = btn.closest('.timeline-admin-card');
+        const index = parseInt(card.dataset.index);
+        testimonialsData.splice(index, 1);
+        renderTestimonialsList();
+      });
+    });
+  }
+
+  async function loadTestimonials() {
+    try {
+      const data = await api('settings');
+      testimonialsData = Array.isArray(data.testimonials) ? JSON.parse(JSON.stringify(data.testimonials)) : [];
+      if ($('#testimonialsTitle')) $('#testimonialsTitle').value = data.testimonialsTitle || '';
+      if ($('#testimonialsIntro')) $('#testimonialsIntro').value = data.testimonialsIntro || '';
+      renderTestimonialsList();
+    } catch (e) { console.error(e); }
+  }
+
+  function collectTestimonialsData() {
+    const result = [];
+    $$('#testimonialsList .timeline-admin-card').forEach(card => {
+      result.push({
+        quote: card.querySelector('[name="quote"]').value.trim(),
+        name: card.querySelector('[name="name"]').value.trim(),
+        role: card.querySelector('[name="role"]').value.trim()
+      });
+    });
+    return result;
+  }
+
+  const addTestimonialBtn = $('#addTestimonialBtn');
+  if (addTestimonialBtn) addTestimonialBtn.addEventListener('click', () => {
+    try { testimonialsData = collectTestimonialsData(); } catch {}
+    testimonialsData.push({ quote: '', name: '', role: '' });
+    renderTestimonialsList();
+    const cards = $$('#testimonialsList .timeline-admin-card');
+    const last = cards[cards.length - 1];
+    if (last) { last.classList.add('expanded'); last.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+  });
+
+  const saveTestimonialsBtn = $('#saveTestimonialsBtn');
+  if (saveTestimonialsBtn) saveTestimonialsBtn.addEventListener('click', async () => {
+    const collected = collectTestimonialsData();
+    const payload = {
+      testimonialsTitle: $('#testimonialsTitle').value.trim(),
+      testimonialsIntro: $('#testimonialsIntro').value.trim(),
+      testimonials: collected
+    };
+    saveTestimonialsBtn.disabled = true;
+    saveTestimonialsBtn.textContent = 'Saving...';
+    try {
+      const saved = await api('settings', { method: 'PUT', body: JSON.stringify(payload) });
+      if (saved && Array.isArray(saved.testimonials)) testimonialsData = JSON.parse(JSON.stringify(saved.testimonials));
+      else testimonialsData = JSON.parse(JSON.stringify(collected));
+      renderTestimonialsList();
+      showToast('Testimonials saved!', 'success');
+      const el = $('#testimonialsSuccess');
+      if (el) { el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 2500); }
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+    finally { saveTestimonialsBtn.disabled = false; saveTestimonialsBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Save Changes'; }
+  });
+
+  // Extend existing load functions to also load new data when dashboard loads
+  const originalShowDashboard = showDashboard;
+  showDashboard = function() {
+    originalShowDashboard();
+    loadServices();
+    loadProcess();
+    loadTestimonials();
+  };
+
+  // Load on view switch
+  const originalNavigateHandling = document.querySelectorAll('.nav-item');
+  // Hook view switch for new views
+  function ensureViewLoads(view) {
+    if (view === 'services') loadServices();
+    if (view === 'process') loadProcess();
+    if (view === 'testimonials') loadTestimonials();
+    if (view === 'timeline') loadTimeline();
+  }
+
+  // Patch existing nav click to also load
+  // Loader for new views on both desktop and mobile nav
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.nav-item[data-view], .mobile-nav-item[data-view]');
+    if (!btn) return;
+    ensureViewLoads(btn.dataset.view);
   });
 
   // ============================================

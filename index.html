@@ -53,7 +53,7 @@
     <a href="#" class="header-logo">Alireza Shabanzadeh</a>
     <nav class="header-nav">
       <a href="#about" class="header-link" data-cursor="link">About</a>
-      <a href="#timeline" class="header-link" data-cursor="link">Experience</a>
+      <a href="#services" class="header-link" data-cursor="link">Services</a>
       <a href="#work" class="header-link" data-cursor="link">Work</a>
       <a href="#contact" class="header-link" data-cursor="link">Contact</a>
       <button class="theme-toggle" id="themeToggle" data-cursor="link" aria-label="Toggle theme">
@@ -85,7 +85,7 @@
   <div class="mobile-menu" id="mobileMenu">
     <nav class="mobile-menu-nav">
       <a href="#about" class="mobile-menu-link">About</a>
-      <a href="#timeline" class="mobile-menu-link">Experience</a>
+      <a href="#services" class="mobile-menu-link">Services</a>
       <a href="#work" class="mobile-menu-link">Work</a>
       <a href="#contact" class="mobile-menu-link">Contact</a>
       <button class="theme-toggle-mobile" id="themeToggleMobile">
@@ -230,12 +230,26 @@
     </div>
   </section>
 
+  <!-- Services -->
+  <section class="section services" id="services">
+    <div class="container">
+      <div class="section-header services-section-header">
+        <div class="services-section-title">
+          <span class="section-number">02</span>
+          <h2 class="section-title" data-setting="servicesTitle">What I do</h2>
+        </div>
+        <p class="services-intro" data-setting="servicesIntro">Motion that moves people — from idea to final frame. Specialized in work that converts, not just looks pretty.</p>
+      </div>
+      <div class="services-grid" id="servicesGrid" data-setting="services"></div>
+    </div>
+  </section>
+
   <!-- Experience & Education -->
   <section class="section timeline-section" id="timeline">
     <div class="container">
       <div class="section-header timeline-section-header">
         <div class="timeline-section-title">
-          <span class="section-number">02</span>
+          <span class="section-number">03</span>
           <h2 class="section-title">Experience & Education</h2>
         </div>
         <p class="timeline-section-intro">The work, collaborations, and learning that shaped how I think and create.</p>
@@ -272,11 +286,45 @@
   <section class="section work" id="work">
     <div class="container">
       <div class="section-header">
-        <span class="section-number">03</span>
-        <h2 class="section-title">Brands I worked with</h2>
+        <span class="section-number">04</span>
+        <h2 class="section-title">Some brands I worked with</h2>
       </div>
       <div class="work-grid" id="workGrid">
         <!-- Projects loaded dynamically from data.json -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Process Section -->
+  <section class="section process-section" id="process">
+    <div class="container">
+      <div class="section-header process-section-header">
+        <div class="process-section-title">
+          <span class="section-number">05</span>
+          <h2 class="section-title" data-setting="processTitle">How I work</h2>
+        </div>
+        <p class="process-section-intro" data-setting="processIntro">A transparent, collaborative workflow that keeps you in the loop — no surprises, just great motion.</p>
+      </div>
+      <div class="process-timeline" id="processSteps" data-setting="process"></div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="section testimonials-section" id="testimonials">
+    <div class="container">
+      <div class="section-header testimonials-section-header">
+        <div class="testimonials-section-title">
+          <span class="section-number">06</span>
+          <h2 class="section-title" data-setting="testimonialsTitle">Client thoughts</h2>
+        </div>
+        <p class="testimonials-section-intro" data-setting="testimonialsIntro">A few words from teams I've helped bring to motion.</p>
+      </div>
+      <div class="testimonials-marquee" id="testimonialsMarquee" data-cursor="link">
+        <div class="testimonials-viewport" id="testimonialsViewport">
+          <div class="testimonials-track" id="testimonialsGrid" data-setting="testimonials"></div>
+        </div>
+        <div class="testimonials-fade testimonials-fade-left" aria-hidden="true"></div>
+        <div class="testimonials-fade testimonials-fade-right" aria-hidden="true"></div>
       </div>
     </div>
   </section>
@@ -304,7 +352,7 @@
   <section class="section contact" id="contact">
     <div class="container">
       <div class="section-header">
-        <span class="section-number">04</span>
+        <span class="section-number">07</span>
         <h2 class="section-title">Get in Touch</h2>
       </div>
       <div class="contact-grid">
@@ -381,8 +429,11 @@
     <div class="scroll-progress-dots">
       <a href="#hero" class="scroll-dot active" data-section="hero" data-cursor="link"></a>
       <a href="#about" class="scroll-dot" data-section="about" data-cursor="link"></a>
+      <a href="#services" class="scroll-dot" data-section="services" data-cursor="link"></a>
       <a href="#timeline" class="scroll-dot" data-section="timeline" data-cursor="link"></a>
       <a href="#work" class="scroll-dot" data-section="work" data-cursor="link"></a>
+      <a href="#process" class="scroll-dot" data-section="process" data-cursor="link"></a>
+      <a href="#testimonials" class="scroll-dot" data-section="testimonials" data-cursor="link"></a>
       <a href="#contact" class="scroll-dot" data-section="contact" data-cursor="link"></a>
     </div>
   </div>

@@ -8,19 +8,19 @@
   "linkedin": "",
   "behance": "",
   "instagram": "",
-  "heroEyebrow": "",
-  "heroFirstName": "",
-  "heroLastName": "",
+  "heroEyebrow": "Motion Graphics Designer",
+  "heroFirstName": "Alireza",
+  "heroLastName": "Shabanzadeh",
   "heroSubtitle": "I bring creativity to life online!",
-  "heroAvailability": "",
-  "heroStat1Value": "",
-  "heroStat1Label": "",
-  "heroStat2Value": "",
-  "heroStat2Label": "",
-  "heroStat3Value": "",
-  "heroStat3Label": "",
-  "heroCtaText": "",
-  "heroCtaLink": "",
+  "heroAvailability": "Available for work",
+  "heroStat1Value": "5+",
+  "heroStat1Label": "Years Exp.",
+  "heroStat2Value": "50+",
+  "heroStat2Label": "Projects",
+  "heroStat3Value": "Rasht",
+  "heroStat3Label": "Based in",
+  "heroCtaText": "View Projects",
+  "heroCtaLink": "#work",
   "heroShowreelUrl": "",
   "heroPortraitDark": "/uploads/d2aff920-68bf-49ab-a2a3-998c104dcf63.png",
   "heroPortraitDarkOpacity": 0.89,
@@ -62,6 +62,59 @@
       "title": "Motion Design Certificate",
       "subtitle": "Online Program",
       "desc": "Intensive course covering After Effects, character animation, and motion principles."
+    }
+  ],
+  "servicesTitle": "What I do",
+  "servicesIntro": "Motion that moves people — from idea to final frame.",
+  "services": [
+    {
+      "icon": "play",
+      "title": "Explainer Videos",
+      "desc": "Complex ideas distilled into clear, engaging stories that convert viewers into customers."
+    },
+    {
+      "icon": "share",
+      "title": "Social Content",
+      "desc": "Scroll-stopping animations crafted for Instagram, LinkedIn and TikTok feeds."
+    },
+    {
+      "icon": "monitor",
+      "title": "UI Animation",
+      "desc": "Bring interfaces to life with purposeful, polished motion that improves usability."
+    }
+  ],
+  "processTitle": "How I work",
+  "processIntro": "A transparent, collaborative workflow that keeps you in the loop — no surprises, just great motion.",
+  "process": [
+    {
+      "title": "Brief & Strategy",
+      "desc": "We align on goals, audience, message and deliverables before any pixel moves."
+    },
+    {
+      "title": "Storyboard & Style",
+      "desc": "I sketch the flow and define the visual language — colors, typography, motion mood."
+    },
+    {
+      "title": "Motion & Design",
+      "desc": "The core craft. Animation, timing, sound design — iterating with you via frame previews."
+    },
+    {
+      "title": "Delivery & Support",
+      "desc": "Optimized exports for every platform, plus source files and 7 days of quick revisions."
+    }
+  ],
+  "testimonialsTitle": "Client thoughts",
+  "testimonialsIntro": "A few words from teams I’ve helped bring to motion.",
+  "testimonials": [
+    {
+      "quote": "Alireza turned a complex product into a story our customers instantly got. Our demo video doubled our trial sign-ups.",
+      "name": "Sarah K.",
+      "role": "Marketing Lead"
+    },
+    {
+      "quote": "Fast, thoughtful, and incredibly detailed. The social pack he made still outperforms everything else we post.",
+      "name": "Mehdi R.",
+      "role": "Founder"
     }
   ]
 }
