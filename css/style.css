@@ -2264,7 +2264,7 @@ a.contact-info-value:hover {
   }
 }
 /* Brand-first portfolio */
-.brand-card { position:relative; aspect-ratio: 4/3; overflow:hidden; border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--bg-secondary); text-align:left; cursor:pointer; }
+.brand-card { position:relative; aspect-ratio: 16/10; overflow:hidden; border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--bg-secondary); text-align:left; cursor:pointer; }
 .brand-card-image { width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s var(--ease-out),filter .3s; }
 .brand-card:hover .brand-card-image,.brand-card:focus-visible .brand-card-image { transform:scale(1.06); filter:brightness(.68); }
 .brand-card-overlay { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; padding:clamp(18px,3vw,32px); color:#fff; background:linear-gradient(transparent 35%,rgba(0,0,0,.8)); }
@@ -3714,9 +3714,9 @@ html.has-custom-cursor textarea { cursor: none; }
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding: clamp(24px, 3vw, 32px);
+  padding: clamp(20px, 2.2vw, 26px);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 18px;
   background: var(--bg-secondary);
   background: linear-gradient(145deg, color-mix(in srgb, var(--bg-secondary) 96%, var(--accent) 4%), var(--bg-secondary));
   transition: border-color .35s var(--ease-out), transform .45s var(--ease-out), box-shadow .45s var(--ease-out);
@@ -3761,15 +3761,15 @@ html.has-custom-cursor textarea { cursor: none; }
   transform: rotate(-6deg) scale(1.05);
 }
 .service-title {
-  margin: 0 0 10px;
-  font: 600 1.2rem var(--font-display);
+  margin: 0 0 8px;
+  font: 600 1.1rem var(--font-display);
   letter-spacing: -.02em;
 }
 .service-desc {
   margin: 0;
   color: var(--text-tertiary);
-  font-size: .86rem;
-  line-height: 1.7;
+  font-size: .82rem;
+  line-height: 1.6;
 }
 .service-meta {
   display: flex;
@@ -3938,11 +3938,11 @@ html.has-custom-cursor textarea { cursor: none; }
 .testimonial-card {
   position: relative;
   isolation: isolate;
-  flex: 0 0 clamp(280px, 34vw, 400px);
+  flex: 0 0 clamp(360px, 38vw, 520px);
   min-width: 0;
-  padding: clamp(22px, 2.6vw, 28px);
+  padding: clamp(18px, 2vw, 22px);
   border: 1px solid var(--border);
-  border-radius: 18px;
+  border-radius: 16px;
   background: var(--bg-secondary);
   transition: border-color .35s var(--ease-out), transform .4s var(--ease-out), box-shadow .35s var(--ease-out);
 }
@@ -3953,11 +3953,11 @@ html.has-custom-cursor textarea { cursor: none; }
 }
 .testimonial-quote-mark {
   display: inline-flex;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   border-radius: 8px;
   background: var(--accent-subtle);
   color: var(--accent);
@@ -3965,17 +3965,17 @@ html.has-custom-cursor textarea { cursor: none; }
   line-height: 1;
 }
 .testimonial-quote {
-  margin: 0 0 20px;
+  margin: 0 0 14px;
   color: var(--text-secondary);
-  font-size: .96rem;
-  line-height: 1.7;
+  font-size: .88rem;
+  line-height: 1.6;
   font-style: italic;
 }
 .testimonial-author {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding-top: 16px;
+  gap: 10px;
+  padding-top: 12px;
   border-top: 1px solid var(--border);
 }
 .testimonial-avatar {
@@ -4028,13 +4028,13 @@ html.has-custom-cursor textarea { cursor: none; }
    ============================================ */
 .brand-card-cta {
   position: relative;
-  aspect-ratio: 4/3;
+  aspect-ratio: 16/10;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  padding: 24px;
+  gap: 10px;
+  padding: 18px 20px;
   border: 1.5px dashed var(--border-hover);
   border-radius: var(--radius-lg);
   background: transparent;
