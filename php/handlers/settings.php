@@ -28,6 +28,15 @@ $DEFAULT_SETTINGS = array(
     'heroCtaText' => 'See selected work',
     'heroCtaLink' => '#work',
     'heroShowreelUrl' => '',
+    // "What you get": empty by default. Each row stays hidden on the site until
+    // the owner puts a real number here.
+    'offerTitle' => 'What you get',
+    'offerIntro' => '',
+    'offerReply' => '',
+    'offerTimeline' => '',
+    'offerFormat' => '',
+    'offerRevisions' => '',
+    'offerTerms' => '',
     'heroPortraitDark' => '',
     'heroPortraitDarkOpacity' => 0.18,
     'heroPortraitDarkScale' => 1,

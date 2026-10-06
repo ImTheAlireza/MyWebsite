@@ -920,6 +920,42 @@
             </div>
           </div>
           <div class="settings-section">
+            <h3>What you get</h3>
+            <p class="settings-hint">These answers are the ones a client looks for before writing the email. Leave any of them empty and the row (or the whole block) stays off the site — nothing is invented for you.</p>
+            <div class="form-group">
+              <label for="settingOfferTitle">Block title</label>
+              <input type="text" id="settingOfferTitle" name="offerTitle" placeholder="What you get">
+            </div>
+            <div class="form-group">
+              <label for="settingOfferIntro">Intro line (optional)</label>
+              <input type="text" id="settingOfferIntro" name="offerIntro" placeholder="Fixed scope before we start.">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingOfferReply">Reply time</label>
+                <input type="text" id="settingOfferReply" name="offerReply" placeholder="e.g. Within one working day">
+              </div>
+              <div class="form-group">
+                <label for="settingOfferTimeline">Typical timeline</label>
+                <input type="text" id="settingOfferTimeline" name="offerTimeline" placeholder="e.g. 90s explainer: 2-3 weeks">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="settingOfferFormat">You receive</label>
+              <input type="text" id="settingOfferFormat" name="offerFormat" placeholder="e.g. MP4 (16:9, 1:1, 9:16) + project file">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingOfferRevisions">Revisions</label>
+                <input type="text" id="settingOfferRevisions" name="offerRevisions" placeholder="e.g. Two rounds after the storyboard">
+              </div>
+              <div class="form-group">
+                <label for="settingOfferTerms">Payment</label>
+                <input type="text" id="settingOfferTerms" name="offerTerms" placeholder="e.g. 50% to start, 50% on delivery">
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
             <h3>Social Links</h3>
             <div class="form-row">
               <div class="form-group">
@@ -1197,7 +1233,10 @@
         <div class="form-row">
           <div class="form-group">
             <label for="projectPreviewVideo">Card preview clip (short, muted, loops on hover)</label>
-            <input type="text" id="projectPreviewVideo" placeholder="/uploads/case-preview.mp4">
+            <div class="project-video-field">
+              <input type="text" id="projectPreviewVideo" placeholder="/uploads/case-preview.mp4">
+              <button type="button" id="browseProjectPreviewBtn" class="btn btn-ghost project-video-browse-btn">Browse Videos</button>
+            </div>
           </div>
           <div class="form-group">
             <label for="projectTitleFa">Persian title (for the Persian page)</label>

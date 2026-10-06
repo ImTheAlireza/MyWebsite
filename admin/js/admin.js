@@ -1386,6 +1386,14 @@
   });
   $('#clearProjectVideoBtn').addEventListener('click', () => setProjectVideo(''));
 
+  // The hover preview clip is chosen from the same Assets library.
+  const browsePreviewBtn = $('#browseProjectPreviewBtn');
+  if (browsePreviewBtn) {
+    browsePreviewBtn.addEventListener('click', () => {
+      openAssetPicker((url) => { $('#projectPreviewVideo').value = url; }, 'video');
+    });
+  }
+
   $('#projectForm').addEventListener('submit', async e => {
     e.preventDefault();
     const galleryRaw = editingProjectMedia.slice();
@@ -1998,7 +2006,8 @@
   async function loadSettings() {
     try {
       const d = await api('settings');
-      ['siteName','siteTitle','tagline','email','phone','location','linkedin','behance','instagram','footerCopy','footerNote'].forEach(k => {
+      ['siteName','siteTitle','tagline','email','phone','location','linkedin','behance','instagram','footerCopy','footerNote',
+       'offerTitle','offerIntro','offerReply','offerTimeline','offerFormat','offerRevisions','offerTerms'].forEach(k => {
         const el = $(`#setting${k.charAt(0).toUpperCase() + k.slice(1)}`);
         if (el && d[k] != null) el.value = d[k];
       });
