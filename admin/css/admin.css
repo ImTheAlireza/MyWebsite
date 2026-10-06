@@ -3493,3 +3493,57 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; }
 }
 
 .message-type:first-of-type { margin-left: 6px; }
+
+/* Why-it-matters metric repeater (project editor) */
+.settings-subsection {
+  margin-top: var(--space-md, 16px);
+  padding-top: var(--space-md, 16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.settings-hint-inline {
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.7;
+}
+.why-metrics-editor {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.why-metric-row {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+.why-metric-row input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  font: inherit;
+  font-size: 0.875rem;
+}
+.why-metric-value { text-align: center; }
+@media (max-width: 720px) {
+  .why-metric-row { grid-template-columns: 1fr 1fr; }
+}
+
+/* Persian fieldsets inside the content tabs */
+.admin-fa-fieldset {
+  margin: 14px 0 4px;
+  padding: 14px 16px;
+  border: 1px solid rgba(140, 120, 255, 0.28);
+  border-radius: 12px;
+  background: rgba(140, 120, 255, 0.04);
+}
+.admin-fa-fieldset legend {
+  padding: 0 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(180, 168, 255, 0.95);
+}
+.admin-fa-fieldset input,
+.admin-fa-fieldset textarea { text-align: right; }

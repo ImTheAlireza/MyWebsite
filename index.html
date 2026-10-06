@@ -33,10 +33,10 @@
   <!-- Fonts (self-hosted: no request ever leaves this domain) -->
   <link rel="preload" href="fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/space-grotesk-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/fonts.css?v=20261006-2">
+  <link rel="stylesheet" href="css/fonts.css?v=20261006-8">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="css/style.css?v=20261006-2">
+  <link rel="stylesheet" href="css/style.css?v=20261006-8">
 
   <!-- Favicon (inline SVG) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9654;</text></svg>">
@@ -263,9 +263,15 @@
         </div>
         <div class="about-content">
           <div class="about-text" data-setting="aboutText">
-            I'm a motion graphics designer with a passion for transforming complex ideas into
-            clear, compelling visual stories. With expertise in After Effects and a keen eye for
-            timing and composition, I create animations that don't just look good — they communicate.
+            <p>I animate things that have to <em>explain</em> something: a feature nobody understands
+              yet, a course module, an onboarding step.</p>
+            <p>Since 2018 I have worked on both sides of that job — four years and nine months producing
+              e-learning content at Mehr-e-Alborz University, and since 2023 motion graphics in production
+              at Rahavard Samanehaye Amn in Tehran. I studied software engineering and I am finishing a
+              master's in English language education, which is why briefs, storyboards and review calls do
+              not need a translator in the middle.</p>
+            <p>I work in After Effects, Photoshop and Premiere Pro. Send the goal and the deadline; you get
+              an honest answer about what is realistic, a scope and a price before anything starts.</p>
           </div>
 
           <div class="about-apps">
@@ -308,7 +314,26 @@
         </div>
         <p class="services-intro" data-setting="servicesIntro">Motion that moves people — from idea to final frame. Specialized in work that converts, not just looks pretty.</p>
       </div>
-      <div class="services-grid" id="servicesGrid" data-setting="services"></div>
+      <div class="services-grid" id="servicesGrid" data-setting="services">
+        <div class="service-card" style="--service-index:0">
+          <div class="service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+          <h3 class="service-title">Explainer videos</h3>
+          <p class="service-desc">Script shaping, storyboard, then a finished product animation — delivered in the aspect ratios you need (16:9, 1:1, 9:16).</p>
+          <div class="service-meta"><span></span>01 • Service</div>
+        </div>
+        <div class="service-card" style="--service-index:1">
+          <div class="service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5 15.4 6.5M15.7 17.5 8.5 10.5"/></svg></div>
+          <h3 class="service-title">Social content</h3>
+          <p class="service-desc">Short, legible animations built for Instagram, LinkedIn and Telegram: strong first frame, readable captions, correct safe areas.</p>
+          <div class="service-meta"><span></span>02 • Service</div>
+        </div>
+        <div class="service-card" style="--service-index:2">
+          <div class="service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+          <h3 class="service-title">UI motion</h3>
+          <p class="service-desc">Transitions, onboarding moments and empty states for apps and websites — in the format your developers prefer.</p>
+          <div class="service-meta"><span></span>03 • Service</div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -326,11 +351,71 @@
           <div class="timeline-track" aria-hidden="true"></div>
           <div class="timeline-group">
             <h3 class="timeline-group-title">Experience</h3>
-            <div class="timeline-panel" id="experiencePanel" data-setting="experience"></div>
+            <div class="timeline-panel" id="experiencePanel" data-setting="experience">
+        <div class="timeline">
+          <article class="timeline-item">
+            <div class="timeline-date-wrap"><span class="timeline-date">2023 — Present</span></div>
+            <div class="timeline-marker"><span></span></div>
+            <div class="timeline-content">
+              <div class="timeline-entry-meta"><span class="timeline-entry-kind">Professional</span><span class="timeline-entry-number">01</span></div>
+              <h3 class="timeline-title">Motion Graphics Designer</h3>
+              <span class="timeline-subtitle">Rahavard Samanehaye Amn · Tehran</span>
+            </div>
+          </article>
+          <article class="timeline-item">
+            <div class="timeline-date-wrap"><span class="timeline-date">2018 — 2023</span></div>
+            <div class="timeline-marker"><span></span></div>
+            <div class="timeline-content">
+              <div class="timeline-entry-meta"><span class="timeline-entry-kind">Professional</span><span class="timeline-entry-number">02</span></div>
+              <h3 class="timeline-title">E-learning Content Creator</h3>
+              <span class="timeline-subtitle">Mehr-e-Alborz University · 4 yr 9 mo</span>
+            </div>
+          </article>
+          <article class="timeline-item">
+            <div class="timeline-date-wrap"><span class="timeline-date">2022</span></div>
+            <div class="timeline-marker"><span></span></div>
+            <div class="timeline-content">
+              <div class="timeline-entry-meta"><span class="timeline-entry-kind">Professional</span><span class="timeline-entry-number">03</span></div>
+              <h3 class="timeline-title">Motion Graphics Animator</h3>
+              <span class="timeline-subtitle">Micfava · Rasht</span>
+            </div>
+          </article>
+        </div>
+      </div>
           </div>
-          <div class="timeline-group" id="educationGroup" hidden>
+          <div class="timeline-group" id="educationGroup">
             <h3 class="timeline-group-title">Education</h3>
-            <div class="timeline-panel" id="educationPanel" data-setting="education"></div>
+            <div class="timeline-panel" id="educationPanel" data-setting="education">
+        <div class="timeline">
+          <article class="timeline-item">
+            <div class="timeline-date-wrap"><span class="timeline-date">2024 — Present</span></div>
+            <div class="timeline-marker"><span></span></div>
+            <div class="timeline-content">
+              <div class="timeline-entry-meta"><span class="timeline-entry-kind">Academic</span><span class="timeline-entry-number">01</span></div>
+              <h3 class="timeline-title">MSc, English Language Education</h3>
+              <span class="timeline-subtitle">Islamic Azad University, Rasht</span>
+            </div>
+          </article>
+          <article class="timeline-item">
+            <div class="timeline-date-wrap"><span class="timeline-date">2022 — 2024</span></div>
+            <div class="timeline-marker"><span></span></div>
+            <div class="timeline-content">
+              <div class="timeline-entry-meta"><span class="timeline-entry-kind">Academic</span><span class="timeline-entry-number">02</span></div>
+              <h3 class="timeline-title">BSc, Software Engineering</h3>
+              <span class="timeline-subtitle">GPA 17.8 / 20</span>
+            </div>
+          </article>
+          <article class="timeline-item">
+            <div class="timeline-date-wrap"><span class="timeline-date">2020 — 2022</span></div>
+            <div class="timeline-marker"><span></span></div>
+            <div class="timeline-content">
+              <div class="timeline-entry-meta"><span class="timeline-entry-kind">Academic</span><span class="timeline-entry-number">03</span></div>
+              <h3 class="timeline-title">Associate, Software Engineering</h3>
+              <span class="timeline-subtitle">GPA 18 / 20</span>
+            </div>
+          </article>
+        </div>
+      </div>
           </div>
         </div>
       </div>
@@ -364,113 +449,128 @@
   <!-- Contact Section -->
   <section class="section contact" id="contact">
     <div class="container">
-      <div class="section-header">
-        <h2 class="section-title">Get in Touch</h2>
+      <div class="section-header contact-section-header">
+        <h2 class="section-title">Start a project</h2>
+        <p class="section-intro">Six lines is enough. Say what the video has to achieve and when you
+          need it — you get a scope, a price and a timeline back.</p>
       </div>
       <div class="contact-grid">
-        <form class="contact-form" id="contactForm" novalidate>
-          <div class="form-group">
-            <label for="contactName">Your name <span class="required-mark" aria-hidden="true">*</span></label>
-            <input type="text" id="contactName" name="name" required autocomplete="name"
-                   placeholder="e.g. Sara Ahmadi"
-                   aria-describedby="contactFormHint">
-          </div>
-          <div class="form-group">
-            <label for="contactEmail">Email address <span class="required-mark" aria-hidden="true">*</span></label>
-            <input type="email" id="contactEmail" name="email" required autocomplete="email" inputmode="email"
-                   placeholder="you@company.com"
-                   aria-describedby="contactFormHint">
-          </div>
-          <div class="form-group">
-            <label for="contactProjectType">Project type <span class="optional-mark">(optional)</span></label>
-            <select id="contactProjectType" name="projectType">
-              <option value="">Not sure yet</option>
-              <option value="explainer">Explainer / product video</option>
-              <option value="social">Social media animation</option>
-              <option value="ui">UI / app motion</option>
-              <option value="logo">Logo or brand animation</option>
-              <option value="other">Something else</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="contactDeadline">Deadline <span class="optional-mark">(optional)</span></label>
-              <input type="text" id="contactDeadline" name="deadline"
-                     placeholder="e.g. mid-November, or 'no rush'">
+        <div class="contact-panel">
+          <form class="contact-form" id="contactForm" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="contactName">Your name <span class="required-mark" aria-hidden="true">*</span></label>
+                <input type="text" id="contactName" name="name" required autocomplete="name"
+                       placeholder="Your full name" aria-describedby="contactFormHint">
+              </div>
+              <div class="form-group">
+                <label for="contactEmail">Email address <span class="required-mark" aria-hidden="true">*</span></label>
+                <input type="email" id="contactEmail" name="email" required autocomplete="email" inputmode="email"
+                       placeholder="you@company.com" aria-describedby="contactFormHint">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="contactProjectType">Project type <span class="optional-mark">(optional)</span></label>
+                <select id="contactProjectType" name="projectType">
+                  <option value="">Not sure yet</option>
+                  <option value="explainer">Explainer / product video</option>
+                  <option value="social">Social media animation</option>
+                  <option value="ui">UI / app motion</option>
+                  <option value="logo">Logo or brand animation</option>
+                  <option value="other">Something else</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="contactDeadline">Deadline <span class="optional-mark">(optional)</span></label>
+                <input type="text" id="contactDeadline" name="deadline"
+                       placeholder="e.g. mid-November, or 'no rush'">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="contactFormat">Output format <span class="optional-mark">(optional)</span></label>
+                <select id="contactFormat" name="outputFormat">
+                  <option value="">Not sure yet</option>
+                  <option value="16:9">16:9 — website / YouTube</option>
+                  <option value="1:1">1:1 — feed</option>
+                  <option value="9:16">9:16 — reels / shorts</option>
+                  <option value="multiple">Several of them</option>
+                  <option value="unsure">Advise me</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="contactReplyPreference">Reply by <span class="optional-mark">(optional)</span></label>
+                <select id="contactReplyPreference" name="replyPreference">
+                  <option value="">Email is fine</option>
+                  <option value="email">Email</option>
+                  <option value="telegram">Telegram</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="call">A short call</option>
+                </select>
+              </div>
             </div>
             <div class="form-group">
-              <label for="contactFormat">Output format <span class="optional-mark">(optional)</span></label>
-              <select id="contactFormat" name="outputFormat">
-                <option value="">Not sure yet</option>
-                <option value="16:9">16:9 — website / YouTube</option>
-                <option value="1:1">1:1 — feed</option>
-                <option value="9:16">9:16 — reels / shorts</option>
-                <option value="multiple">Several of them</option>
-                <option value="unsure">Advise me</option>
-              </select>
+              <label for="contactMessage">The brief <span class="required-mark" aria-hidden="true">*</span></label>
+              <textarea id="contactMessage" name="message" rows="5" required
+                        placeholder="What should this video make people do? Who is watching it, and what do you already have (script, brand files, footage)?"
+                        aria-describedby="contactFormHint"></textarea>
             </div>
+            <p class="form-hint" id="contactFormHint">
+              <span aria-hidden="true">*</span> Required fields. Your message and email address are stored on my
+              server and used only to reply — details in the <a href="privacy.html">privacy policy</a>.
+            </p>
+            <p class="form-status" id="contactStatus" role="status" aria-live="polite" tabindex="-1" hidden></p>
+            <button type="submit" class="btn btn-primary btn-full">
+              <span data-submit-label>Send the brief</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </form>
+        </div>
+
+        <aside class="contact-panel contact-panel-side">
+          <h3 class="contact-panel-title">Direct lines</h3>
+          <ul class="contact-list">
+            <li class="contact-info-item">
+              <span class="contact-info-label">Email</span>
+              <a href="mailto:alirezashabanzadeh01@gmail.com" class="contact-info-value" data-setting="email">alirezashabanzadeh01@gmail.com</a>
+              <button type="button" class="copy-email-btn" id="copyEmailBtn">Copy</button>
+              <span class="copy-email-feedback" id="copyEmailFeedback" role="status" aria-live="polite"></span>
+            </li>
+            <li class="contact-info-item">
+              <span class="contact-info-label">Phone / WhatsApp</span>
+              <a href="tel:+989116947375" class="contact-info-value" data-setting="phone">+98 911 694 7375</a>
+            </li>
+            <li class="contact-info-item">
+              <span class="contact-info-label">Telegram</span>
+              <a href="#" class="contact-info-value" data-setting="telegram" rel="noopener" hidden>Telegram</a>
+            </li>
+            <li class="contact-info-item">
+              <span class="contact-info-label">WhatsApp</span>
+              <a href="#" class="contact-info-value" data-setting="whatsapp" rel="noopener" hidden>WhatsApp</a>
+            </li>
+            <li class="contact-info-item">
+              <span class="contact-info-label">Based in</span>
+              <span class="contact-info-value" data-setting="location">Rasht, Guilan, Iran</span>
+            </li>
+          </ul>
+
+          <div class="contact-steps">
+            <h3 class="contact-panel-title">What happens next</h3>
+            <ol class="contact-steps-list">
+              <li><strong>You send the brief</strong> — a rough one is fine.</li>
+              <li><strong>I reply within one business day</strong> with questions, a scope and a price.</li>
+              <li><strong>We fix the price</strong>, then the storyboard starts.</li>
+            </ol>
+            <p class="contact-steps-note">Prefer email? <a id="briefMailto" href="#">Open this brief as an email instead</a>.</p>
           </div>
-          <div class="form-group">
-            <label for="contactMessage">The brief <span class="required-mark" aria-hidden="true">*</span></label>
-            <textarea id="contactMessage" name="message" rows="5" required
-                      placeholder="What should this video make people do? Who is watching it, and what do you already have (script, brand files, footage)?"
-                      aria-describedby="contactFormHint"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="contactReplyPreference">How should I reply? <span class="optional-mark">(optional)</span></label>
-            <select id="contactReplyPreference" name="replyPreference">
-              <option value="">Email is fine</option>
-              <option value="email">Email</option>
-              <option value="telegram">Telegram</option>
-              <option value="whatsapp">WhatsApp</option>
-              <option value="call">A short call</option>
-            </select>
-          </div>
-          <p class="form-hint" id="contactFormHint">
-            <span aria-hidden="true">*</span> Required fields. Your message and email address are stored on my
-            server and used only to reply — details in the <a href="privacy.html">privacy policy</a>.
-          </p>
-          <p class="form-status" id="contactStatus" role="status" aria-live="polite" tabindex="-1" hidden></p>
-          <button type="submit" class="btn btn-primary btn-full">
-            <span data-submit-label>Send the brief</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
-          </button>
-          <p class="form-next">
-            <strong>What happens next:</strong> I read it myself and reply within one business day —
-            usually with a couple of questions, a scope and a timeline.
-            Prefer email? <a id="briefMailto" href="#">Open this brief as an email instead</a>.
-          </p>
-        </form>
-        <div class="contact-info">
-          <div class="contact-info-item">
-            <span class="contact-info-label">Location</span>
-            <span class="contact-info-value" data-setting="location">Rasht, Guilan, Iran</span>
-          </div>
-          <div class="contact-info-item">
-            <span class="contact-info-label">Phone / WhatsApp</span>
-            <a href="tel:+989116947375" class="contact-info-value" data-setting="phone">+98 911 694 7375</a>
-          </div>
-          <div class="contact-info-item">
-            <span class="contact-info-label">Telegram</span>
-            <a href="#" class="contact-info-value" data-setting="telegram" rel="noopener" hidden>Telegram</a>
-          </div>
-          <div class="contact-info-item">
-            <span class="contact-info-label">WhatsApp</span>
-            <a href="#" class="contact-info-value" data-setting="whatsapp" rel="noopener" hidden>WhatsApp</a>
-          </div>
-          <div class="contact-info-item">
-            <span class="contact-info-label">Email</span>
-            <a href="mailto:alirezashabanzadeh01@gmail.com" class="contact-info-value" data-setting="email">alirezashabanzadeh01@gmail.com</a>
-            <button type="button" class="copy-email-btn" id="copyEmailBtn">Copy email address</button>
-            <span class="copy-email-feedback" id="copyEmailFeedback" role="status" aria-live="polite"></span>
-          </div>
-          <a class="btn btn-ghost work-pack-link" href="work-pack.html">
-          Work pack — all work on one page (print / PDF)
-        </a>
-        <div class="contact-social">
+
+          <a class="btn btn-ghost work-pack-link" href="work-pack.html">Work pack — all work on one page (print / PDF)</a>
+
+          <div class="contact-social">
             <a href="#" class="social-link" data-setting="linkedin" aria-label="LinkedIn profile" hidden>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
@@ -480,18 +580,18 @@
             </a>
             <a href="#" class="social-link" data-setting="behance" aria-label="Behance portfolio" hidden>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M1 12.5h6.592c1.158 0 2.18-.547 2.745-1.447.566-.9.566-1.988 0-2.888C9.74 7.22 8.718 6.673 7.56 6.673H1v5.827zm0 7h7.17c1.2 0 2.272-.563 2.88-1.474.608-.912.608-2.043 0-2.955C10.442 16.991 9.37 16.428 8.17 16.428H1v3.072zM15.5 18.5c0-2.485 2.015-4.5 4.5-4.5s4.5 2.015 4.5 4.5-2.015 4.5-4.5 4.5-4.5-2.015-4.5-4.5zm7 0c0-1.381-1.119-2.5-2.5-2.5s-2.5 1.119-2.5 2.5 1.119 2.5 2.5 2.5 2.5-1.119 2.5-2.5zM15.5 6.5h7v-1.5h-7v1.5z"></path>
+                <path d="M8.5 11.5c1.2-.5 1.9-1.5 1.9-2.9 0-2.6-1.9-3.6-4.3-3.6H0v13.9h6.4c2.6 0 4.7-1.2 4.7-4 0-1.9-1-3.1-2.6-3.4zM3 7.2h2.6c1 0 1.9.3 1.9 1.5 0 1.1-.7 1.5-1.8 1.5H3V7.2zm2.9 9.4H3v-3.5h3c1.2 0 2 .5 2 1.8 0 1.3-.9 1.7-2.1 1.7zM18.7 6.6h-5.4v1.6h5.4V6.6zM24 13.6c0-3-1.8-5.5-5-5.5-3.1 0-5.3 2.3-5.3 5.4 0 3.2 2 5.4 5.3 5.4 2.5 0 4.1-1.1 4.8-3.4h-2.4c-.2.9-1.1 1.4-2.3 1.4-1.4 0-2.4-.8-2.6-2.3H24v-1zm-7.5-1.3c.2-1.2 1-1.9 2.3-1.9 1.4 0 2.1.8 2.3 1.9h-4.6z"></path>
               </svg>
             </a>
             <a href="#" class="social-link" data-setting="instagram" aria-label="Instagram profile" hidden>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="2" y="2" width="20" height="20" rx="5"></rect>
+                <circle cx="12" cy="12" r="4"></circle>
+                <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle>
               </svg>
             </a>
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   </section>
@@ -541,10 +641,10 @@
   <!-- Scripts: all served from this domain, no third-party CDN -->
   <script src="js/vendor/gsap.min.js" defer></script>
   <script src="js/vendor/ScrollTrigger.min.js" defer></script>
-  <script src="js/consent.js?v=20261006-2" defer></script>
-  <script src="js/tracking.js?v=20261006-2" defer></script>
-  <script type="module" src="js/data.js?v=20261006-2"></script>
-  <script type="module" src="js/main.js?v=20261006-2"></script>
-  <script type="module" src="js/animations.js?v=20261006-2"></script>
+  <script src="js/consent.js?v=20261006-8" defer></script>
+  <script src="js/tracking.js?v=20261006-8" defer></script>
+  <script type="module" src="js/data.js?v=20261006-8"></script>
+  <script type="module" src="js/main.js?v=20261006-8"></script>
+  <script type="module" src="js/animations.js?v=20261006-8"></script>
 </body>
 </html>

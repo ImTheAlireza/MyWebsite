@@ -199,20 +199,6 @@
   // ============================================
   createSectionReveal('.timeline-section', { translateY: 28, start: 'top 84%' });
 
-  gsap.utils.toArray('.timeline-panel').forEach(panel => {
-    ScrollTrigger.create({
-      trigger: panel,
-      start: 'top 85%',
-      onEnter: () => {
-        gsap.fromTo(panel.querySelectorAll('.timeline-item'),
-          { opacity: 0, y: 18 },
-          { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: 'power2.out', clearProps: 'transform' }
-        );
-      },
-      once: true
-    });
-  });
-
   // Work section
   createSectionReveal('.work', {
     translateY: 60,
@@ -220,32 +206,11 @@
     start: 'top 80%'
   });
 
-  // Process section
-
-
-  // Testimonials section
-
-
   // Contact section
   createSectionReveal('.contact', {
     translateY: 70,
     duration: 1.3,
     start: 'top 82%'
-  });
-
-  // Services cards stagger
-  gsap.utils.toArray('.services-grid').forEach(grid => {
-    ScrollTrigger.create({
-      trigger: grid,
-      start: 'top 78%',
-      onEnter: () => {
-        gsap.fromTo(grid.querySelectorAll('.service-card'),
-          { opacity: 0, y: 30, rotateX: 6 },
-          { opacity: 1, y: 0, duration: 0.7, stagger: 0.12, ease: 'power3.out', clearProps: 'transform' }
-        );
-      },
-      once: true
-    });
   });
 
   // Brand CTA card reveal

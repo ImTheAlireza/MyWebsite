@@ -1312,6 +1312,7 @@
     if ($('#projectPublished')) $('#projectPublished').checked = true;
     if ($('#projectFeatured')) $('#projectFeatured').checked = false;
     editingProjectMedia = []; renderProjectMedia();
+    renderWhyMetrics([]);
     $('#deleteProjectBtn').classList.add('hidden');
     populateCategoryDropdown();
     $('#projectModal').classList.remove('hidden');
@@ -1319,6 +1320,88 @@
     document.body.style.overflow = 'hidden';
     hasUnsavedChanges = false;
     requestAnimationFrame(() => $('#projectTitle').focus());
+  }
+
+  // ============================================
+  // PROJECT: WHY IT MATTERS
+  // One optional text block plus up to three label/value numbers. Kept as a
+  // repeater rather than JSON so the owner never has to type braces.
+  // ============================================
+  const WHY_METRIC_LIMIT = 3;
+
+  function whyMetricRow(metric) {
+    const row = document.createElement('div');
+    row.className = 'why-metric-row';
+
+    const value = document.createElement('input');
+    value.type = 'text';
+    value.className = 'why-metric-value';
+    value.placeholder = '40%';
+    value.value = (metric && metric.value) || '';
+
+    const label = document.createElement('input');
+    label.type = 'text';
+    label.className = 'why-metric-label';
+    label.placeholder = 'fewer support tickets';
+    label.value = (metric && metric.label) || '';
+
+    const labelFa = document.createElement('input');
+    labelFa.type = 'text';
+    labelFa.className = 'why-metric-label';
+    labelFa.dir = 'rtl';
+    labelFa.placeholder = 'کاهش تیکت پشتیبانی';
+    labelFa.value = (metric && metric.labelFa) || '';
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'btn btn-ghost btn-sm why-metric-remove';
+    remove.textContent = 'Remove';
+    remove.addEventListener('click', () => row.remove());
+
+    row.append(value, label, labelFa, remove);
+    return row;
+  }
+
+  function renderWhyMetrics(metrics) {
+    const host = $('#projectWhyMetrics');
+    if (!host) return;
+    host.innerHTML = '';
+    (metrics || []).slice(0, WHY_METRIC_LIMIT).forEach(metric => host.appendChild(whyMetricRow(metric)));
+  }
+
+  function collectWhyMetrics() {
+    const host = $('#projectWhyMetrics');
+    if (!host) return [];
+    return Array.from(host.querySelectorAll('.why-metric-row')).map(row => ({
+      value: row.querySelector('.why-metric-value').value.trim(),
+      label: row.querySelector('.why-metric-label').value.trim(),
+      labelFa: row.querySelectorAll('.why-metric-label')[1].value.trim()
+    })).filter(metric => metric.value || metric.label || metric.labelFa);
+  }
+
+  function whyMattersPayload(text, faText, metrics) {
+    const value = (text || '').trim();
+    const faValue = (faText || '').trim();
+    // value + label are the English ones; labelFa rides along for fa.html.
+    return {
+      whyMatters: { text: value, metrics: metrics.map(m => ({ value: m.value, label: m.label })) },
+      whyMattersFa: { text: faValue, metrics: metrics.map(m => ({ value: m.value, label: m.labelFa || m.label })) }
+    };
+  }
+
+  const addWhyMetricBtn = $('#addWhyMetricBtn');
+  if (addWhyMetricBtn) {
+    addWhyMetricBtn.addEventListener('click', () => {
+      const host = $('#projectWhyMetrics');
+      if (!host) return;
+      if (host.querySelectorAll('.why-metric-row').length >= WHY_METRIC_LIMIT) {
+        showToast('Up to ' + WHY_METRIC_LIMIT + ' numbers per project', 'error');
+        return;
+      }
+      host.appendChild(whyMetricRow(null));
+      const inputs = host.querySelectorAll('.why-metric-row:last-child input');
+      if (inputs.length) inputs[0].focus();
+    });
   }
 
   function openEditProject(id) {
@@ -1335,6 +1418,15 @@
     $('#projectClient').value = p.client || '';
     $('#projectDeliverable').value = p.deliverable || '';
     $('#projectOutcome').value = p.outcome || '';
+    const why = p.whyMatters && typeof p.whyMatters === 'object' ? p.whyMatters : { text: p.whyMatters || '' };
+    const whyFa = p.whyMattersFa && typeof p.whyMattersFa === 'object' ? p.whyMattersFa : { text: p.whyMattersFa || '' };
+    if ($('#projectWhyText')) $('#projectWhyText').value = why.text || '';
+    if ($('#projectWhyFaText')) $('#projectWhyFaText').value = whyFa.text || '';
+    renderWhyMetrics((why.metrics || []).map((metric, index) => ({
+      value: metric.value,
+      label: metric.label,
+      labelFa: (whyFa.metrics && whyFa.metrics[index] && whyFa.metrics[index].label) || ''
+    })));
     $('#projectPreviewVideo').value = p.previewVideo || '';
     $('#projectTitleFa').value = p.titleFa || '';
     $('#projectDescriptionFa').value = p.descriptionFa || '';
@@ -1406,6 +1498,11 @@
       client: $('#projectClient').value.trim(),
       deliverable: $('#projectDeliverable').value.trim(),
       outcome: $('#projectOutcome').value.trim(),
+      ...whyMattersPayload(
+        $('#projectWhyText') ? $('#projectWhyText').value : '',
+        $('#projectWhyFaText') ? $('#projectWhyFaText').value : '',
+        collectWhyMetrics()
+      ),
       previewVideo: $('#projectPreviewVideo').value.trim(),
       titleFa: $('#projectTitleFa').value.trim(),
       descriptionFa: $('#projectDescriptionFa').value.trim(),
@@ -1493,7 +1590,11 @@
       const d = await api('settings');
       ['heroEyebrow','heroFirstName','heroLastName','heroSubtitle','heroAvailability',
        'heroStat1Value','heroStat1Label','heroStat2Value','heroStat2Label','heroStat3Value','heroStat3Label',
-       'heroCtaText','heroCtaLink','heroShowreelUrl','heroPromise'].forEach(k => {
+       'heroCtaText','heroCtaLink','heroShowreelUrl','heroPromise',
+       // Persian mirrors of the same fields (fa.html)
+       'heroEyebrowFa','heroSubtitleFa','heroPromiseFa','heroAvailabilityFa','heroCtaTextFa',
+       'heroStat1ValueFa','heroStat1LabelFa','heroStat2ValueFa','heroStat2LabelFa',
+       'heroStat3ValueFa','heroStat3LabelFa'].forEach(k => {
         const el = $(`#${k}`);
         if (el && d[k] != null) el.value = d[k];
       });
@@ -1536,6 +1637,18 @@
         heroCtaLink: $('#heroCtaLink').value.trim(),
         heroShowreelUrl: $('#heroShowreelUrl').value.trim(),
         heroPromise: $('#heroPromise').value.trim(),
+        // Persian mirrors — same fields, fa.html copy
+        heroEyebrowFa: $('#heroEyebrowFa') ? $('#heroEyebrowFa').value.trim() : '',
+        heroSubtitleFa: $('#heroSubtitleFa') ? $('#heroSubtitleFa').value.trim() : '',
+        heroPromiseFa: $('#heroPromiseFa') ? $('#heroPromiseFa').value.trim() : '',
+        heroAvailabilityFa: $('#heroAvailabilityFa') ? $('#heroAvailabilityFa').value.trim() : '',
+        heroCtaTextFa: $('#heroCtaTextFa') ? $('#heroCtaTextFa').value.trim() : '',
+        heroStat1ValueFa: $('#heroStat1ValueFa') ? $('#heroStat1ValueFa').value.trim() : '',
+        heroStat1LabelFa: $('#heroStat1LabelFa') ? $('#heroStat1LabelFa').value.trim() : '',
+        heroStat2ValueFa: $('#heroStat2ValueFa') ? $('#heroStat2ValueFa').value.trim() : '',
+        heroStat2LabelFa: $('#heroStat2LabelFa') ? $('#heroStat2LabelFa').value.trim() : '',
+        heroStat3ValueFa: $('#heroStat3ValueFa') ? $('#heroStat3ValueFa').value.trim() : '',
+        heroStat3LabelFa: $('#heroStat3LabelFa') ? $('#heroStat3LabelFa').value.trim() : '',
         heroPortraitDark: $('#heroPortraitDark').value || '',
         heroPortraitDarkOpacity: parseFloat($('#heroPortraitDarkOpacity').value),
         heroPortraitDarkScale: parseFloat($('#heroPortraitDarkScale').value),
@@ -1655,6 +1768,8 @@
       }
       if (aboutTa) { aboutTa.value = text; }
       if (d.aboutSkills) $('#aboutSkills').value = d.aboutSkills;
+      if ($('#aboutTextFa')) $('#aboutTextFa').value = d.aboutTextFa || '';
+      if ($('#aboutSkillsFa')) $('#aboutSkillsFa').value = d.aboutSkillsFa || '';
       if (d.aboutImage) uploads.about.setImage(d.aboutImage);
       if (d.aboutResumeUrl) {
         resumeHidden.value = d.aboutResumeUrl;
@@ -1673,6 +1788,8 @@
         aboutImage: $('#aboutImage').value || '',
         aboutText: aboutTa ? aboutTa.value.trim() : '',
         aboutSkills: $('#aboutSkills').value.trim(),
+        aboutTextFa: $('#aboutTextFa') ? $('#aboutTextFa').value.trim() : '',
+        aboutSkillsFa: $('#aboutSkillsFa') ? $('#aboutSkillsFa').value.trim() : '',
         aboutResumeUrl: $('#aboutResumeUrl').value.trim()
       };
       await api('settings', { method: 'PUT', body: JSON.stringify(updated) });
@@ -2567,6 +2684,27 @@
             <label>Description</label>
             <textarea name="desc" rows="2" placeholder="Brief description of your role or achievements...">${esc(item.desc || '')}</textarea>
           </div>
+          <fieldset class="admin-fa-fieldset">
+            <legend>فارسی — برای صفحهٔ fa.html</legend>
+            <div class="form-grid">
+              <div class="form-row">
+                <label>تاریخ / دوره</label>
+                <input type="text" name="dateFa" dir="rtl" value="${esc(item.dateFa || '')}" placeholder="۱۴۰۲ — اکنون">
+              </div>
+              <div class="form-row">
+                <label>سازمان / دانشگاه</label>
+                <input type="text" name="subtitleFa" dir="rtl" value="${esc(item.subtitleFa || '')}" placeholder="رهاورد سامانه‌های امن · تهران">
+              </div>
+            </div>
+            <div class="form-row">
+              <label>عنوان / سِمَت</label>
+              <input type="text" name="titleFa" dir="rtl" value="${esc(item.titleFa || '')}" placeholder="طراح موشن گرافیک">
+            </div>
+            <div class="form-row">
+              <label>توضیح</label>
+              <textarea name="descFa" rows="2" dir="rtl" placeholder="یک یا دو خط توضیح">${esc(item.descFa || '')}</textarea>
+            </div>
+          </fieldset>
         </div>
       </div>
     `;
@@ -2645,20 +2783,52 @@
       const data = await api('settings');
       experienceData = Array.isArray(data.experience) ? JSON.parse(JSON.stringify(data.experience)) : [];
       educationData = Array.isArray(data.education) ? JSON.parse(JSON.stringify(data.education)) : [];
+      // Same merge for the timeline: Persian fields ride along on each entry.
+      const mergeFa = (list, faList) => {
+        const mirror = Array.isArray(faList) ? faList : [];
+        return list.map((item, i) => ({
+          ...item,
+          dateFa: (mirror[i] && mirror[i].date) || '',
+          titleFa: (mirror[i] && mirror[i].title) || '',
+          subtitleFa: (mirror[i] && mirror[i].subtitle) || '',
+          descFa: (mirror[i] && mirror[i].desc) || ''
+        }));
+      };
+      experienceData = mergeFa(experienceData, data.experienceFa);
+      educationData = mergeFa(educationData, data.educationFa);
       renderTimelineLists();
     } catch (e) { console.error(e); }
   }
 
   function collectTimelineData() {
-    const result = { experience: [], education: [] };
+    const result = { experience: [], education: [], experienceFa: [], educationFa: [] };
+    const read = (card, name) => {
+      const el = card.querySelector('[name="' + name + '"]');
+      return el ? el.value.trim() : '';
+    };
     $$('.timeline-admin-card').forEach(card => {
       const type = card.dataset.type;
+      if (type !== 'experience' && type !== 'education') return;
+      // The Persian mirror is stored as its own list so fa.html can be
+      // rewritten without touching the English entries. The same rows also
+      // carry the FA values, so re-rendering the editor never drops them.
+      const fa = {
+        date: read(card, 'dateFa'),
+        title: read(card, 'titleFa'),
+        subtitle: read(card, 'subtitleFa'),
+        desc: read(card, 'descFa')
+      };
       result[type].push({
-        date: card.querySelector('[name="date"]').value.trim(),
-        title: card.querySelector('[name="title"]').value.trim(),
-        subtitle: card.querySelector('[name="subtitle"]').value.trim(),
-        desc: card.querySelector('[name="desc"]').value.trim()
+        date: read(card, 'date'),
+        title: read(card, 'title'),
+        subtitle: read(card, 'subtitle'),
+        desc: read(card, 'desc'),
+        dateFa: fa.date,
+        titleFa: fa.title,
+        subtitleFa: fa.subtitle,
+        descFa: fa.desc
       });
+      if (fa.date || fa.title || fa.subtitle || fa.desc) result[type + 'Fa'].push(fa);
     });
     return result;
   }
@@ -2701,15 +2871,38 @@
 
   const saveTimelineBtn = $('#saveTimelineBtn');
   if (saveTimelineBtn) saveTimelineBtn.addEventListener('click', async () => {
-    const data = collectTimelineData();
+    const collected = collectTimelineData();
+    const strip = list => list.map(item => ({
+      date: item.date, title: item.title, subtitle: item.subtitle, desc: item.desc
+    }));
+    const data = {
+      experience: strip(collected.experience),
+      education: strip(collected.education),
+      experienceFa: collected.experienceFa,
+      educationFa: collected.educationFa
+    };
     saveTimelineBtn.disabled = true;
     saveTimelineBtn.textContent = 'Saving...';
     try {
       const saved = await api('settings', { method: 'PUT', body: JSON.stringify(data) });
       // Sync local arrays from server response or collected data
+      const mergeFa = (list, faList) => {
+        const mirror = Array.isArray(faList) ? faList : [];
+        return list.map((item, i) => ({
+          ...item,
+          dateFa: (mirror[i] && mirror[i].date) || '',
+          titleFa: (mirror[i] && mirror[i].title) || '',
+          subtitleFa: (mirror[i] && mirror[i].subtitle) || '',
+          descFa: (mirror[i] && mirror[i].desc) || ''
+        }));
+      };
       if (saved) {
-        if (Array.isArray(saved.experience)) experienceData = JSON.parse(JSON.stringify(saved.experience));
-        if (Array.isArray(saved.education)) educationData = JSON.parse(JSON.stringify(saved.education));
+        if (Array.isArray(saved.experience)) {
+          experienceData = mergeFa(JSON.parse(JSON.stringify(saved.experience)), saved.experienceFa || data.experienceFa);
+        }
+        if (Array.isArray(saved.education)) {
+          educationData = mergeFa(JSON.parse(JSON.stringify(saved.education)), saved.educationFa || data.educationFa);
+        }
       } else {
         experienceData = JSON.parse(JSON.stringify(data.experience));
         educationData = JSON.parse(JSON.stringify(data.education));
@@ -2765,6 +2958,17 @@
             <label>Description</label>
             <textarea name="desc" rows="2" placeholder="What this service delivers...">${esc(item.desc || '')}</textarea>
           </div>
+          <fieldset class="admin-fa-fieldset">
+            <legend>فارسی — برای صفحهٔ fa.html</legend>
+            <div class="form-row">
+              <label>عنوان</label>
+              <input type="text" name="titleFa" dir="rtl" value="${esc(item.titleFa || '')}" placeholder="ویدیوی توضیحی محصول">
+            </div>
+            <div class="form-row">
+              <label>توضیح</label>
+              <textarea name="descFa" rows="2" dir="rtl" placeholder="این خدمت چه چیزی تحویل می‌دهد…">${esc(item.descFa || '')}</textarea>
+            </div>
+          </fieldset>
         </div>
       </div>
     `;
@@ -2810,9 +3014,19 @@
   async function loadServices() {
     try {
       const data = await api('settings');
-      servicesData = Array.isArray(data.services) ? JSON.parse(JSON.stringify(data.services)) : [];
       if ($('#servicesTitle')) $('#servicesTitle').value = data.servicesTitle || '';
+      if ($('#servicesTitleFa')) $('#servicesTitleFa').value = data.servicesTitleFa || '';
       if ($('#servicesIntro')) $('#servicesIntro').value = data.servicesIntro || '';
+      if ($('#servicesIntroFa')) $('#servicesIntroFa').value = data.servicesIntroFa || '';
+      servicesData = Array.isArray(data.services) ? JSON.parse(JSON.stringify(data.services)) : [];
+      // Merge the Persian mirrors into the English rows: one card per service,
+      // both languages side by side in the editor.
+      const servicesFa = Array.isArray(data.servicesFa) ? data.servicesFa : [];
+      servicesData = servicesData.map((item, i) => ({
+        ...item,
+        titleFa: (servicesFa[i] && servicesFa[i].title) || '',
+        descFa: (servicesFa[i] && servicesFa[i].desc) || ''
+      }));
       renderServicesList();
     } catch (e) { console.error(e); }
   }
@@ -2823,7 +3037,9 @@
       result.push({
         icon: card.querySelector('[name="icon"]').value.trim() || 'play',
         title: card.querySelector('[name="title"]').value.trim(),
-        desc: card.querySelector('[name="desc"]').value.trim()
+        desc: card.querySelector('[name="desc"]').value.trim(),
+        titleFa: (card.querySelector('[name="titleFa"]') || {}).value ? card.querySelector('[name="titleFa"]').value.trim() : '',
+        descFa: (card.querySelector('[name="descFa"]') || {}).value ? card.querySelector('[name="descFa"]').value.trim() : ''
       });
     });
     return result;
@@ -2845,7 +3061,12 @@
     const payload = {
       servicesTitle: $('#servicesTitle').value.trim(),
       servicesIntro: $('#servicesIntro').value.trim(),
-      services: collected
+      services: collected.map(item => ({ icon: item.icon, title: item.title, desc: item.desc })),
+      servicesTitleFa: $('#servicesTitleFa') ? $('#servicesTitleFa').value.trim() : '',
+      servicesIntroFa: $('#servicesIntroFa') ? $('#servicesIntroFa').value.trim() : '',
+      servicesFa: collected
+        .filter(item => item.titleFa || item.descFa)
+        .map(item => ({ icon: item.icon, title: item.titleFa || item.title, desc: item.descFa || item.desc }))
     };
     saveServicesBtn.disabled = true;
     saveServicesBtn.textContent = 'Saving...';
@@ -3700,7 +3921,10 @@
     const draft = {};
     ['heroEyebrow','heroFirstName','heroLastName','heroSubtitle','heroAvailability',
      'heroStat1Value','heroStat1Label','heroStat2Value','heroStat2Label','heroStat3Value','heroStat3Label',
-     'heroCtaText','heroCtaLink'].forEach(k => {
+     'heroCtaText','heroCtaLink',
+     'heroEyebrowFa','heroSubtitleFa','heroPromiseFa','heroAvailabilityFa','heroCtaTextFa',
+     'heroStat1ValueFa','heroStat1LabelFa','heroStat2ValueFa','heroStat2LabelFa',
+     'heroStat3ValueFa','heroStat3LabelFa'].forEach(k => {
       const el = $(`#${k}`);
       if (el) draft[k] = el.value.trim();
     });

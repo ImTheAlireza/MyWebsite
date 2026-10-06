@@ -5,29 +5,34 @@ $DEFAULT_SETTINGS = array(
     'siteName' => 'Alireza Shabanzadeh',
     // Persian page (fa.html). Empty mirrors fall back to the English value.
     'siteNameFa' => 'علیرضا شابان‌زاده',
-    'siteTitleFa' => 'موشن گرافیک و ویدیوی توضیحی',
-    'heroSubtitleFa' => 'ایدهٔ محصول و آموزش را به حرکت تبدیل می‌کنم: ویدیوی توضیحی، موشن رابط کاربری و کات‌های شبکه‌های اجتماعی.',
-    'heroEyebrowFa' => 'موشن گرافیک و ویدیوی توضیحی',
+    'siteTitleFa' => 'طراح موشن گرافیک',
+    'heroSubtitleFa' => 'ویدیوی توضیحی، موشن رابط کاربری و کات شبکه‌های اجتماعی — از استوری‌برد تا فایلی که تیمت منتشر می‌کند؛ همان چیزی که روی موبایل هم خوانا می‌ماند.',
+    'heroEyebrowFa' => 'طراح موشن گرافیک',
     'heroFirstNameFa' => 'علیرضا',
     'heroLastNameFa' => 'شابان‌زاده',
-    'heroAvailabilityFa' => 'آمادهٔ پروژه‌های جدید',
-    'heroCtaTextFa' => 'دیدن نمونه‌کارها',
-    'heroStat1LabelFa' => 'ابزارهای کار',
-    'heroStat2ValueFa' => 'رشت، ایران',
-    'heroStat2LabelFa' => 'محل کار',
+    'heroAvailabilityFa' => 'جای پروژهٔ جدید باز است',
+    'heroCtaTextFa' => 'نمونه‌کارها را ببین',
+    'heroStat1ValueFa' => 'از سال ۱۳۹۷',
+    'heroStat1LabelFa' => 'موشن گرافیک و محتوای آموزشی',
+    'heroStat2ValueFa' => 'فارسی · انگلیسی',
+    'heroStat2LabelFa' => 'زبان کار',
     'heroStat3ValueFa' => '',
     'heroStat3LabelFa' => '',
-    'aboutTextFa' => '',
-    'aboutSkillsFa' => '',
+    'aboutTextFa' => 'موشن می‌سازم برای چیزهایی که باید *توضیح* بدهند: قابلیتی که هنوز کسی سر درنمی‌آورد، یک ماژول درسی، یا یک مرحله از آنبوردینگ.
+
+از ۱۳۹۷ همین کار را می‌کنم — چهار سال و نه ماه تولید محتوای آموزش الکترونیکی در دانشگاه مهرالبرز، و از ۱۴۰۲ موشن گرافیک در واحد تولید رهاورد سامانه‌های امن در تهران. کارشناسی مهندسی نرم‌افزار خوانده‌ام و ارشد آموزش زبان انگلیسی را هم دارم تمام می‌کنم؛ برای همین جلسهٔ بریف، استوری‌برد و اصلاحات، مترجم لازم ندارد.
+
+با افترافکت، فتوشاپ و پریمیر کار می‌کنم. هدف و مهلت را بگو؛ پیش از شروع، صادقانه می‌گویم چه چیزی واقع‌بینانه است و تعریف کار و قیمت را روی کاغذ می‌گیری.',
+    'aboutSkillsFa' => 'ویدیوی توضیحی، موشن رابط کاربری، کات شبکه‌های اجتماعی، استوری‌برد، افترافکت',
     'servicesTitleFa' => 'چه کاری برایت می‌کنم',
-    'servicesIntroFa' => '',
-    'servicesFa' => array(),
+    'servicesIntroFa' => 'سه‌طور موشن را به سرانجام می‌رسانم — هر کدام با تعریف کار روشن از همان اول، نه با وعده.',
+    'servicesFa' => array(array('icon' => 'play', 'title' => 'ویدیوی توضیحی محصول', 'desc' => 'از متن و استوری‌برد تا انیمیشن نهایی: توضیح قابلیتی که برای کاربر مبهم مانده. خروجی در نسبت‌های ۱۶:۹، ۱:۱ و ۹:۱۶.'), array('icon' => 'share', 'title' => 'کات شبکه‌های اجتماعی', 'desc' => 'انیمیشن‌های کوتاه و خوانا برای اینستاگرام، لینکدین و تلگرام: فریم اول قوی، زیرنویس خوانا، ناحیهٔ امن درست.'), array('icon' => 'monitor', 'title' => 'موشن رابط کاربری', 'desc' => 'ترنزیشن‌ها، لحظه‌های آنبوردینگ و حالت‌های خالی اپ و سایت — با همان فرمتی که تیم فنی‌ات می‌خواهد.')),
     'experienceFa' => array(),
     'educationFa' => array(),
     'footerCopyFa' => '© ۱۴۰۵ علیرضا شابان‌زاده',
     'footerNoteFa' => 'موشن گرافیک · رشت، ایران · آمادهٔ دورکاری',
-    'locationFa' => 'رشت، ایران',
-    'heroPromiseFa' => 'هدف و مهلت را بگو — در جواب، تعریف کار، قیمت و زمان‌بندی می‌گیری.',
+    'locationFa' => 'رشت، گیلان، ایران',
+    'heroPromiseFa' => 'هدف و مهلت را بگو — در جواب، تعریف کار و قیمت و زمان‌بندی می‌گیری.',
     'telegram' => '',
     'whatsapp' => '',
     'siteTitle' => 'Motion Graphics Designer',
@@ -55,31 +60,35 @@ $DEFAULT_SETTINGS = array(
     'heroCtaText' => 'See selected work',
     'heroCtaLink' => '#work',
     'heroShowreelUrl' => '',
-    // "What you get": empty by default. Each row stays hidden on the site until
-    // the owner puts a real number here.
+    // "What you get": the questions a buyer asks before writing an email. A row
+    // stays hidden on the site until it holds a value the owner can stand behind.
     'offerTitle' => 'What you get',
-    'offerIntro' => '',
-    'offerReply' => '',
-    'offerTimeline' => '',
-    'offerFormat' => '',
-    'offerRevisions' => '',
-    'offerTerms' => '',
-    'offerReplyFa' => '',
-    'offerTimelineFa' => '',
-    'offerFormatFa' => '',
-    'offerRevisionsFa' => '',
-    'offerTermsFa' => '',
-    'offerTitleFa' => 'چه می‌گیری',
-    'offerIntroFa' => '',
+    'offerIntro' => 'The questions you would ask before writing an email — answered here, so the first reply is about your project.',
+    'offerReply' => 'Within one business day.',
+    'offerTimeline' => '60–90s explainer: 2–3 weeks from the approved storyboard.',
+    'offerFormat' => 'MP4 in 16:9, 1:1 and 9:16, plus three still frames. Project files on request.',
+    'offerRevisions' => 'Two rounds: after the storyboard and after the first cut.',
+    'offerTerms' => '50% to start, 50% on delivery. Nothing is paid before the scope is agreed.',
+    'offerReplyFa' => 'حداکثر یک روز کاری.',
+    'offerTimelineFa' => 'ویدیوی ۶۰ تا ۹۰ ثانیه‌ای: دو تا سه هفته از استوری‌برد تأییدشده.',
+    'offerFormatFa' => 'فایل MP4 در نسبت‌های ۱۶:۹، ۱:۱ و ۹:۱۶، به‌همراه سه فریم ثابت. فایل پروژه در صورت درخواست.',
+    'offerRevisionsFa' => 'دو دور اصلاح: بعد از استوری‌برد و بعد از نسخهٔ اول.',
+    'offerTermsFa' => '۵۰٪ در شروع کار، ۵۰٪ هنگام تحویل. پیش از توافق روی تعریف کار، هیچ پرداختی انجام نمی‌شود.',
+    'offerTitleFa' => 'چه چیزی می‌گیری',
+    'offerIntroFa' => 'همان سؤال‌هایی که پیش از نوشتن ایمیل می‌پرسی — اینجا جواب داده شده تا اولین پاسخ دربارهٔ خودِ پروژه باشد، نه دربارهٔ هماهنگی‌ها.',
     'offerFrom' => '',
     'offerFromFa' => '',
     'offerAvailability' => '',
     'offerAvailabilityFa' => '',
     // Scope guard: what a quote does NOT include, one item per line.
     'scopeTitle' => "What's not included",
-    'scopeItems' => '',
-    'scopeTitleFa' => 'چه چیزی شامل نمی‌شود',
-    'scopeItemsFa' => '',
+    'scopeItems' => 'Voice-over and sound design
+Licensed music and stock footage
+More than two revision rounds',
+    'scopeTitleFa' => 'چه چیزی داخل کار نیست',
+    'scopeItemsFa' => 'گویندگی و صداگذاری
+موسیقی و فیلم آرشیوی لایسنس‌دار
+بیش از دو دور اصلاح',
     'heroPortraitDark' => '',
     'heroPortraitDarkOpacity' => 0.18,
     'heroPortraitDarkScale' => 1,
@@ -217,3 +226,4 @@ function update_settings() {
     json_write('settings.json', $settings);
     send_json($settings);
 }
+

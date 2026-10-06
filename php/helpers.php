@@ -75,6 +75,30 @@ function normalize_brand($raw) {
     );
 }
 
+function normalize_why_matters($raw) {
+    // Optional "why it matters" block: { text, metrics:[{label,value}] }.
+    // A plain string is accepted too, so older data keeps working.
+    if (is_string($raw)) $raw = array('text' => $raw);
+    if (!is_array($raw)) return array('text' => '', 'metrics' => array());
+
+    $metrics = array();
+    if (isset($raw['metrics']) && is_array($raw['metrics'])) {
+        foreach ($raw['metrics'] as $metric) {
+            if (!is_array($metric)) continue;
+            $value = clean_content_text(arr_get($metric, 'value', ''));
+            $label = clean_content_text(arr_get($metric, 'label', ''));
+            if ($value === '' && $label === '') continue;
+            $metrics[] = array('value' => $value, 'label' => $label);
+            if (count($metrics) >= 3) break;
+        }
+    }
+
+    return array(
+        'text' => clean_content_text(arr_get($raw, 'text', '')),
+        'metrics' => $metrics
+    );
+}
+
 function normalize_project($raw) {
     $tools = array();
     if (isset($raw['tools'])) {
@@ -113,6 +137,10 @@ function normalize_project($raw) {
         'previewVideo' => clean_content_text(arr_get($raw, 'previewVideo', '')),
         'titleFa' => clean_content_text(arr_get($raw, 'titleFa', '')),
         'descriptionFa' => clean_content_text(arr_get($raw, 'descriptionFa', '')),
+        // "Why it matters" — the achievement, in the owner's words, plus up to
+        // three numbers. Both optional; the site renders nothing when empty.
+        'whyMatters' => normalize_why_matters(arr_get($raw, 'whyMatters', null)),
+        'whyMattersFa' => normalize_why_matters(arr_get($raw, 'whyMattersFa', null)),
         'tools' => array_values($tools),
         'video' => clean_content_text(arr_get($raw, 'video', '')),
         'thumbnail' => clean_content_text(arr_get($raw, 'thumbnail', '')),

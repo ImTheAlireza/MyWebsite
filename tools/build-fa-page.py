@@ -14,6 +14,7 @@ The script:
   4. points the language switch back to index.html
   5. verifies that no English prose is left behind (build fails loudly if it is)
 """
+import json
 import pathlib
 import re
 import sys
@@ -138,12 +139,16 @@ BODY_SWAPS = [
     ('>Experience</h3>', '>سابقهٔ کاری</h3>'),
     ('>Education</h3>', '>تحصیلات</h3>'),
 
-    # contact form
-    ('<h2 class="section-title">Get in Touch</h2>', '<h2 class="section-title">شروع کنیم</h2>'),
+    # contact section (rebuilt in the 2026-10 pass: two panels, direct lines,
+    # three "what happens next" steps)
+    ('<h2 class="section-title">Start a project</h2>', '<h2 class="section-title">شروع کنیم</h2>'),
+    ('Six lines is enough. Say what the video has to achieve and when you\n          need it — you get a scope, a price and a timeline back.',
+     'شش خط کافی است: بگو این ویدیو باید چه کاری انجام بدهد و کِی لازمش داری — تعریف کار، قیمت و زمان‌بندی را پس می‌گیری.'),
     ('>Your name <span', '>نام شما <span'),
     ('>Email address <span', '>ایمیل <span'),
     ('>Project type <span', '>نوع پروژه <span'),
-    ('placeholder="e.g. Sara Ahmadi"', 'placeholder="مثلاً سارا احمدی"'),
+    ('placeholder="Your full name"', 'placeholder="نام و نام خانوادگی"'),
+    ('placeholder="you@company.com"', 'placeholder="you@company.com"'),
     ('<option value="">Not sure yet</option>', '<option value="">مطمئن نیستم</option>'),
     ('<option value="explainer">Explainer / product video</option>', '<option value="explainer">ویدیوی توضیحی محصول</option>'),
     ('<option value="social">Social media animation</option>', '<option value="social">محتوای شبکه‌های اجتماعی</option>'),
@@ -151,39 +156,46 @@ BODY_SWAPS = [
     ('<option value="logo">Logo or brand animation</option>', '<option value="logo">انیمیشن لوگو و برند</option>'),
     ('<option value="other">Something else</option>', '<option value="other">چیز دیگر</option>'),
     ('>Deadline <span', '>مهلت <span'),
-    ('>Output format <span', '>فرمت خروجی <span'),
     ('placeholder="e.g. mid-November, or \'no rush\'"', 'placeholder="مثلاً اواسط آبان، یا «عجله‌ای نیست»"'),
+    ('>Output format <span', '>فرمت خروجی <span'),
     ('<option value="16:9">16:9 — website / YouTube</option>', '<option value="16:9">۱۶:۹ — وب‌سایت و یوتیوب</option>'),
     ('<option value="1:1">1:1 — feed</option>', '<option value="1:1">۱:۱ — فید</option>'),
     ('<option value="9:16">9:16 — reels / shorts</option>', '<option value="9:16">۹:۱۶ — ریلز و شورتس</option>'),
     ('<option value="multiple">Several of them</option>', '<option value="multiple">چند مورد</option>'),
     ('<option value="unsure">Advise me</option>', '<option value="unsure">راهنمایی کن</option>'),
-    ('>The brief <span', '>بریف <span'),
-    ('placeholder="What should this video make people do? Who is watching it, and what do you already have (script, brand files, footage)?"',
-     'placeholder="این ویدیو باید مخاطب را به چه کاری ترغیب کند؟ چه کسی می‌بیند و از قبل چه داری (متن، فایل برند، فیلم خام)؟"'),
-    ('>How should I reply? <span', '>چطور جواب بدهم؟ <span'),
+    ('>Reply by <span', '>راه پاسخ <span'),
     ('<option value="">Email is fine</option>', '<option value="">ایمیل خوب است</option>'),
     ('<option value="email">Email</option>', '<option value="email">ایمیل</option>'),
     ('<option value="telegram">Telegram</option>', '<option value="telegram">تلگرام</option>'),
     ('<option value="whatsapp">WhatsApp</option>', '<option value="whatsapp">واتساپ</option>'),
     ('<option value="call">A short call</option>', '<option value="call">یک تماس کوتاه</option>'),
+    ('>The brief <span', '>بریف <span'),
+    ('placeholder="What should this video make people do? Who is watching it, and what do you already have (script, brand files, footage)?"',
+     'placeholder="این ویدیو باید مخاطب را به چه کاری وادار کند؟ چه کسی می‌بیند و از قبل چه داری (متن، فایل برند، فیلم خام)؟"'),
     ('(optional)</span>', '(اختیاری)</span>'),
-    ('<span aria-hidden="true">*</span> Required fields. Your message and email address are stored on my\n            server and used only to reply — details in the',
-     '<span aria-hidden="true">*</span> فیلدهای ضروری. پیام و ایمیل شما روی سرور من ذخیره می‌شود و فقط برای پاسخ استفاده می‌شود — جزئیات در'),
+    ('<span aria-hidden="true">*</span> Required fields. Your message and email address are stored on my\n              server and used only to reply — details in the',
+     '<span aria-hidden="true">*</span> فیلدهای ضروری. پیام و ایمیل شما روی سرور من ذخیره می‌شود و فقط برای پاسخ دادن استفاده می‌شود — جزئیات در'),
     ('<a href="privacy.html">privacy policy</a>', '<a href="privacy.html">سیاست حفظ حریم خصوصی</a>'),
     ('<span data-submit-label>Send the brief</span>', '<span data-submit-label>ارسال بریف</span>'),
-    ('<strong>What happens next:</strong> I read it myself and reply within one business day —\n            usually with a couple of questions, a scope and a timeline.\n            Prefer email?',
-     '<strong>بعدش چه می‌شود:</strong> خودم می‌خوانم و حداکثر یک روز کاری جواب می‌دهم — معمولاً با چند سؤال، تعریف کار و زمان‌بندی.\n            ترجیح می‌دهی ایمیل کنی؟'),
-    ('>Open this brief as an email instead</a>', '>همین بریف را ایمیل کن</a>'),
-    ('>Location</span>', '>محل</span>'),
-    ('data-setting="location">Rasht, Guilan, Iran</span>', 'data-setting="location">رشت، ایران</span>'),
+    ('<h3 class="contact-panel-title">Direct lines</h3>', '<h3 class="contact-panel-title">راه‌های مستقیم</h3>'),
+    ('<span class="contact-info-label">Email</span>', '<span class="contact-info-label">ایمیل</span>'),
+    ('<button type="button" class="copy-email-btn" id="copyEmailBtn">Copy</button>', '<button type="button" class="copy-email-btn" id="copyEmailBtn">کپی</button>'),
     ('>Phone / WhatsApp</span>', '>تلفن / واتساپ</span>'),
     ('<span class="contact-info-label">Telegram</span>', '<span class="contact-info-label">تلگرام</span>'),
     ('<span class="contact-info-label">WhatsApp</span>', '<span class="contact-info-label">واتساپ</span>'),
-    ('<span class="contact-info-label">Email</span>', '<span class="contact-info-label">ایمیل</span>'),
+    ('<span class="contact-info-label">Based in</span>', '<span class="contact-info-label">محل کار</span>'),
     ('data-setting="telegram" rel="noopener" hidden>Telegram</a>', 'data-setting="telegram" rel="noopener" hidden>تلگرام</a>'),
     ('data-setting="whatsapp" rel="noopener" hidden>WhatsApp</a>', 'data-setting="whatsapp" rel="noopener" hidden>واتساپ</a>'),
-    ('>Copy email address</button>', '>کپی ایمیل</button>'),
+    ('<h3 class="contact-panel-title">What happens next</h3>', '<h3 class="contact-panel-title">بعدش چه می‌شود</h3>'),
+    ('<li><strong>You send the brief</strong> — a rough one is fine.</li>',
+     '<li><strong>بریف را می‌فرستی</strong> — حتی یک نسخهٔ خام و سرانگشتی.</li>'),
+    ('<li><strong>I reply within one business day</strong> with questions, a scope and a price.</li>',
+     '<li><strong>من حداکثر یک روز کاری جواب می‌دهم</strong> — با چند سؤال، تعریف کار و قیمت.</li>'),
+    ('<li><strong>We fix the price</strong>, then the storyboard starts.</li>',
+     '<li><strong>قیمت را قطعی می‌کنیم</strong> و بعد کار روی استوری‌برد شروع می‌شود.</li>'),
+    ('<p class="contact-steps-note">Prefer email? <a id="briefMailto" href="#">Open this brief as an email instead</a>.</p>',
+     '<p class="contact-steps-note">ترجیح می‌دهی ایمیل بزنی؟ <a id="briefMailto" href="#">همین بریف را به‌شکل ایمیل باز کن</a>.</p>'),
+    ('data-setting="location">Rasht, Guilan, Iran</span>', 'data-setting="location">رشت، گیلان، ایران</span>'),
 
     # the work pack link sits on its own line, so swap the bare text
     ('Work pack — all work on one page (print / PDF)', 'بستهٔ کاری — همهٔ کارها در یک صفحه (پرینت/PDF)'),
@@ -197,12 +209,137 @@ BODY_SWAPS = [
     ('<a href="privacy.html">Privacy policy</a>', '<a href="privacy.html">سیاست حفظ حریم خصوصی</a>'),
     ('<a href="cookies.html">Cookie policy</a>', '<a href="cookies.html">سیاست کوکی</a>'),
     ('data-consent-settings>Cookie settings</button>', 'data-consent-settings>تنظیمات کوکی</button>'),
-    # about + services placeholder copy (both are overwritten from the CMS, but
-    # the static page must read Persian before any script runs)
-    ("I'm a motion graphics designer with a passion for transforming complex ideas into\n            clear, compelling visual stories. With expertise in After Effects and a keen eye for\n            timing and composition, I create animations that don't just look good — they communicate.", 'برای چیزهایی موشن می\u200cسازم که باید توضیح بدهند: قابلیتی که هنوز کسی نمی\u200cفهمد، یک ماژول\n            آموزشی، یک مرحله از آنبوردینگ. از ۲۰۱۸ هر دو طرف این کار را دیده\u200cام — چهار سال و نه ماه\n            تولید محتوای آموزش الکترونیکی در دانشگاه مهرالبرز، و از ۱۴۰۲ موشن گرافیک در تولید در رهاورد سامانه\u200cهای امن.'),
-    ('Motion that moves people — from idea to final frame. Specialized in work that converts, not just looks pretty.',
-     'سه راه که موشن را به سرانجام می‌رسانم — هر کدام با تعریف کار مشخص، نه با وعده.'),
 ]
+
+
+# ---------------------------------------------------------------- static blocks
+# The Persian page must read correctly before any script runs, so the static
+# markup that index.html ships with (hero stats, about text, service cards and
+# the timeline) is regenerated here from the Persian values in data/settings.json.
+# One source of truth: edit the CMS, re-run this script.
+
+def _esc(value):
+    return (str(value or '')
+            .replace('&', '&amp;')
+            .replace('<', '&lt;')
+            .replace('>', '&gt;'))
+
+
+def _replace_inner(html, opener, new_inner):
+    """Swap the inner HTML of the first div whose opening tag starts with opener."""
+    i = html.index(opener)
+    start = html.index('>', i) + 1
+    depth = 1
+    for match in re.finditer(r'<(/?)(?:div|article|section|aside|nav|ul|ol|dl|figure|form|fieldset|details|summary)\b', html[start:]):
+        depth += -1 if match.group(1) else 1
+        if depth == 0:
+            end = start + match.start()
+            return html[:start] + new_inner + html[end:]
+    raise ValueError('unbalanced block: ' + opener)
+
+
+def _timeline_markup(items, kind_label):
+    rows = []
+    for index, item in enumerate(items):
+        desc = ''
+        if item.get('desc'):
+            desc = '\n              <p class="timeline-desc">%s</p>' % _esc(item['desc'])
+        rows.append(
+            '\n          <article class="timeline-item">' \
+            '\n            <div class="timeline-date-wrap"><span class="timeline-date">%s</span></div>' \
+            '\n            <div class="timeline-marker"><span></span></div>' \
+            '\n            <div class="timeline-content">' \
+            '\n              <div class="timeline-entry-meta"><span class="timeline-entry-kind">%s</span>'
+            '<span class="timeline-entry-number">%02d</span></div>' \
+            '\n              <h3 class="timeline-title">%s</h3>' \
+            '\n              <span class="timeline-subtitle">%s</span>%s' \
+            '\n            </div>' \
+            '\n          </article>'
+            % (_esc(item.get('date')), kind_label, index + 1, _esc(item.get('title')), _esc(item.get('subtitle')), desc)
+        )
+    return '\n        <div class="timeline">%s\n        </div>\n      ' % ''.join(rows)
+
+
+def localise_static(html, settings):
+    if not settings:
+        return html
+
+    # Plain text blocks: whatever the CMS holds in the Fa mirror wins over the
+    # English markup that index.html ships with.
+    simple_keys = [
+        'siteName', 'siteTitle', 'heroEyebrow', 'heroSubtitle', 'heroPromise',
+        'heroAvailability', 'heroCtaText', 'servicesTitle', 'servicesIntro',
+        'offerTitle', 'offerIntro', 'scopeTitle', 'location',
+        'footerCopy', 'footerNote', 'aboutSkills'
+    ]
+    for key in simple_keys:
+        fa = settings.get(key + 'Fa')
+        if not fa:
+            continue
+        pattern = r'(data-setting="%s"[^>]*>)[^<]*<' % key
+        if re.search(pattern, html):
+            html = re.sub(pattern, lambda m: '%s%s<' % (m.group(1), _esc(fa)), html, count=1)
+
+    # hero stats: value and label of each visible stat
+    for key in ('heroStat1Value', 'heroStat1Label', 'heroStat2Value', 'heroStat2Label',
+                'heroStat3Value', 'heroStat3Label'):
+        fa = settings.get(key + 'Fa')
+        if not fa:
+            continue
+        pattern = r'(data-setting="%s")>[^<]*</span>' % key
+        if re.search(pattern, html):
+            html = re.sub(pattern, lambda m: '%s>%s</span>' % (m.group(1), _esc(fa)), html, count=1)
+
+    # about text: markdown-lite -> paragraphs, *italic* preserved as <em>
+    about = settings.get('aboutTextFa')
+    if about:
+        paragraphs = []
+        for block in str(about).split('\n\n'):
+            block = block.strip()
+            if not block:
+                continue
+            block = _esc(block)
+            block = re.sub(r'\*([^*]+)\*', r'<em>\1</em>', block)
+            paragraphs.append('\n            <p>%s</p>' % block.replace('\n', '<br>'))
+        if paragraphs:
+            html = _replace_inner(html, '<div class="about-text" data-setting="aboutText">',
+                                  ''.join(paragraphs) + '\n          ')
+
+    # service cards: keep the icon markup that index.html ships, swap the copy
+    services = settings.get('servicesFa') or []
+    if services:
+        titles = iter([item.get('title', '') for item in services])
+        descs = iter([item.get('desc', '') for item in services])
+
+        def _swap_title(match):
+            try:
+                return '%s>%s</h3>' % (match.group(1), _esc(next(titles)))
+            except StopIteration:
+                return match.group(0)
+
+        def _swap_desc(match):
+            try:
+                return '%s>%s</p>' % (match.group(1), _esc(next(descs)))
+            except StopIteration:
+                return match.group(0)
+
+        html = re.sub(r'(<h3 class="service-title")>[^<]*</h3>', _swap_title, html)
+        html = re.sub(r'(<p class="service-desc")>[^<]*</p>', _swap_desc, html)
+
+    # the "01 • Service" meta line on each static service card
+    html = re.sub(r'(class="service-meta"><span></span>\s*\d+\s*•\s*)Service', r'\1خدمت', html)
+
+    # timeline: experience and education, rebuilt from the Persian mirror lists
+    for key, kind in (('experience', 'کاری'), ('education', 'تحصیلی')):
+        items = settings.get(key + 'Fa') or []
+        if not items:
+            continue
+        opener = 'data-setting="%s">' % key
+        if opener in html:
+            html = _replace_inner(html, opener, _timeline_markup(items, kind))
+
+    return html
+
 
 # Latin runs that are allowed to stay: brand names, file types, numbers, emails,
 # URLs and the language switch itself.
@@ -217,12 +354,23 @@ ALLOWED = [
 def build() -> int:
     html = SOURCE.read_text(encoding='utf-8')
     failures = []
+    settings = None
+    settings_path = ROOT / 'data' / 'settings.json'
+    if settings_path.exists():
+        try:
+            settings = json.loads(settings_path.read_text(encoding='utf-8'))
+        except ValueError as error:  # malformed JSON must not be a silent skip
+            print('data/settings.json could not be parsed:', error)
+            return 1
 
     for old, new in HEAD_SWAPS + BODY_SWAPS:
         if old not in html:
             failures.append(old[:90])
             continue
         html = html.replace(old, new)
+
+    if not failures:
+        html = localise_static(html, settings)
 
     if failures:
         print('FAILED — these source strings were not found in index.html:')

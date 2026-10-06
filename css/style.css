@@ -802,10 +802,11 @@ img {
 }
 
 .timeline-item {
+  /* Visible by default. The reveal scripts add .reveal-pending only to items
+     they are about to animate, so a stale scroll position or a failed CMS call
+     can never leave this section blank. */
   position: relative;
   padding-bottom: var(--space-2xl);
-  opacity: 0;
-  transform: translateY(20px);
 }
 
 .timeline-item:last-child {
@@ -4145,3 +4146,218 @@ html[dir="rtl"] .hero-reel-toggle { right: auto; left: 0.6rem; }
 html[dir="rtl"] code,
 html[dir="rtl"] .case-study-meta,
 html[dir="rtl"] .portfolio-project-facts { direction: ltr; unicode-bidi: embed; }
+
+
+/* ============================================
+   Reveal system (2026-10 pass)
+   ============================================ */
+.reveal-pending {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+/* ============================================
+   Contact section — rebuilt as two panels
+   ============================================ */
+.contact-section-header {
+  display: block;
+  margin-bottom: var(--space-2xl);
+}
+.contact-section-header .section-intro {
+  max-width: 64ch;
+  margin-top: var(--space-md);
+}
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: var(--space-xl);
+  align-items: start;
+}
+.contact-panel {
+  padding: clamp(20px, 2.4vw, 32px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-secondary);
+}
+.contact-panel-side {
+  display: grid;
+  gap: var(--space-xl);
+  align-content: start;
+}
+.contact-panel-title {
+  margin: 0 0 var(--space-md);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.contact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.contact-list .contact-info-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.2rem 0.75rem;
+  margin: 0;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.contact-list .contact-info-item:last-child { border-bottom: 0; }
+.contact-list .contact-info-label {
+  grid-column: 1 / -1;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  margin: 0;
+}
+.contact-list .contact-info-value {
+  grid-column: 1;
+  font-size: 1.0625rem;
+  overflow-wrap: anywhere;
+}
+.copy-email-btn {
+  grid-column: 2;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border-hover);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+}
+.copy-email-btn:hover { color: var(--accent-text); border-color: var(--accent); }
+.copy-email-feedback {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  color: var(--accent-text);
+  min-height: 1rem;
+}
+.contact-steps {
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border);
+}
+.contact-steps-list {
+  counter-reset: contact-step;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+.contact-steps-list li {
+  position: relative;
+  padding-inline-start: 2.35rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+.contact-steps-list li strong { color: var(--text-primary); }
+.contact-steps-list li::before {
+  counter-increment: contact-step;
+  content: counter(contact-step);
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.1rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--accent-subtle);
+  color: var(--accent-text);
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.contact-steps-note {
+  margin: var(--space-md) 0 0;
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+}
+.contact-panel-side .work-pack-link { justify-self: start; }
+@media (max-width: 900px) {
+  .contact-grid { grid-template-columns: 1fr; gap: var(--space-lg); }
+}
+
+/* ============================================
+   "Why it matters" — optional proof block
+   ============================================ */
+.portfolio-project-why {
+  display: block;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+}
+.portfolio-project-why-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+.portfolio-project-why-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.case-study-why {
+  margin-top: 1.25rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--border);
+  border-inline-start: 3px solid var(--accent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-secondary) 94%, var(--accent) 6%);
+}
+.case-study-why-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+.case-study-why-text {
+  margin: 0.5rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.case-study-why-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin: 0.9rem 0 0;
+}
+.case-study-why-metrics div {
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-secondary);
+}
+.case-study-why-metrics dt {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.case-study-why-metrics dd {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-tertiary);
+}
+html[dir="rtl"] .portfolio-project-why-label,
+html[dir="rtl"] .case-study-why-label { letter-spacing: 0; }

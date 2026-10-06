@@ -6,7 +6,7 @@
   <title>Admin — Portfolio CMS</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="../css/fonts.css?v=20261006-1">
-  <link rel="stylesheet" href="css/admin.css?v=20261006-1">
+  <link rel="stylesheet" href="css/admin.css?v=20261006-2">
 </head>
 <body>
   <!-- Login Screen -->
@@ -321,6 +321,61 @@
               <input type="text" id="heroPromise" name="heroPromise" placeholder="Tell me the goal and the deadline...">
               <p class="field-hint">One sentence describing what the visitor gets by contacting you. Only promise what you always deliver.</p>
             </div>
+            <fieldset class="admin-fa-fieldset">
+              <legend>فارسی — برای صفحهٔ fa.html</legend>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="heroEyebrowFa">برچسب بالای نام</label>
+                  <input type="text" id="heroEyebrowFa" name="heroEyebrowFa" dir="rtl" placeholder="طراح موشن گرافیک">
+                </div>
+                <div class="form-group">
+                  <label for="heroAvailabilityFa">وضعیت پذیرش کار</label>
+                  <input type="text" id="heroAvailabilityFa" name="heroAvailabilityFa" dir="rtl" placeholder="جای پروژهٔ جدید باز است">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="heroSubtitleFa">زیرعنوان</label>
+                <textarea id="heroSubtitleFa" name="heroSubtitleFa" rows="2" dir="rtl" placeholder="ویدیوی توضیحی، موشن رابط کاربری و کات شبکه‌های اجتماعی…"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="heroPromiseFa">خط قول</label>
+                <input type="text" id="heroPromiseFa" name="heroPromiseFa" dir="rtl" placeholder="هدف و مهلت را بگو — تعریف کار و قیمت می‌گیری.">
+              </div>
+              <div class="form-group">
+                <label for="heroCtaTextFa">متن دکمه</label>
+                <input type="text" id="heroCtaTextFa" name="heroCtaTextFa" dir="rtl" placeholder="نمونه‌کارها را ببین">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="heroStat1ValueFa">آمار ۱ — مقدار</label>
+                  <input type="text" id="heroStat1ValueFa" name="heroStat1ValueFa" dir="rtl" placeholder="از سال ۱۳۹۷">
+                </div>
+                <div class="form-group">
+                  <label for="heroStat1LabelFa">آمار ۱ — برچسب</label>
+                  <input type="text" id="heroStat1LabelFa" name="heroStat1LabelFa" dir="rtl" placeholder="موشن گرافیک و محتوای آموزشی">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="heroStat2ValueFa">آمار ۲ — مقدار</label>
+                  <input type="text" id="heroStat2ValueFa" name="heroStat2ValueFa" dir="rtl" placeholder="فارسی · انگلیسی">
+                </div>
+                <div class="form-group">
+                  <label for="heroStat2LabelFa">آمار ۲ — برچسب</label>
+                  <input type="text" id="heroStat2LabelFa" name="heroStat2LabelFa" dir="rtl" placeholder="زبان کار">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="heroStat3ValueFa">آمار ۳ — مقدار</label>
+                  <input type="text" id="heroStat3ValueFa" name="heroStat3ValueFa" dir="rtl">
+                </div>
+                <div class="form-group">
+                  <label for="heroStat3LabelFa">آمار ۳ — برچسب</label>
+                  <input type="text" id="heroStat3LabelFa" name="heroStat3LabelFa" dir="rtl">
+                </div>
+              </div>
+            </fieldset>
             <div class="form-group">
               <label for="heroShowreelUrl">Showreel Video URL</label>
               <input type="url" id="heroShowreelUrl" name="heroShowreelUrl" placeholder="https://www.youtube.com/watch?v=...">
@@ -509,12 +564,24 @@
               </div>
               <div class="form-hint">Supports **bold**, *italic*, `code`, [links](url), # headings, - lists</div>
             </div>
+            <fieldset class="admin-fa-fieldset">
+              <legend>فارسی — برای صفحهٔ fa.html</legend>
+              <div class="form-group">
+                <label for="aboutTextFa">متن «دربارهٔ من»</label>
+                <textarea id="aboutTextFa" name="aboutTextFa" rows="8" dir="rtl" placeholder="موشن می‌سازم برای چیزهایی که باید توضیح بدهند…"></textarea>
+                <div class="form-hint">پاراگراف‌ها را با یک خط خالی جدا کن. *متن* ایتالیک می‌شود.</div>
+              </div>
+            </fieldset>
           </div>
           <div class="settings-section">
             <h3>Skills & Resume</h3>
             <div class="form-group">
               <label for="aboutSkills">Skills (comma separated)</label>
               <input type="text" id="aboutSkills" name="aboutSkills" placeholder="Motion Design, Explainer Videos, ...">
+            </div>
+            <div class="form-group">
+              <label for="aboutSkillsFa">مهارت‌ها (فارسی)</label>
+              <input type="text" id="aboutSkillsFa" name="aboutSkillsFa" dir="rtl" placeholder="ویدیوی توضیحی، موشن رابط کاربری، …">
             </div>
             <div class="form-group">
               <label>Resume PDF</label>
@@ -645,6 +712,17 @@
             <label for="servicesIntro">Intro Text</label>
             <input type="text" id="servicesIntro" placeholder="Motion that moves people...">
           </div>
+          <fieldset class="admin-fa-fieldset">
+            <legend>فارسی — برای صفحهٔ fa.html</legend>
+            <div class="form-group">
+              <label for="servicesTitleFa">عنوان بخش</label>
+              <input type="text" id="servicesTitleFa" dir="rtl" placeholder="چه کاری برایت می‌کنم">
+            </div>
+            <div class="form-group">
+              <label for="servicesIntroFa">متن معرفی</label>
+              <input type="text" id="servicesIntroFa" dir="rtl" placeholder="هر کار با تعریف کار روشن، نه با وعده.">
+            </div>
+          </fieldset>
         </div>
         <div class="timeline-admin-section">
           <div class="section-bar">
@@ -1042,7 +1120,8 @@
           </div>
           <div class="settings-section">
             <h3>Persian page (fa.html)</h3>
-            <p class="settings-hint">Leave any FA field empty and the Persian page falls back to the English value.</p>
+            <p class="settings-hint">Leave any FA field empty and the Persian page falls back to the English value.
+              Hero, About, Services and Timeline have their own Persian fields inside their own tabs.</p>
             <div class="form-row">
               <div class="form-group">
                 <label for="settingSiteNameFa">Name (FA)</label>
@@ -1054,12 +1133,12 @@
               </div>
             </div>
             <div class="form-group">
-              <label for="settingHeroSubtitleFa">Hero subtitle (FA)</label>
-              <textarea id="settingHeroSubtitleFa" name="heroSubtitleFa" rows="2" dir="rtl"></textarea>
+              <label>Hero subtitle (FA)</label>
+              <p class="settings-hint">این فیلد به تب «Hero» منتقل شد.</p>
             </div>
             <div class="form-group">
-              <label for="settingHeroPromiseFa">Hero promise (FA)</label>
-              <input type="text" id="settingHeroPromiseFa" name="heroPromiseFa" dir="rtl">
+              <label>Hero promise (FA)</label>
+              <p class="settings-hint">این فیلد به تب «Hero» منتقل شد.</p>
             </div>
             <div class="form-group">
               <label for="settingOfferTitleFa">"What you get" title (FA)</label>
@@ -1130,6 +1209,18 @@
             <div class="form-group">
               <label for="settingFooterNote">Footer Note</label>
               <input type="text" id="settingFooterNote" name="footerNote" placeholder="Crafted with motion & care">
+            </div>
+            <div class="form-group">
+              <label for="settingFooterCopyFa">کپی‌رایت (فارسی)</label>
+              <input type="text" id="settingFooterCopyFa" name="footerCopyFa" dir="rtl" placeholder="© ۱۴۰۵ علیرضا شابان‌زاده">
+            </div>
+            <div class="form-group">
+              <label for="settingFooterNoteFa">خط پایین صفحه (فارسی)</label>
+              <input type="text" id="settingFooterNoteFa" name="footerNoteFa" dir="rtl" placeholder="موشن گرافیک · رشت، ایران · آمادهٔ دورکاری">
+            </div>
+            <div class="form-group">
+              <label for="settingLocationFa">محل کار (فارسی)</label>
+              <input type="text" id="settingLocationFa" name="locationFa" dir="rtl" placeholder="رشت، گیلان، ایران">
             </div>
           </div>
           <button type="submit" class="btn btn-primary">Save Settings</button>
@@ -1378,6 +1469,23 @@
         <div class="form-group">
           <label for="projectOutcome">Outcome — only what you can back up</label>
           <textarea id="projectOutcome" rows="2" placeholder="e.g. Shipped as the onboarding video and still in use"></textarea>
+        </div>
+        <div class="settings-section settings-subsection">
+          <h3>Why it matters <span class="settings-hint-inline">— optional, shows on the card and in the case study</span></h3>
+          <p class="settings-hint">One or two sentences on what this project actually changed for the client. Leave it empty and nothing is shown on the card.</p>
+          <div class="form-group">
+            <label for="projectWhyText">Why it matters (English)</label>
+            <textarea id="projectWhyText" rows="2" placeholder="e.g. The 40-second cut replaced three support pages — new accounts understand the product before the first call."></textarea>
+          </div>
+          <div class="form-group">
+            <label for="projectWhyFaText">Why it matters (Persian, for fa.html)</label>
+            <textarea id="projectWhyFaText" rows="2" dir="rtl" placeholder="مثلاً: این کات ۴۰ ثانیه‌ای جای سه صفحه راهنما را گرفت — کاربر پیش از اولین تماس، محصول را می‌فهمد."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Numbers (up to 3) — leave empty if you cannot back them up</label>
+            <div id="projectWhyMetrics" class="why-metrics-editor"></div>
+            <button type="button" id="addWhyMetricBtn" class="btn btn-ghost btn-sm">+ Add number</button>
+          </div>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -1654,6 +1762,6 @@
     </button>
   </div>
 
-  <script src="js/admin.js?v=20260805-6"></script>
+  <script src="js/admin.js?v=20261006-7"></script>
 </body>
 </html>

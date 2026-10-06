@@ -79,6 +79,62 @@
     showreelFallback: 'This showreel link cannot be embedded. Opening it in a new tab instead…'
   };
 
+  // ============================================
+  // DYNAMIC REVEALS
+  // Content rendered from the CMS is animated, never hidden: an item is only
+  // given .reveal-pending when the script is certain it will animate it, and a
+  // safety timer releases anything still invisible after a few seconds.
+  // ============================================
+  function revealDynamic(container, selector) {
+    if (!container) return;
+    const items = Array.from(container.querySelectorAll(selector));
+    if (!items.length) return;
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced || typeof gsap === 'undefined') return; // stay visible, no animation
+
+    const inView = el => {
+      const rect = el.getBoundingClientRect();
+      return rect.top < window.innerHeight * 0.92 && rect.bottom > 0;
+    };
+
+    const play = els => {
+      gsap.fromTo(els,
+        { opacity: 0, y: 18 },
+        {
+          opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: 'power2.out',
+          clearProps: 'transform,opacity',
+          onComplete: () => els.forEach(el => { el.classList.remove('reveal-pending'); el.style.opacity = ''; })
+        }
+      );
+    };
+
+    const belowFold = items.filter(el => !inView(el));
+    belowFold.forEach(el => el.classList.add('reveal-pending'));
+
+    if (belowFold.length && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(entries => {
+        const hit = entries.filter(entry => entry.isIntersecting).map(entry => entry.target);
+        if (!hit.length) return;
+        hit.forEach(el => { el.classList.remove('reveal-pending'); observer.unobserve(el); });
+        play(hit);
+      }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+      belowFold.forEach(el => observer.observe(el));
+    }
+
+    // If anything is still invisible a few seconds later, show it.
+    setTimeout(() => {
+      items.forEach(el => {
+        if (getComputedStyle(el).opacity === '0') {
+          el.classList.remove('reveal-pending');
+          el.style.opacity = '';
+          el.style.transform = '';
+        }
+      });
+    }, 4000);
+  }
+  window.revealDynamic = revealDynamic;
+
   function parseMd(text) {
     if (!text) return '';
     let h = text
@@ -238,6 +294,7 @@
             timeline.appendChild(row);
           });
           el.appendChild(timeline);
+          revealDynamic(el, '.timeline-item');
           requestAnimationFrame(() => {
             if (typeof window.updateTimelineCount === 'function') window.updateTimelineCount();
           });
@@ -268,10 +325,11 @@
             desc.textContent = item.desc || '';
             const meta = document.createElement('div');
             meta.className = 'service-meta';
-            meta.innerHTML = '<span></span>' + String(index + 1).padStart(2, '0') + ' • Service';
+            meta.innerHTML = '<span></span>' + String(index + 1).padStart(2, '0') + ' • ' + STR.service;
             card.append(icon, title, desc, meta);
             el.appendChild(card);
           });
+          revealDynamic(el, '.service-card');
         }
       } else if (key === 'process') {
         if (Array.isArray(val)) {
@@ -323,14 +381,22 @@
     // Whole sections stay off the page while they hold nothing real.
     const timelineSection = document.getElementById('timeline');
     if (timelineSection) {
-      const experience = pick('experience');
-      const education = pick('education');
-      const hasExperience = Array.isArray(experience) && experience.length > 0;
-      const hasEducation = Array.isArray(education) && education.length > 0;
-      timelineSection.hidden = !(hasExperience || hasEducation);
+      // The markup ships with the real entries baked in, so this section is
+      // only ever hidden when the CMS explicitly answers "this list is empty".
+      // A failed, partial or silent response leaves the static entries alone.
+      const answered = key => Object.prototype.hasOwnProperty.call(settingsCache, key)
+        || Object.prototype.hasOwnProperty.call(settingsCache, key + 'Fa');
+      const cameBackEmpty = key => {
+        const raw = settingsCache[key + 'Fa'];
+        const effective = PAGE_LANG === 'fa' && hasValue(raw) ? raw : settingsCache[key];
+        return answered(key) && Array.isArray(effective) && effective.length === 0;
+      };
+      const experienceEmpty = cameBackEmpty('experience');
+      const educationEmpty = cameBackEmpty('education');
+      timelineSection.hidden = experienceEmpty && educationEmpty;
       // The education group carries its own heading, so an empty one must go.
       const educationGroup = document.getElementById('educationGroup');
-      if (educationGroup) educationGroup.hidden = !hasEducation;
+      if (educationGroup) educationGroup.hidden = educationEmpty;
     }
 
     const workSection = document.getElementById('work');

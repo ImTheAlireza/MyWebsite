@@ -21,7 +21,8 @@ const T = LANG === 'fa' ? {
   deliverable: 'تحویل',
   outcome: 'نتیجه',
   browse: 'مرور نمونه‌کارها',
-  projectsLabel: 'پروژه'
+  projectsLabel: 'پروژه',
+  why: 'چرا مهمه؟'
 } : {
   caseStudy: 'Case study',
   untitled: 'Untitled project',
@@ -49,7 +50,12 @@ const T = LANG === 'fa' ? {
   previousMedia: 'Previous media',
   nextMedia: 'Next media',
   loading: 'Loading…',
-  loadError: 'Could not load the portfolio.'
+  loadError: 'Could not load the portfolio.',
+  ctaAria: 'Start a project with me',
+  ctaTitle: 'Your project next?',
+  ctaSub: 'Tell me what the video has to do — you get a scope, a price and a timeline back.',
+  ctaAction: 'Send the brief',
+  why: 'Why it matters'
 };
 
 let siteBrands = [];
@@ -74,6 +80,34 @@ const ICONS = {
   play: '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m8 5 11 7-11 7Z"></path></svg>',
   gallery: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>'
 };
+
+// "Why it matters" — an optional block per project. It is the one part of a
+// case study a visitor cannot get anywhere else, so it is rendered as plain
+// text on the card and with its metrics inside the case study.
+// Accepted shapes: { text, metrics:[{label,value}] } or a plain string.
+function whyMatters(project) {
+  const raw = (LANG === 'fa' && project.whyMattersFa && (project.whyMattersFa.text || typeof project.whyMattersFa === 'string'))
+    ? project.whyMattersFa
+    : project.whyMatters;
+  if (!raw) return null;
+  const source = typeof raw === 'string' ? { text: raw } : raw;
+  const text = typeof source.text === 'string' ? source.text.trim() : '';
+  const metrics = Array.isArray(source.metrics)
+    ? source.metrics
+        .filter(m => m && (m.value || m.label))
+        .slice(0, 3)
+        .map(m => ({ value: faDigits(String(m.value || '').trim()), label: String(m.label || '').trim() }))
+    : [];
+  if (!text && !metrics.length) return null;
+  return { text, metrics };
+}
+
+// Persian pages read better with Persian numerals. Only ASCII digits inside
+// owner-entered values are converted, never the site's own markup.
+function faDigits(value) {
+  if (LANG !== 'fa' || !value) return value;
+  return String(value).replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[Number(d)]);
+}
 
 function safeUrl(value) {
   const raw = String(value || '').trim();
@@ -364,14 +398,14 @@ function renderProjects() {
   const cta = document.createElement('a');
   cta.href = '#contact';
   cta.className = 'brand-card-cta';
-  cta.setAttribute('aria-label', 'Let\'s work together - Contact');
+  cta.setAttribute('aria-label', T.ctaAria);
   cta.innerHTML = '' +
     '<span class=\"brand-card-cta-icon\">' +
       '<svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" aria-hidden=\"true\"><line x1=\"12\" y1=\"5\" x2=\"12\" y2=\"19\"></line><line x1=\"5\" y1=\"12\" x2=\"19\" y2=\"12\"></line></svg>' +
     '</span>' +
-    '<span class=\"brand-card-cta-title\">Your brand next?</span>' +
-    '<span class=\"brand-card-cta-sub\">Let\'s create something that converts. Available for new projects.</span>' +
-    '<span class=\"brand-card-cta-action\"><span>Let\'s talk</span><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m9 18 6-6-6-6\"></path></svg></span>';
+    '<span class=\"brand-card-cta-title\">' + T.ctaTitle + '</span>' +
+    '<span class=\"brand-card-cta-sub\">' + T.ctaSub + '</span>' +
+    '<span class=\"brand-card-cta-action\"><span>' + T.ctaAction + '</span><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m9 18 6-6-6-6\"></path></svg></span>';
   cta.addEventListener('click', (e) => {
     e.preventDefault();
     const target = document.getElementById('contact');
@@ -773,6 +807,21 @@ function projectCard(project, index) {
     facts.textContent = cardFacts.join(' · ');
     text.appendChild(facts);
   }
+  // Proof line directly on the card. Spans only: the card itself is a button,
+  // so no nested interactive or block-level elements are allowed in here.
+  const why = whyMatters(project);
+  if (why && why.text) {
+    const block = document.createElement('span');
+    block.className = 'portfolio-project-why';
+    const label = document.createElement('span');
+    label.className = 'portfolio-project-why-label';
+    label.textContent = T.why;
+    const body = document.createElement('span');
+    body.className = 'portfolio-project-why-text';
+    body.textContent = why.text;
+    block.append(label, body);
+    text.appendChild(block);
+  }
   const arrow = document.createElement('span');
   arrow.className = 'portfolio-project-arrow';
   arrow.innerHTML = ICONS.arrowRight;
@@ -884,6 +933,38 @@ function caseStudyInfo(project) {
       facts.appendChild(row);
     });
     info.appendChild(facts);
+  }
+
+  // Why it matters: the owner's own words plus, when given, the numbers.
+  const whyBlock = whyMatters(project);
+  if (whyBlock) {
+    const block = document.createElement('div');
+    block.className = 'case-study-why';
+    const label = document.createElement('span');
+    label.className = 'case-study-why-label';
+    label.textContent = T.why;
+    block.appendChild(label);
+    if (whyBlock.text) {
+      const body = document.createElement('p');
+      body.className = 'case-study-why-text';
+      body.textContent = whyBlock.text;
+      block.appendChild(body);
+    }
+    if (whyBlock.metrics.length) {
+      const list = document.createElement('dl');
+      list.className = 'case-study-why-metrics';
+      whyBlock.metrics.forEach(metric => {
+        const cell = document.createElement('div');
+        const value = document.createElement('dt');
+        value.textContent = metric.value;
+        const name = document.createElement('dd');
+        name.textContent = metric.label;
+        cell.append(value, name);
+        list.appendChild(cell);
+      });
+      block.appendChild(list);
+    }
+    info.appendChild(block);
   }
 
   // Where the work actually went live: the strongest proof a fixed-price
