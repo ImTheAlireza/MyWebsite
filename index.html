@@ -3,27 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alireza Shabanzadeh — Motion Graphics Designer</title>
-  <meta name="description" content="Motion Graphics Designer specializing in explainer videos, social media content, and UI animations. Based in Rasht, Iran.">
-  <meta name="keywords" content="motion graphics, animation, after effects, explainer video, UI animation, social media content">
+  <title>Alireza Shabanzadeh — Motion Graphics Designer (Rasht, Iran)</title>
+  <meta name="description" content="Freelance motion graphics designer. Explainer videos, social media animation and UI motion for product and marketing teams. See the work, download the résumé, get a reply in one business day.">
+  <link rel="canonical" href="https://alirezashabanzadeh.com/">
+  <meta name="theme-color" content="#0C0C0E">
+  <meta name="author" content="Alireza Shabanzadeh">
+  <meta name="robots" content="index, follow, max-image-preview:large">
 
-  <!-- Open Graph -->
+  <!-- Open Graph / social sharing -->
+  <meta property="og:site_name" content="Alireza Shabanzadeh">
   <meta property="og:title" content="Alireza Shabanzadeh — Motion Graphics Designer">
-  <meta property="og:description" content="Motion Graphics Designer specializing in explainer videos, social media content, and UI animations.">
-  <meta property="og:type" content="website">
+  <meta property="og:description" content="Explainer videos, social media animation and UI motion. See selected work and get in touch.">
+  <meta property="og:type" content="profile">
+  <meta property="og:url" content="https://alirezashabanzadeh.com/">
+  <meta property="og:image" content="https://alirezashabanzadeh.com/assets/og-cover.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Alireza Shabanzadeh — Motion Graphics Designer">
+  <meta name="twitter:description" content="Explainer videos, social media animation and UI motion. See selected work and get in touch.">
+  <meta name="twitter:image" content="https://alirezashabanzadeh.com/assets/og-cover.jpg">
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <!-- Marks the document as script-enabled: without JS nothing is hidden by CSS -->
+  <script>document.documentElement.classList.add('js');</script>
+
+  <!-- Fonts (self-hosted: no request ever leaves this domain) -->
+  <link rel="preload" href="fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/space-grotesk-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/fonts.css?v=20261006-1">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260805-6">
+  <link rel="stylesheet" href="css/style.css?v=20261006-1">
 
   <!-- Favicon (inline SVG) -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>▶</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9654;</text></svg>">
+
+  <!-- Structured data: helps the profile surface correctly in search results -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Alireza Shabanzadeh",
+    "jobTitle": "Motion Graphics Designer",
+    "url": "https://alirezashabanzadeh.com/",
+    "email": "mailto:alirezashabanzadeh01@gmail.com",
+    "telephone": "+989116947375",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Rasht",
+      "addressRegion": "Guilan",
+      "addressCountry": "IR"
+    },
+    "knowsAbout": [
+      "Motion graphics",
+      "Explainer video production",
+      "Social media animation",
+      "UI animation",
+      "Adobe After Effects",
+      "Adobe Photoshop",
+      "Adobe Premiere Pro"
+    ],
+    "knowsLanguage": ["fa", "en"],
+    "hasOccupation": {
+      "@type": "Occupation",
+      "name": "Motion Graphics Designer",
+      "occupationalCategory": "27-1014.00"
+    }
+  }
+  </script>
 </head>
 <body>
+  <!-- Keyboard users land here first: one Tab, then straight to the content -->
+  <a class="skip-link" href="#main">Skip to content</a>
+
   <!-- Page Loader -->
   <div class="page-loader" id="pageLoader">
     <div class="loader-content">
@@ -50,13 +102,23 @@
 
   <!-- Header -->
   <header class="header" id="header">
-    <a href="#" class="header-logo">Alireza Shabanzadeh</a>
-    <nav class="header-nav">
+    <a href="#hero" class="header-logo" aria-label="Alireza Shabanzadeh — back to top">Alireza Shabanzadeh</a>
+    <nav class="header-nav" aria-label="Main navigation">
       <a href="#about" class="header-link" data-cursor="link">About</a>
-      <a href="#services" class="header-link" data-cursor="link">Services</a>
       <a href="#work" class="header-link" data-cursor="link">Work</a>
+      <a href="#services" class="header-link" data-cursor="link">Services</a>
       <a href="#contact" class="header-link" data-cursor="link">Contact</a>
-      <button class="theme-toggle" id="themeToggle" data-cursor="link" aria-label="Toggle theme">
+      <a data-setting="aboutResumeUrl" href="#" class="header-resume" data-cursor="link" hidden>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Résumé</span>
+      </a>
+      <a href="#contact" class="btn btn-primary btn-sm header-cta" data-cursor="link" data-magnetic>Hire me</a>
+      <a href="#contact" class="btn btn-primary btn-sm header-cta-mobile" data-cursor="link">Hire me</a>
+      <button type="button" class="theme-toggle" id="themeToggle" data-cursor="link" aria-label="Toggle theme">
         <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="5"></circle>
           <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -76,31 +138,35 @@
   </header>
 
   <!-- Mobile Menu Toggle -->
-  <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">
+  <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
     <span></span>
     <span></span>
   </button>
 
   <!-- Mobile Menu -->
   <div class="mobile-menu" id="mobileMenu">
-    <nav class="mobile-menu-nav">
+    <nav class="mobile-menu-nav" aria-label="Mobile navigation">
       <a href="#about" class="mobile-menu-link">About</a>
-      <a href="#services" class="mobile-menu-link">Services</a>
       <a href="#work" class="mobile-menu-link">Work</a>
+      <a href="#services" class="mobile-menu-link">Services</a>
       <a href="#contact" class="mobile-menu-link">Contact</a>
-      <button class="theme-toggle-mobile" id="themeToggleMobile">
-        <span class="theme-label">Switch Theme</span>
+      <a data-setting="aboutResumeUrl" href="#" class="mobile-menu-link" hidden>Download résumé (PDF)</a>
+      <a href="#contact" class="mobile-menu-link mobile-menu-cta">Hire me</a>
+      <button type="button" class="theme-toggle-mobile" id="themeToggleMobile">
+        <span class="theme-label">Switch theme</span>
       </button>
     </nav>
   </div>
+
+  <main id="main">
 
   <!-- Hero Section -->
   <section class="hero" id="hero">
     <div class="hero-bg">
       <div class="hero-mesh"></div>
       <div class="hero-grid-overlay"></div>
-      <img class="hero-portrait hero-portrait-dark" id="heroPortraitDark" alt="" />
-      <img class="hero-portrait hero-portrait-light" id="heroPortraitLight" alt="" />
+      <img class="hero-portrait hero-portrait-dark" id="heroPortraitDark" alt="Portrait of Alireza Shabanzadeh, motion graphics designer" decoding="async" />
+      <img class="hero-portrait hero-portrait-light" id="heroPortraitLight" alt="Portrait of Alireza Shabanzadeh, motion graphics designer" decoding="async" />
       <div class="hero-fade-overlay" id="heroFadeOverlay"></div>
     </div>
     <div class="hero-content">
@@ -112,45 +178,54 @@
         <p class="hero-eyebrow" data-setting="heroEyebrow">Motion Graphics Designer</p>
       </div>
       <div class="hero-main">
-        <div class="hero-name-block">
+        <h1 class="hero-name-block">
           <span class="hero-name-line hero-name-first" data-setting="heroFirstName" data-split="Alireza">Alireza</span>
           <span class="hero-name-line hero-name-last" data-setting="heroLastName" data-split="Shabanzadeh">Shabanzadeh</span>
-        </div>
+        </h1>
         <div class="hero-side">
           <div class="hero-accent-line"></div>
           <div class="hero-side-content">
             <p class="hero-subtitle" data-setting="heroSubtitle">Crafting motion that communicates, engages, and inspires.</p>
             <div class="hero-actions">
               <a data-setting="heroCtaLink" href="#work" class="btn btn-primary" data-cursor="link">
-                <span data-setting="heroCtaText">View Projects</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <span data-setting="heroCtaText">See selected work</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                   <polyline points="12 5 19 12 12 19"></polyline>
                 </svg>
               </a>
-              <a data-setting="aboutResumeUrl" href="assets/resume.pdf" class="btn btn-ghost" download data-cursor="link">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <button type="button" id="heroShowreelBtn" class="btn btn-ghost" data-cursor="link" hidden>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="m8 5 11 7-11 7Z"></path>
+                </svg>
+                <span>Watch showreel</span>
+              </button>
+              <a data-setting="aboutResumeUrl" href="#" class="btn btn-ghost" download data-cursor="link" hidden>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="7 10 12 15 17 10"></polyline>
                   <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
-                <span>Download Resume</span>
+                <span data-resume-label>Download résumé (PDF)</span>
               </a>
             </div>
+            <!-- Every stat below is factual and editable in the CMS (Hero → Stats).
+                 Do not put numbers here that you cannot back up. -->
             <div class="hero-stats">
               <div class="hero-stat">
-                <span class="hero-stat-value" data-setting="heroStat1Value">5+</span>
-                <span class="hero-stat-label" data-setting="heroStat1Label">Years Exp.</span>
+                <span class="hero-stat-value" data-setting="heroStat1Value">Ae &middot; Ps &middot; Pr</span>
+                <span class="hero-stat-label" data-setting="heroStat1Label">Tools I use</span>
               </div>
               <div class="hero-stat">
-                <span class="hero-stat-value" data-setting="heroStat2Value">50+</span>
-                <span class="hero-stat-label" data-setting="heroStat2Label">Projects</span>
+                <span class="hero-stat-value" data-setting="heroStat2Value">Rasht, Iran</span>
+                <span class="hero-stat-label" data-setting="heroStat2Label">Based in</span>
               </div>
-              <div class="hero-stat">
-                <span class="hero-stat-value" data-setting="heroStat3Value">Rasht</span>
-                <span class="hero-stat-label" data-setting="heroStat3Label">Based in</span>
+              <div class="hero-stat" hidden>
+                <span class="hero-stat-value" data-setting="heroStat3Value"></span>
+                <span class="hero-stat-label" data-setting="heroStat3Label"></span>
               </div>
             </div>
+            <p class="hero-promise" data-setting="heroPromise">Tell me the goal and the deadline — you get a scope, a price and a timeline in reply.</p>
           </div>
         </div>
       </div>
@@ -171,7 +246,7 @@
       <div class="about-grid">
         <div class="about-image">
           <div class="about-image-frame">
-            <img class="about-image-img" id="aboutImage" data-setting="aboutImage" src="" alt="" />
+            <img class="about-image-img" id="aboutImage" data-setting="aboutImage" src="" alt="Alireza Shabanzadeh at work on a motion graphics project" loading="lazy" decoding="async" />
             <div class="about-image-placeholder" id="aboutImagePlaceholder">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -287,8 +362,9 @@
     <div class="container">
       <div class="section-header">
         <span class="section-number">04</span>
-        <h2 class="section-title">Some brands I worked with</h2>
+        <h2 class="section-title">Selected work</h2>
       </div>
+      <p class="section-intro">Case studies and media galleries from client projects. Click a card to open it — the media loads inside the page.</p>
       <div class="work-grid" id="workGrid">
         <!-- Projects loaded dynamically from data.json -->
       </div>
@@ -310,14 +386,14 @@
   </section>
 
   <!-- Testimonials Section -->
-  <section class="section testimonials-section" id="testimonials">
+  <section class="section testimonials-section" id="testimonials" hidden>
     <div class="container">
       <div class="section-header testimonials-section-header">
         <div class="testimonials-section-title">
           <span class="section-number">06</span>
           <h2 class="section-title" data-setting="testimonialsTitle">Client thoughts</h2>
         </div>
-        <p class="testimonials-section-intro" data-setting="testimonialsIntro">A few words from teams I've helped bring to motion.</p>
+        <p class="testimonials-section-intro" data-setting="testimonialsIntro">Words from clients — shown only when a real client agrees to be quoted.</p>
       </div>
       <div class="testimonials-marquee" id="testimonialsMarquee" data-cursor="link">
         <div class="testimonials-viewport" id="testimonialsViewport">
@@ -356,26 +432,52 @@
         <h2 class="section-title">Get in Touch</h2>
       </div>
       <div class="contact-grid">
-        <form class="contact-form" id="contactForm">
+        <form class="contact-form" id="contactForm" novalidate>
           <div class="form-group">
-            <label for="contactName">Name</label>
-            <input type="text" id="contactName" name="name" required placeholder="Your name" data-cursor="text">
+            <label for="contactName">Your name <span class="required-mark" aria-hidden="true">*</span></label>
+            <input type="text" id="contactName" name="name" required autocomplete="name"
+                   placeholder="e.g. Sara Ahmadi" data-cursor="text"
+                   aria-describedby="contactFormHint">
           </div>
           <div class="form-group">
-            <label for="contactEmail">Email</label>
-            <input type="email" id="contactEmail" name="email" required placeholder="your@email.com" data-cursor="text">
+            <label for="contactEmail">Email address <span class="required-mark" aria-hidden="true">*</span></label>
+            <input type="email" id="contactEmail" name="email" required autocomplete="email" inputmode="email"
+                   placeholder="you@company.com" data-cursor="text"
+                   aria-describedby="contactFormHint">
           </div>
           <div class="form-group">
-            <label for="contactMessage">Message</label>
-            <textarea id="contactMessage" name="message" rows="5" required placeholder="Tell me about your project..." data-cursor="text"></textarea>
+            <label for="contactProjectType">Project type <span class="optional-mark">(optional)</span></label>
+            <select id="contactProjectType" name="projectType" data-cursor="link">
+              <option value="">Not sure yet</option>
+              <option value="explainer">Explainer / product video</option>
+              <option value="social">Social media animation</option>
+              <option value="ui">UI / app motion</option>
+              <option value="logo">Logo or brand animation</option>
+              <option value="other">Something else</option>
+            </select>
           </div>
+          <div class="form-group">
+            <label for="contactMessage">Message <span class="required-mark" aria-hidden="true">*</span></label>
+            <textarea id="contactMessage" name="message" rows="5" required
+                      placeholder="What are you making, who is it for, and when do you need it?"
+                      data-cursor="text" aria-describedby="contactFormHint"></textarea>
+          </div>
+          <p class="form-hint" id="contactFormHint">
+            <span aria-hidden="true">*</span> Required fields. Your message and email address are stored on my
+            server and used only to reply — details in the <a href="privacy.html">privacy policy</a>.
+          </p>
+          <p class="form-status" id="contactStatus" role="status" aria-live="polite" tabindex="-1" hidden></p>
           <button type="submit" class="btn btn-primary btn-full" data-cursor="link">
-            <span>Send Message</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <span data-submit-label>Send message</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <line x1="22" y1="2" x2="11" y2="13"></line>
               <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
             </svg>
           </button>
+          <p class="form-next">
+            <strong>What happens next:</strong> I read it myself and reply within one business day —
+            usually with a couple of questions and a rough timeline.
+          </p>
         </form>
         <div class="contact-info">
           <div class="contact-info-item">
@@ -383,27 +485,29 @@
             <span class="contact-info-value" data-setting="location">Rasht, Guilan, Iran</span>
           </div>
           <div class="contact-info-item">
-            <span class="contact-info-label">Phone</span>
+            <span class="contact-info-label">Phone / WhatsApp</span>
             <a href="tel:+989116947375" class="contact-info-value" data-setting="phone" data-cursor="link">+98 911 694 7375</a>
           </div>
           <div class="contact-info-item">
             <span class="contact-info-label">Email</span>
             <a href="mailto:alirezashabanzadeh01@gmail.com" class="contact-info-value" data-setting="email" data-cursor="link">alirezashabanzadeh01@gmail.com</a>
+            <button type="button" class="copy-email-btn" id="copyEmailBtn" data-cursor="link">Copy email address</button>
+            <span class="copy-email-feedback" id="copyEmailFeedback" role="status" aria-live="polite"></span>
           </div>
           <div class="contact-social">
-            <a href="#" class="social-link" data-setting="linkedin" data-cursor="link" aria-label="LinkedIn">
+            <a href="#" class="social-link" data-setting="linkedin" data-cursor="link" aria-label="LinkedIn profile" hidden>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
                 <rect x="2" y="9" width="4" height="12"></rect>
                 <circle cx="4" cy="4" r="2"></circle>
               </svg>
             </a>
-            <a href="#" class="social-link" data-setting="behance" data-cursor="link" aria-label="Behance">
+            <a href="#" class="social-link" data-setting="behance" data-cursor="link" aria-label="Behance portfolio" hidden>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M1 12.5h6.592c1.158 0 2.18-.547 2.745-1.447.566-.9.566-1.988 0-2.888C9.74 7.22 8.718 6.673 7.56 6.673H1v5.827zm0 7h7.17c1.2 0 2.272-.563 2.88-1.474.608-.912.608-2.043 0-2.955C10.442 16.991 9.37 16.428 8.17 16.428H1v3.072zM15.5 18.5c0-2.485 2.015-4.5 4.5-4.5s4.5 2.015 4.5 4.5-2.015 4.5-4.5 4.5-4.5-2.015-4.5-4.5zm7 0c0-1.381-1.119-2.5-2.5-2.5s-2.5 1.119-2.5 2.5 1.119 2.5 2.5 2.5 2.5-1.119 2.5-2.5zM15.5 6.5h7v-1.5h-7v1.5z"></path>
               </svg>
             </a>
-            <a href="#" class="social-link" data-setting="instagram" data-cursor="link" aria-label="Instagram">
+            <a href="#" class="social-link" data-setting="instagram" data-cursor="link" aria-label="Instagram profile" hidden>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                 <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
@@ -416,8 +520,10 @@
     </div>
   </section>
 
+  </main>
+
   <!-- Back to Top -->
-  <button class="back-to-top" id="backToTop" data-cursor="link" aria-label="Back to top">
+  <button type="button" class="back-to-top" id="backToTop" data-cursor="link" aria-label="Back to top">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <polyline points="18 15 12 9 6 15"></polyline>
     </svg>
@@ -427,19 +533,19 @@
   <div class="scroll-progress" id="scrollProgress">
     <div class="scroll-progress-fill"></div>
     <div class="scroll-progress-dots">
-      <a href="#hero" class="scroll-dot active" data-section="hero" data-cursor="link"></a>
-      <a href="#about" class="scroll-dot" data-section="about" data-cursor="link"></a>
-      <a href="#services" class="scroll-dot" data-section="services" data-cursor="link"></a>
-      <a href="#timeline" class="scroll-dot" data-section="timeline" data-cursor="link"></a>
-      <a href="#work" class="scroll-dot" data-section="work" data-cursor="link"></a>
-      <a href="#process" class="scroll-dot" data-section="process" data-cursor="link"></a>
-      <a href="#testimonials" class="scroll-dot" data-section="testimonials" data-cursor="link"></a>
-      <a href="#contact" class="scroll-dot" data-section="contact" data-cursor="link"></a>
+      <a href="#hero" class="scroll-dot active" data-section="hero" data-cursor="link" aria-label="Go to hero section"></a>
+      <a href="#about" class="scroll-dot" data-section="about" data-cursor="link" aria-label="Go to About section"></a>
+      <a href="#services" class="scroll-dot" data-section="services" data-cursor="link" aria-label="Go to Services section"></a>
+      <a href="#timeline" class="scroll-dot" data-section="timeline" data-cursor="link" aria-label="Go to Experience and education section"></a>
+      <a href="#work" class="scroll-dot" data-section="work" data-cursor="link" aria-label="Go to Selected work section"></a>
+      <a href="#process" class="scroll-dot" data-section="process" data-cursor="link" aria-label="Go to How I work section"></a>
+      <a href="#testimonials" class="scroll-dot" data-section="testimonials" data-cursor="link" aria-label="Go to Client testimonials section"></a>
+      <a href="#contact" class="scroll-dot" data-section="contact" data-cursor="link" aria-label="Go to Contact section"></a>
     </div>
   </div>
 
   <!-- Noise Toggle -->
-  <button class="noise-toggle" id="noiseToggle" data-cursor="link" aria-label="Toggle grain effect">
+  <button type="button" class="noise-toggle" id="noiseToggle" data-cursor="link" aria-label="Toggle film grain overlay" aria-pressed="false">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="12" cy="12" r="10"></circle>
       <path d="M12 2a10 10 0 0 1 0 20"></path>
@@ -458,17 +564,42 @@
   <!-- Footer -->
   <footer class="footer">
     <div class="container footer-inner">
-      <span class="footer-copy" data-setting="footerCopy">&copy; 2026 Alireza Shabanzadeh</span>
-      <span class="footer-note" data-setting="footerNote">Crafted with motion & care</span>
+      <div class="footer-main">
+        <span class="footer-copy" data-setting="footerCopy">&copy; 2026 Alireza Shabanzadeh</span>
+        <span class="footer-note" data-setting="footerNote">Motion graphics designer · Rasht, Iran · available for remote work</span>
+      </div>
+      <nav class="footer-links" aria-label="Legal and site information">
+        <a href="privacy.html">Privacy policy</a>
+        <a href="cookies.html">Cookie policy</a>
+        <button type="button" class="footer-link-button" data-consent-settings data-cursor="link">Cookie settings</button>
+        <a href="#contact">Contact</a>
+      </nav>
     </div>
   </footer>
 
-  <!-- Scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script type="module" src="js/data.js?v=20260805-6"></script>
-  <script type="module" src="js/main.js?v=20260805-6"></script>
-  <script type="module" src="js/animations.js?v=20260805-6"></script>
-  <script src="js/tracking.js?v=20260805-6"></script>
+  <!-- Showreel dialog (only opened on purpose) -->
+  <div class="showreel-dialog" id="showreelDialog" role="dialog" aria-modal="true" aria-label="Showreel" hidden>
+    <div class="showreel-panel">
+      <div class="showreel-head">
+        <strong>Showreel</strong>
+        <button type="button" class="showreel-close" aria-label="Close showreel">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="showreel-stage"></div>
+    </div>
+  </div>
+
+  <!-- Scripts: all served from this domain, no third-party CDN -->
+  <script src="js/vendor/gsap.min.js" defer></script>
+  <script src="js/vendor/ScrollTrigger.min.js" defer></script>
+  <script src="js/consent.js?v=20261006-1" defer></script>
+  <script src="js/tracking.js?v=20261006-1" defer></script>
+  <script type="module" src="js/data.js?v=20261006-1"></script>
+  <script type="module" src="js/main.js?v=20261006-1"></script>
+  <script type="module" src="js/animations.js?v=20261006-1"></script>
 </body>
 </html>

@@ -4,6 +4,11 @@
 
 $base = __DIR__;
 
+// A PHP notice printed before the JSON would break every API response (and the
+// "headers already sent" warning that follows). Log errors, never echo them.
+@ini_set('display_errors', '0');
+@ini_set('log_errors', '1');
+
 require_once $base . '/php/db.php';
 require_once $base . '/php/auth.php';
 require_once $base . '/php/response.php';

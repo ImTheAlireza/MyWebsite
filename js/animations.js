@@ -9,18 +9,50 @@
   // Respect reduced motion
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Register GSAP plugins
-  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
-    console.warn('GSAP or ScrollTrigger not loaded');
-    // Fallback: make everything visible if GSAP fails
-    document.querySelectorAll('.hero-name-first, .hero-name-last, .hero-top-bar, .hero-side-content').forEach(el => {
+  // Everything below is progressive enhancement only: if the animation library
+  // is missing (offline CDN, blocked host, old browser) the page must still be
+  // fully readable and clickable.
+  function revealWithoutMotion() {
+    document.documentElement.classList.add('no-motion');
+    document.querySelectorAll('.hero-name-first, .hero-name-last, .hero-top-bar, .hero-side-content, .hero-scroll').forEach(el => {
       el.style.opacity = '1';
     });
     document.querySelectorAll('.hero-accent-line').forEach(el => {
       el.style.transform = 'scaleY(1)';
     });
+    document.querySelectorAll('.hero-name-char').forEach(el => {
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+    });
+    const loader = document.getElementById('pageLoader');
+    if (loader) loader.remove();
+  }
+
+  // Register GSAP plugins
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+    console.warn('GSAP or ScrollTrigger not loaded — showing static layout');
+    revealWithoutMotion();
+    window.initHeroAnimation = function () {};
+    window.setHeroStatValue = function (el, value) {
+      if (!el) return;
+      el.dataset.statValue = value == null ? '' : String(value);
+      el.textContent = el.dataset.statValue;
+    };
+    window.refreshHeroStats = function () {};
     return;
   }
+
+  // Safety net: whatever happens with tweens, no hero element may stay invisible.
+  window.setTimeout(() => {
+    document.querySelectorAll('.hero-name-char').forEach(el => {
+      if (getComputedStyle(el).opacity === '0') el.style.opacity = '1';
+    });
+    ['.hero-top-bar', '.hero-side-content', '.hero-scroll'].forEach(selector => {
+      document.querySelectorAll(selector).forEach(el => {
+        if (getComputedStyle(el).opacity === '0') el.style.opacity = '1';
+      });
+    });
+  }, 4000);
 
   gsap.registerPlugin(ScrollTrigger);
 
@@ -543,68 +575,161 @@
   });
 
   // ============================================
-  // ANIMATED STATS COUNTER — reads latest value at scroll time
+  // HERO STATS
+  // The value typed in the CMS is the single source of truth. It is stored on
+  // the element as data-stat-value and is never read back out of the DOM, so an
+  // in-flight animation can no longer overwrite it or be mistaken for a real
+  // value (that was the bug: the counter re-read its own half-finished digits
+  // and ended on a number the CMS never contained).
   // ============================================
+  const PERSIAN_DIGITS = ['\u06F0', '\u06F1', '\u06F2', '\u06F3', '\u06F4', '\u06F5', '\u06F6', '\u06F7', '\u06F8', '\u06F9'];
+  const ARABIC_DIGITS = ['\u0660', '\u0661', '\u0662', '\u0663', '\u0664', '\u0665', '\u0666', '\u0667', '\u0668', '\u0669'];
+
+  function normalizeDigits(value) {
+    return String(value).replace(/[\u06F0-\u06F9\u0660-\u0669]/g, ch => {
+      const persianIndex = PERSIAN_DIGITS.indexOf(ch);
+      if (persianIndex > -1) return String(persianIndex);
+      return String(ARABIC_DIGITS.indexOf(ch));
+    });
+  }
+
+  function localizeDigits(value, persian) {
+    const text = String(value);
+    if (!persian) return text;
+    return text.replace(/[0-9]/g, digit => PERSIAN_DIGITS[Number(digit)]);
+  }
+
+  function formatStatNumber(number, parsed) {
+    const fixed = parsed.decimals > 0
+      ? number.toFixed(parsed.decimals)
+      : String(Math.round(number));
+    if (!parsed.groupSeparator) return fixed;
+    const parts = fixed.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, parsed.groupSeparator);
+    return parts.join(parsed.decimalSeparator || '.');
+  }
+
+  // "1,200+", "۲۵ پروژه", "5 yrs", "Rasht" — any format is accepted.
+  function parseStatValue(raw) {
+    const original = String(raw == null ? '' : raw).trim();
+    if (!original) return null;
+    const normalized = normalizeDigits(original);
+    const match = normalized.match(/\d+(?:[,\u066B]\d{3})*(?:[.\u066C]\d+)?/);
+    if (!match) return { raw: original, number: null, format: () => original };
+    const token = match[0];
+    const prefix = normalized.slice(0, match.index);
+    const suffix = normalized.slice(match.index + token.length);
+    const persian = /[\u06F0-\u06F9]/.test(original);
+    const groupSeparator = /\u066B/.test(token) ? '\u066B' : (token.indexOf(',') > -1 ? ',' : '');
+    const decimals = /[.\u066C]/.test(token) ? (token.split(/[.\u066C]/)[1] || '').replace(/\D/g, '').length : 0;
+    const number = parseFloat(token.replace(/[,\u066B]/g, '').replace(/\u066C/g, '.'));
+    const parsed = {
+      raw: original,
+      number: isFinite(number) ? number : null,
+      decimals: decimals,
+      groupSeparator: groupSeparator,
+      decimalSeparator: decimals > 0 ? '.' : '',
+      prefix: prefix,
+      suffix: suffix
+    };
+    parsed.format = value => {
+      if (parsed.number === null) return original;
+      const body = formatStatNumber(value, parsed);
+      return localizeDigits(parsed.prefix + body + parsed.suffix, persian);
+    };
+    return parsed;
+  }
+
+  function prefersReducedMotionNow() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
   function animateHeroStat(stat) {
     if (!stat) return;
-    const raw = (stat.textContent || '').trim();
-    if (!raw) return;
-    const match = raw.match(/^(\d+)/);
-    if (!match) {
-      // Non-numeric like "Rasht" — just ensure visible, no counter
+    const parsed = parseStatValue(stat.dataset.statValue || '');
+    if (!parsed) return;
+
+    if (stat._statTween) {
+      stat._statTween.kill();
+      stat._statTween = null;
+    }
+
+    // Nothing to count (text value, zero, reduced motion): show the exact string.
+    if (parsed.number === null || parsed.number <= 0 || prefersReducedMotionNow()) {
+      stat.textContent = parsed.raw;
       return;
     }
-    const targetNum = parseInt(match[1], 10);
-    const suffix = raw.slice(match[1].length);
-    // Reset to 0 for animation
-    gsap.fromTo(stat,
-      { textContent: 0 },
-      {
-        textContent: targetNum,
-        duration: 2,
-        ease: 'power2.out',
-        snap: { textContent: 1 },
-        onUpdate: function() {
-          const current = Math.round(gsap.getProperty(stat, 'textContent'));
-          stat.textContent = current + suffix;
-        },
-        onComplete: function() {
-          stat.textContent = targetNum + suffix;
-        }
+
+    const proxy = { value: 0 };
+    stat.textContent = parsed.format(0);
+    stat._statTween = gsap.to(proxy, {
+      value: parsed.number,
+      duration: Math.min(2, 0.7 + Math.log10(Math.max(10, parsed.number)) * 0.45),
+      ease: 'power2.out',
+      onUpdate: () => {
+        stat.textContent = parsed.format(proxy.value);
+      },
+      onComplete: () => {
+        stat._statTween = null;
+        stat.textContent = parsed.raw; // always exactly what the CMS contains
       }
-    );
+    });
   }
 
   const heroStats = document.querySelectorAll('.hero-stat-value');
+
+  // Called by js/main.js every time settings are loaded or re-applied.
+  window.setHeroStatValue = function (el, value) {
+    if (!el) return;
+    el.dataset.statValue = value == null ? '' : String(value);
+    const parsed = parseStatValue(el.dataset.statValue);
+    if (!parsed) {
+      el.textContent = '';
+      return;
+    }
+    const rect = el.getBoundingClientRect();
+    const inView = rect.top < window.innerHeight && rect.bottom > 0;
+    if (inView && !prefersReducedMotionNow()) animateHeroStat(el);
+    else stat_setStatic(el, parsed);
+  };
+
+  function stat_setStatic(el, parsed) {
+    if (el._statTween) {
+      el._statTween.kill();
+      el._statTween = null;
+    }
+    el.textContent = parsed.raw;
+  }
+
   if (heroStats.length) {
     heroStats.forEach(stat => {
       ScrollTrigger.create({
         trigger: stat,
         start: 'top 95%',
-        onEnter: () => animateHeroStat(stat),
+        onEnter: () => {
+          // Animate only once the CMS value has arrived — until then the
+          // neutral placeholder is left alone.
+          if (stat.dataset.statValue) animateHeroStat(stat);
+        },
         once: true
       });
     });
-    // Expose refresh so settings update can re-animate or update after API load
-    window.refreshHeroStats = function() {
-      document.querySelectorAll('.hero-stat-value').forEach(s => {
-        // If already animated, just set final value from current DOM (which was just updated by applySettings)
-        // Kill any existing tween on this element
-        gsap.killTweensOf(s);
-        const raw = (s.textContent || '').trim();
-        const m = raw.match(/^(\d+)/);
-        if (!m) return; // keep "Rasht" as is
-        // Re-trigger animation with new value if in viewport, otherwise set directly
-        const rect = s.getBoundingClientRect();
+
+    window.refreshHeroStats = function () {
+      heroStats.forEach(stat => {
+        const value = stat.dataset.statValue;
+        if (!value) return;
+        const parsed = parseStatValue(value);
+        if (!parsed) return;
+        const rect = stat.getBoundingClientRect();
         const inView = rect.top < window.innerHeight && rect.bottom > 0;
-        if (inView) {
-          animateHeroStat(s);
-        } else {
-          // Will animate when scrolled into view, keep raw for now
-        }
+        if (inView) animateHeroStat(stat);
+        else stat_setStatic(stat, parsed);
       });
     };
   }
 
+  // Exposed for tests / other pages that need the same parsing rules.
+  window.portfolioStats = { parse: parseStatValue };
 
 })();

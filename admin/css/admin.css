@@ -3438,3 +3438,58 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; }
   #videoFrameRemove::before { content: '×'; color: var(--danger); font-size: 1.2rem; }
   .video-frame-footer .btn-primary { padding-left: 14px; padding-right: 14px; }
 }
+
+/* ---------- Inline help text next to form fields ---------- */
+.field-hint {
+  margin: -4px 0 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  background: var(--bg-hover);
+  color: var(--text-sec);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.field-hint strong {
+  color: var(--text);
+}
+
+/* The admin panel is used with a keyboard too: never hide the focus ring. */
+.admin-focus-fix :focus-visible,
+.admin-body :focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px !important;
+}
+
+/* ---------- Login help text ---------- */
+.login-hint {
+  margin-top: 14px;
+  color: var(--text-sec);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.login-hint code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg-input);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.95em;
+}
+
+/* ---------- Project type badge on messages ---------- */
+.message-type {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--bg-hover);
+  color: var(--text-sec);
+  font-size: 0.6875rem;
+  white-space: nowrap;
+}
+
+.message-type:first-of-type { margin-left: 6px; }

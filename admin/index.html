@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin — Portfolio CMS</title>
   <meta name="robots" content="noindex, nofollow">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/admin.css?v=20260805-6">
+  <link rel="stylesheet" href="../css/fonts.css?v=20261006-1">
+  <link rel="stylesheet" href="css/admin.css?v=20261006-1">
 </head>
 <body>
   <!-- Login Screen -->
@@ -36,6 +34,12 @@
         </div>
         <div id="loginError" class="form-error"></div>
         <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+        <p class="login-hint">
+          First run, or locked out? Create a <code>.env</code> file next to <code>api.php</code> containing
+          <code>ADMIN_USER=you</code> and <code>ADMIN_PASS=a-long-private-password</code>, then delete
+          <code>data/users.json</code> on the server and sign in with those details. Never reuse the
+          example password: this repository is public.
+        </p>
       </form>
     </div>
   </div>
@@ -271,6 +275,13 @@
           <!-- Stats -->
           <div class="settings-section">
             <h3>Stats</h3>
+            <p class="field-hint">
+              These three items sit under the hero buttons. Use facts a client can verify
+              (tools, location, languages) — <strong>not numbers you cannot prove</strong>
+              (&ldquo;7 years&rdquo;, &ldquo;50+ projects&rdquo;, &ldquo;100% satisfaction&rdquo;).
+              Leave a value empty and that stat disappears from the page automatically.
+              A number is fine here only if you can show the invoices or analytics behind it.
+            </p>
             <div class="form-row">
               <div class="form-group">
                 <label for="heroStat1Value">Stat 1 Value</label>
@@ -317,8 +328,14 @@
               </div>
             </div>
             <div class="form-group">
-              <label for="heroShowreelUrl">Showreel Embed URL</label>
-              <input type="url" id="heroShowreelUrl" name="heroShowreelUrl" placeholder="https://www.youtube.com/embed/...">
+              <label for="heroPromise">Promise Line (under the stats)</label>
+              <input type="text" id="heroPromise" name="heroPromise" placeholder="Tell me the goal and the deadline...">
+              <p class="field-hint">One sentence describing what the visitor gets by contacting you. Only promise what you always deliver.</p>
+            </div>
+            <div class="form-group">
+              <label for="heroShowreelUrl">Showreel Video URL</label>
+              <input type="url" id="heroShowreelUrl" name="heroShowreelUrl" placeholder="https://www.youtube.com/watch?v=...">
+              <p class="field-hint">YouTube or Vimeo link. A &ldquo;Watch showreel&rdquo; button appears in the hero when this is filled in. The player only loads after the visitor agrees (or clicks) — nothing is sent to YouTube before that.</p>
             </div>
           </div>
 
@@ -473,6 +490,11 @@
           </div>
           <div class="settings-section">
             <h3>About Text</h3>
+            <p class="field-hint">
+              Describe what you do and what the client receives. Avoid unverifiable claims
+              (age, &ldquo;years of experience&rdquo;, awards, &ldquo;graduated with honors&rdquo;) unless you can
+              show documents for them — recruiters check, and a wrong claim costs the job.
+            </p>
             <div class="form-group">
               <label for="aboutText">Content</label>
               <div class="md-editor">
@@ -561,6 +583,12 @@
           </button>
         </div>
         <div id="timelineSuccess" class="form-success hidden">Timeline saved successfully!</div>
+
+        <p class="field-hint">
+          List only roles and degrees you can document on request. Keep dates honest —
+          an unexplained gap is far less damaging than an entry that does not check out.
+          If Education is empty, the Education tab is hidden on the site.
+        </p>
 
         <!-- Experience Section -->
         <div class="timeline-admin-section">
@@ -695,6 +723,11 @@
         <div id="testimonialsSuccess" class="form-success hidden">Testimonials saved!</div>
         <div class="settings-section">
           <h3>Section Intro</h3>
+          <p class="field-hint">
+            The whole section stays hidden while this list is empty — that is intentional.
+            Only publish a quote if you have it in writing and the client agrees to be named.
+            &ldquo;Great work!&rdquo; from an anonymous source reads as fake and costs you the click.
+          </p>
           <div class="form-group">
             <label for="testimonialsTitle">Title</label>
             <input type="text" id="testimonialsTitle" placeholder="Client thoughts">
@@ -1279,7 +1312,7 @@
         </div>
         <div class="form-group">
           <label for="projectThumbUrl">Or enter image URL</label>
-          <input type="url" id="projectThumbUrl" placeholder="https://images.unsplash.com/...">
+          <input type="url" id="projectThumbUrl" placeholder="/uploads/your-image.jpg (upload files under Assets)">
         </div>
         <div class="modal-actions">
           <button type="button" id="deleteProjectBtn" class="btn btn-danger hidden">Delete</button>

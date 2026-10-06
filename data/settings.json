@@ -11,76 +11,63 @@
   "heroEyebrow": "Motion Graphics Designer",
   "heroFirstName": "Alireza",
   "heroLastName": "Shabanzadeh",
-  "heroSubtitle": "I bring creativity to life online!",
-  "heroAvailability": "Available for work",
-  "heroStat1Value": "5+",
-  "heroStat1Label": "Years Exp.",
-  "heroStat2Value": "50+",
-  "heroStat2Label": "Projects",
-  "heroStat3Value": "Rasht",
-  "heroStat3Label": "Based in",
-  "heroCtaText": "View Projects",
+  "heroSubtitle": "I turn product ideas into clear motion — explainers, social cuts and UI animation, with the scope and timeline agreed before we start.",
+  "heroAvailability": "Open for freelance projects",
+  "heroStat1Value": "Ae · Ps · Pr",
+  "heroStat1Label": "Tools I use",
+  "heroStat2Value": "Rasht, Iran",
+  "heroStat2Label": "Based in",
+  "heroStat3Value": "",
+  "heroStat3Label": "",
+  "heroCtaText": "See selected work",
   "heroCtaLink": "#work",
   "heroShowreelUrl": "",
-  "heroPortraitDark": "/uploads/d2aff920-68bf-49ab-a2a3-998c104dcf63.png",
+  "heroPortraitDark": "/assets/hero-portrait-dark.jpg",
   "heroPortraitDarkOpacity": 0.89,
   "heroPortraitDarkScale": 0.91,
-  "heroPortraitLight": "/uploads/508f5db4-590c-4208-90b5-9f116edf96f5.png",
+  "heroPortraitLight": "/assets/hero-portrait-light.jpg",
   "heroPortraitLightOpacity": 0.87,
   "heroPortraitLightScale": 0.91,
-  "aboutImage": "/uploads/90c91f5d-491f-45db-905a-cf5f65bc120a.jpeg",
-  "aboutText": "Hey there! I'm **Alireza Shabanzadeh**, a motion graphics specialist hailing from the beautiful **Guilan province in Iran**. At the young **age of 25**, I already have **seven years of experience** under my belt and love creating effective advertising strategies using **Adobe Photoshop, After Effects, and Illustrator.**",
-  "aboutSkills": "Motion Design, Explainer Videos, Social Content, UI Animation, After Effects",
+  "aboutImage": "/assets/about-portrait.jpg",
+  "aboutText": "I design motion that explains things: **explainer videos** that make one feature obvious, **social cuts** that survive a scroll, and **UI animation** that makes an interface feel responsive.\n\nI work in **After Effects, Photoshop and Premiere Pro**. The process is simple and visible — we agree the goal and the deliverables, you approve a storyboard, and you get the finished files in the formats each platform needs.\n\nSend me the goal and the deadline; I will tell you honestly what is realistic.",
+  "aboutSkills": "Explainer Videos, Social Cuts, UI Animation, Storyboarding, After Effects",
   "aboutResumeUrl": "/uploads/2a1a31a3-c828-4b9e-9fa7-623887db5924.pdf",
   "categories": [],
   "projectLayout": "2col",
   "footerCopy": "© 2026 Alireza Shabanzadeh",
-  "footerNote": "I created this website completely with AI (GitHub)",
+  "footerNote": "Freelance motion designer · Rasht, Iran · open to remote work",
   "experience": [
     {
       "date": "2019 — 2022",
-      "title": "Junior Motion Designer",
-      "subtitle": "Studio X",
-      "desc": "Produced animated advertisements and brand content. Collaborated with art directors on campaign visual identity."
+      "title": "Motion Designer",
+      "subtitle": "Studio and client projects",
+      "desc": "Animated advertisements and brand content, working alongside art directors on campaign visuals."
     },
     {
       "date": "2022 — Present",
-      "title": "Motion Graphics Designer",
-      "subtitle": "Freelance",
-      "desc": "Creating explainer videos, social media content, and UI animations for clients across tech, education, and e-commerce industries."
+      "title": "Freelance Motion Graphics Designer",
+      "subtitle": "Independent, remote",
+      "desc": "Explainer videos, social media animation and UI motion for teams in tech, education and e-commerce."
     }
   ],
-  "education": [
-    {
-      "date": "2015 — 2019",
-      "title": "BA Visual Communication",
-      "subtitle": "University of Guilan",
-      "desc": "Focused on graphic design, typography, and visual storytelling. Graduated with honors."
-    },
-    {
-      "date": "2018",
-      "title": "Motion Design Certificate",
-      "subtitle": "Online Program",
-      "desc": "Intensive course covering After Effects, character animation, and motion principles."
-    }
-  ],
+  "education": [],
   "servicesTitle": "What I do",
-  "servicesIntro": "Motion that moves people — from idea to final frame.",
+  "servicesIntro": "Three ways I help teams get motion shipped — each one starts with a clear scope, not a pitch.",
   "services": [
     {
       "icon": "play",
       "title": "Explainer Videos",
-      "desc": "Complex ideas distilled into clear, engaging stories that convert viewers into customers."
+      "desc": "Script shaping, storyboard, then a finished product animation — delivered in the aspect ratios you need (16:9, 1:1, 9:16)."
     },
     {
       "icon": "share",
       "title": "Social Content",
-      "desc": "Scroll-stopping animations crafted for Instagram, LinkedIn and TikTok feeds."
+      "desc": "Short, legible animations built for Instagram, LinkedIn and TikTok: strong first frame, readable captions, correct safe areas."
     },
     {
       "icon": "monitor",
       "title": "UI Animation",
-      "desc": "Bring interfaces to life with purposeful, polished motion that improves usability."
+      "desc": "Transitions, onboarding moments and empty states for apps and websites — delivered in the format your developers prefer."
     }
   ],
   "processTitle": "How I work",
@@ -100,21 +87,11 @@
     },
     {
       "title": "Delivery & Support",
-      "desc": "Optimized exports for every platform, plus source files and 7 days of quick revisions."
+      "desc": "Optimized exports for every platform, plus the source files. Revision rounds are agreed before we start."
     }
   ],
   "testimonialsTitle": "Client thoughts",
-  "testimonialsIntro": "A few words from teams I’ve helped bring to motion.",
-  "testimonials": [
-    {
-      "quote": "Alireza turned a complex product into a story our customers instantly got. Our demo video doubled our trial sign-ups.",
-      "name": "Sarah K.",
-      "role": "Marketing Lead"
-    },
-    {
-      "quote": "Fast, thoughtful, and incredibly detailed. The social pack he made still outperforms everything else we post.",
-      "name": "Mehdi R.",
-      "role": "Founder"
-    }
-  ]
+  "testimonialsIntro": "Words from clients — shown only when a real client agrees to be quoted.",
+  "testimonials": [],
+  "heroPromise": "Tell me the goal and the deadline — you get a scope, a price and a timeline in reply."
 }

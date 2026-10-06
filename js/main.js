@@ -10,29 +10,42 @@
   // PAGE LOADER
   // ============================================
   const pageLoader = document.getElementById('pageLoader');
-  const loaderSeen = sessionStorage.getItem('portfolio-loader-seen');
+  let loaderSeen = null;
+  try {
+    loaderSeen = sessionStorage.getItem('portfolio-loader-seen');
+  } catch (error) {
+    loaderSeen = null; // storage blocked: just show the page
+  }
 
-  if (pageLoader && !loaderSeen && typeof gsap !== 'undefined') {
-    // Animate loader immediately
-    const loaderTl = gsap.timeline({
-      onComplete: () => {
-        pageLoader.classList.add('is-done');
-        setTimeout(() => pageLoader.remove(), 700);
-      }
-    });
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function killLoader() {
+    if (!pageLoader || !pageLoader.parentNode) return;
+    pageLoader.classList.add('is-done');
+    setTimeout(() => pageLoader.remove(), 500);
+  }
+
+  if (pageLoader && !loaderSeen && !reducedMotion && typeof gsap !== 'undefined') {
+    // Short, non-blocking intro. A visitor who wants to hire someone should
+    // never wait for a logo animation — this screen is capped at ~1.1s.
+    const loaderTl = gsap.timeline({ onComplete: killLoader });
 
     loaderTl
       .fromTo('.loader-char',
         { y: 40, opacity: 0, rotateX: 90 },
-        { y: 0, opacity: 1, rotateX: 0, duration: 0.5, stagger: 0.06, ease: 'back.out(1.4)' }
+        { y: 0, opacity: 1, rotateX: 0, duration: 0.35, stagger: 0.04, ease: 'back.out(1.4)' }
       )
-      .to('.loader-line', { width: '120px', duration: 0.6, ease: 'power2.out' }, '-=0.2')
-      .to('.loader-sub', { opacity: 1, duration: 0.4 }, '-=0.3')
-      .to({}, { duration: 0.8 }); // pause before exit
+      .to('.loader-line', { width: '120px', duration: 0.3, ease: 'power2.out' }, '-=0.15')
+      .to('.loader-sub', { opacity: 1, duration: 0.25 }, '-=0.15')
+      .to({}, { duration: 0.2 });
 
-    sessionStorage.setItem('portfolio-loader-seen', '1');
+    try {
+      sessionStorage.setItem('portfolio-loader-seen', '1');
+    } catch (error) {}
+
+    // Hard stop: even if the timeline is interrupted, the page becomes visible.
+    setTimeout(killLoader, 2200);
   } else if (pageLoader) {
-    // Already seen — remove immediately
     pageLoader.remove();
   }
 
@@ -43,14 +56,23 @@
   const THEME_TRANSITION_DURATION = 900;
 
   function getPreferredTheme() {
-    const saved = localStorage.getItem(THEME_KEY);
+    let saved = null;
+    try {
+      saved = localStorage.getItem(THEME_KEY);
+    } catch (error) {
+      saved = null;
+    }
     if (saved) return saved;
     return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   }
 
   function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem(THEME_KEY, theme);
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch (error) {
+      /* storage blocked (private mode): the choice applies to this page only */
+    }
   }
 
   function getThemeBgColor(theme) {
@@ -72,7 +94,7 @@
       return;
     }
 
-    const btn = e.currentTarget;
+    const btn = (e && e.currentTarget) || document.documentElement;
     const rect = btn.getBoundingClientRect();
     const cxPct = ((rect.left + rect.width / 2) / window.innerWidth) * 100;
     const cyPct = ((rect.top + rect.height / 2) / window.innerHeight) * 100;
@@ -120,10 +142,35 @@
   // Apply saved theme immediately
   setTheme(getPreferredTheme());
 
+  function syncThemeLabels() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const label = isDark ? 'Switch to light theme' : 'Switch to dark theme';
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+      themeToggle.setAttribute('aria-label', label);
+      themeToggle.setAttribute('title', label);
+    }
+    const mobileLabel = document.querySelector('#themeToggleMobile .theme-label');
+    if (mobileLabel) mobileLabel.textContent = label;
+  }
+
   const themeToggle = document.getElementById('themeToggle');
   const themeToggleMobile = document.getElementById('themeToggleMobile');
-  if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
-  if (themeToggleMobile) themeToggleMobile.addEventListener('click', toggleTheme);
+  if (themeToggle) {
+    themeToggle.setAttribute('type', 'button');
+    themeToggle.addEventListener('click', (event) => {
+      toggleTheme(event);
+      syncThemeLabels();
+    });
+  }
+  if (themeToggleMobile) {
+    themeToggleMobile.setAttribute('type', 'button');
+    themeToggleMobile.addEventListener('click', () => {
+      toggleTheme({ currentTarget: themeToggleMobile });
+      syncThemeLabels();
+    });
+  }
+  syncThemeLabels();
 
   // ============================================
   // SETTINGS — populate all content from API
@@ -187,6 +234,7 @@
     const track = document.getElementById('testimonialsGrid');
     if (!viewport || !track) return;
     if (!track.children.length) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     // Cleanup previous
     if (testimonialsSlider.raf) cancelAnimationFrame(testimonialsSlider.raf);
@@ -341,8 +389,26 @@
 
       if (key === 'heroCtaLink') {
         el.href = safeHref(val, ['http:', 'https:']) || '#work';
+      } else if (/^heroStat\dValue$/.test(key)) {
+        // The CMS value is stored on the element (data-stat-value) and the
+        // counter in js/animations.js animates towards it. It never reads a
+        // half-animated DOM value back, which is what broke this before.
+        if (typeof window.setHeroStatValue === 'function') window.setHeroStatValue(el, val);
+        else el.textContent = val;
       } else if (key === 'linkedin' || key === 'behance' || key === 'instagram') {
-        el.href = safeHref(val, ['http:', 'https:']) || '#';
+        const socialHref = safeHref(val, ['http:', 'https:']);
+        // No dead "#" links: an icon that goes nowhere costs more trust than it adds.
+        if (!socialHref) {
+          el.hidden = true;
+          el.setAttribute('aria-hidden', 'true');
+          el.removeAttribute('href');
+        } else {
+          el.href = socialHref;
+          el.hidden = false;
+          el.removeAttribute('aria-hidden');
+          el.setAttribute('target', '_blank');
+          el.setAttribute('rel', 'noopener noreferrer');
+        }
       } else if (key === 'phone') {
         el.href = 'tel:' + val.replace(/\s/g, '');
         el.textContent = val;
@@ -350,7 +416,20 @@
         el.href = safeHref('mailto:' + val) || '#';
         el.textContent = val;
       } else if (key === 'aboutResumeUrl') {
-        el.href = safeHref(val, ['http:', 'https:']) || '#';
+        const resumeHref = safeHref(val, ['http:', 'https:']);
+        if (!resumeHref) {
+          el.hidden = true;
+          el.setAttribute('aria-hidden', 'true');
+        } else {
+          el.href = resumeHref;
+          el.hidden = false;
+          el.removeAttribute('aria-hidden');
+          // A readable filename in the recruiter's Downloads folder instead of a UUID.
+          el.setAttribute('download', 'Alireza-Shabanzadeh-Motion-Designer-Resume.pdf');
+          el.setAttribute('rel', 'noopener');
+          const label = el.querySelector('[data-resume-label]');
+          if (label) label.textContent = 'Download résumé (PDF)';
+        }
       } else if (key === 'aboutSkills') {
         const skillPositions = [
           { left: '2%', top: '8%' },
@@ -509,6 +588,100 @@
       }
     });
 
+    // ============================================
+    // HONESTY / EMPTY-STATE PASS
+    // Nothing unverifiable or empty is allowed to look like content: stats with
+    // no value, placeholder testimonials, empty social icons and empty info
+    // rows are hidden instead of rendered.
+    // ============================================
+    const isBlank = value => value == null || String(value).trim() === '' || (Array.isArray(value) && value.length === 0);
+
+    ['heroStat1', 'heroStat2', 'heroStat3'].forEach(key => {
+      const valueEl = document.querySelector('[data-setting="' + key + 'Value"]');
+      const labelEl = document.querySelector('[data-setting="' + key + 'Label"]');
+      const block = valueEl ? valueEl.closest('.hero-stat') : null;
+      const valueEmpty = isBlank(settings[key + 'Value']) || !valueEl || !valueEl.dataset.statValue;
+      const labelEmpty = isBlank(settings[key + 'Label']);
+      if (valueEl && valueEmpty) valueEl.textContent = '';
+      if (labelEl && labelEmpty) labelEl.textContent = '';
+      if (block && (valueEmpty || labelEmpty)) block.hidden = true;
+    });
+
+    // Whole sections stay off the page while they hold nothing real.
+    const testimonialsSection = document.getElementById('testimonials');
+    if (testimonialsSection) {
+      const hasTestimonials = Array.isArray(settings.testimonials) && settings.testimonials.length > 0;
+      testimonialsSection.hidden = !hasTestimonials;
+      const dot = document.querySelector('.scroll-dot[data-section="testimonials"]');
+      if (dot) dot.hidden = !hasTestimonials;
+    }
+
+    const timelineSection = document.getElementById('timeline');
+    if (timelineSection) {
+      const hasExperience = Array.isArray(settings.experience) && settings.experience.length > 0;
+      const hasEducation = Array.isArray(settings.education) && settings.education.length > 0;
+      const hasHistory = hasExperience || hasEducation;
+      timelineSection.hidden = !hasHistory;
+      const dot = document.querySelector('.scroll-dot[data-section="timeline"]');
+      if (dot) dot.hidden = !hasHistory;
+
+      // An empty tab is worse than no tab: hide what has no entries and make
+      // sure the panel that does have content is the one on screen.
+      const experienceTab = document.getElementById('experienceTab');
+      const educationTab = document.getElementById('educationTab');
+      const experiencePanel = document.getElementById('experiencePanel');
+      const educationPanel = document.getElementById('educationPanel');
+      if (experienceTab) experienceTab.hidden = !hasExperience;
+      if (educationTab) educationTab.hidden = !hasEducation;
+      if (!hasExperience && hasEducation && educationTab && educationPanel && experiencePanel) {
+        experiencePanel.classList.remove('active');
+        experiencePanel.hidden = true;
+        educationPanel.hidden = false;
+        educationPanel.classList.add('active');
+        educationTab.classList.add('active');
+        educationTab.setAttribute('aria-selected', 'true');
+        educationTab.tabIndex = 0;
+      }
+    }
+
+    const workSection = document.getElementById('work');
+    if (workSection) workSection.hidden = false; // the CTA card keeps it useful
+
+    // Availability badge: only when it is actually true.
+    const availability = document.querySelector('.availability-badge');
+    if (availability) availability.hidden = isBlank(settings.heroAvailability);
+
+    // Contact info rows: never show a label with an empty value.
+    document.querySelectorAll('.contact-info-item').forEach(item => {
+      const value = item.querySelector('.contact-info-value');
+      const emptyText = !value || value.textContent.trim() === '';
+      const emptyHref = value && value.tagName === 'A' && (!value.getAttribute('href') || value.getAttribute('href') === '#');
+      if (emptyText || emptyHref) item.hidden = true;
+    });
+
+    // Showreel button (only when a real video URL exists).
+    const showreelButton = document.getElementById('heroShowreelBtn');
+    const showreelUrl = safeHref(settings.heroShowreelUrl, ['http:', 'https:']);
+    if (showreelButton) {
+      if (!showreelUrl) {
+        showreelButton.hidden = true;
+      } else {
+        showreelButton.hidden = false;
+        showreelButton.dataset.videoUrl = showreelUrl;
+      }
+    }
+
+    // Promise line: hidden when empty rather than leaving an orphan sentence.
+    const promiseLine = document.querySelector('.hero-promise');
+    if (promiseLine) promiseLine.hidden = isBlank(settings.heroPromise);
+
+    // Social block: hide the whole row when nothing is configured.
+    const socialBlock = document.querySelector('.contact-social');
+    if (socialBlock) {
+      const visible = Array.from(socialBlock.querySelectorAll('.social-link')).some(link => !link.hidden);
+      socialBlock.hidden = !visible;
+    }
+
     // Dual hero portraits
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const portraitDark = document.getElementById('heroPortraitDark');
@@ -534,11 +707,9 @@
       }
     }
 
-    // After settings applied, refresh hero stats animation to use latest values
-    if (typeof window.refreshHeroStats === 'function') {
-      // Small delay to ensure DOM updated and ScrollTrigger ready
-      setTimeout(() => window.refreshHeroStats(), 100);
-    }
+    // Hero stats were already handed to the counter while the settings loop ran
+    // (setHeroStatValue). No second pass here — that is what used to restart the
+    // animation on a half-finished number.
   }
 
   window.addEventListener('load', () => {
@@ -558,6 +729,11 @@
         }
       })
       .catch(() => {
+        // API unreachable: keep the static markup honest — no empty stat blocks.
+        document.querySelectorAll('.hero-stat').forEach(block => {
+          const value = block.querySelector('.hero-stat-value');
+          if (!value || value.textContent.trim() === '') block.hidden = true;
+        });
         if (typeof window.initHeroAnimation === 'function') {
           window.initHeroAnimation();
         }
@@ -666,18 +842,32 @@
   const mobileMenu = document.getElementById('mobileMenu');
 
   if (mobileMenuBtn && mobileMenu) {
+    const setMenuState = (open) => {
+      mobileMenuBtn.classList.toggle('is-active', open);
+      mobileMenu.classList.toggle('is-open', open);
+      mobileMenuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      mobileMenuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      document.body.style.overflow = open ? 'hidden' : '';
+    };
+
+    mobileMenuBtn.setAttribute('type', 'button');
+    mobileMenuBtn.setAttribute('aria-controls', 'mobileMenu');
+    mobileMenuBtn.setAttribute('aria-expanded', 'false');
+    mobileMenuBtn.setAttribute('aria-label', 'Open menu');
+
     mobileMenuBtn.addEventListener('click', () => {
-      mobileMenuBtn.classList.toggle('is-active');
-      mobileMenu.classList.toggle('is-open');
-      document.body.style.overflow = mobileMenu.classList.contains('is-open') ? 'hidden' : '';
+      setMenuState(!mobileMenu.classList.contains('is-open'));
     });
 
     mobileMenu.querySelectorAll('.mobile-menu-link').forEach(link => {
-      link.addEventListener('click', () => {
-        mobileMenuBtn.classList.remove('is-active');
-        mobileMenu.classList.remove('is-open');
-        document.body.style.overflow = '';
-      });
+      link.addEventListener('click', () => setMenuState(false));
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && mobileMenu.classList.contains('is-open')) {
+        setMenuState(false);
+        mobileMenuBtn.focus();
+      }
     });
   }
 
@@ -934,15 +1124,21 @@
 
   if (noiseToggle && noiseSvg) {
     // Restore state
-    if (localStorage.getItem(NOISE_KEY) === 'on') {
-      noiseToggle.classList.add('is-active');
-      noiseSvg.classList.add('is-active');
-    }
+    let noiseOn = false;
+    try {
+      noiseOn = localStorage.getItem(NOISE_KEY) === 'on';
+    } catch (error) {}
+    noiseToggle.classList.toggle('is-active', noiseOn);
+    noiseSvg.classList.toggle('is-active', noiseOn);
+    noiseToggle.setAttribute('aria-pressed', noiseOn ? 'true' : 'false');
 
     noiseToggle.addEventListener('click', () => {
       const isActive = noiseToggle.classList.toggle('is-active');
       noiseSvg.classList.toggle('is-active', isActive);
-      localStorage.setItem(NOISE_KEY, isActive ? 'on' : 'off');
+      noiseToggle.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      try {
+        localStorage.setItem(NOISE_KEY, isActive ? 'on' : 'off');
+      } catch (error) {}
     });
   }
 
@@ -1004,43 +1200,225 @@
   // ============================================
   const contactForm = document.getElementById('contactForm');
   if (contactForm) {
-    contactForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = contactForm.querySelector('.btn');
-      const originalHTML = btn.innerHTML;
-      btn.innerHTML = '<span>Sending...</span>';
-      btn.disabled = true;
+    const statusEl = document.getElementById('contactStatus');
+    const submitBtn = contactForm.querySelector('button[type="submit"]');
+    const submitLabel = submitBtn ? submitBtn.querySelector('[data-submit-label]') : null;
+    const originalLabel = submitLabel ? submitLabel.textContent : '';
 
+    function setStatus(message, state) {
+      if (!statusEl) return;
+      statusEl.textContent = message;
+      statusEl.dataset.state = state || 'info';
+      statusEl.hidden = !message;
+    }
+
+    function emailFallback() {
+      const mailLink = document.querySelector('a[data-setting="email"]');
+      const address = mailLink ? mailLink.textContent.trim() : '';
+      return address ? ' You can email me directly at ' + address + '.' : '';
+    }
+
+    contactForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (submitBtn && submitBtn.disabled) return;
+
+      const nameField = document.getElementById('contactName');
+      const emailField = document.getElementById('contactEmail');
+      const messageField = document.getElementById('contactMessage');
+      const typeField = document.getElementById('contactProjectType');
       const payload = {
-        name: document.getElementById('contactName').value.trim(),
-        email: document.getElementById('contactEmail').value.trim(),
-        message: document.getElementById('contactMessage').value.trim()
+        name: nameField ? nameField.value.trim() : '',
+        email: emailField ? emailField.value.trim() : '',
+        message: messageField ? messageField.value.trim() : '',
+        projectType: typeField ? typeField.value : ''
       };
 
+      if (!payload.name || !payload.email || !payload.message) {
+        setStatus('Please fill in your name, email and a short message.', 'error');
+        const firstEmpty = [!payload.name && nameField, !payload.email && emailField, !payload.message && messageField]
+          .find(Boolean);
+        if (firstEmpty) firstEmpty.focus();
+        return;
+      }
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (submitLabel) submitLabel.textContent = 'Sending…';
+      setStatus('Sending your message…', 'info');
+
       try {
-        const res = await fetch('/api.php?_query=messages', {
+        const response = await fetch('/api.php?_query=messages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        if (!res.ok) throw new Error('Failed to send');
-        btn.innerHTML = '<span>Message Sent!</span>';
-        btn.style.background = '#22c55e';
+        if (!response.ok) throw new Error('Send failed');
+
         contactForm.reset();
-        setTimeout(() => {
-          btn.innerHTML = originalHTML;
-          btn.style.background = '';
-          btn.disabled = false;
-        }, 3000);
-      } catch {
-        btn.innerHTML = '<span>Failed to send</span>';
-        btn.style.background = '#ef4444';
-        setTimeout(() => {
-          btn.innerHTML = originalHTML;
-          btn.style.background = '';
-          btn.disabled = false;
-        }, 3000);
+        if (submitLabel) submitLabel.textContent = 'Message sent';
+        setStatus('Thanks — your message is with me. I reply within one business day.' + emailFallback(), 'success');
+        if (statusEl) statusEl.focus({ preventScroll: true });
+      } catch (error) {
+        setStatus('That did not go through — please try again.' + emailFallback(), 'error');
+        if (statusEl) statusEl.focus({ preventScroll: true });
+      } finally {
+        window.setTimeout(() => {
+          if (submitBtn) submitBtn.disabled = false;
+          if (submitLabel) submitLabel.textContent = originalLabel || 'Send message';
+        }, 4000);
       }
+    });
+  }
+
+  // ============================================
+  // COPY EMAIL — one click instead of retyping an address
+  // ============================================
+  const copyEmailBtn = document.getElementById('copyEmailBtn');
+  if (copyEmailBtn) {
+    copyEmailBtn.addEventListener('click', async () => {
+      const emailLink = document.querySelector('a[data-setting="email"]');
+      const address = (emailLink ? emailLink.textContent : '').trim();
+      if (!address) return;
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(address);
+        copied = true;
+      } catch (error) {
+        // Clipboard API blocked (http, iframe, permissions) — fall back to selection.
+        try {
+          const helper = document.createElement('textarea');
+          helper.value = address;
+          helper.setAttribute('readonly', '');
+          helper.style.position = 'fixed';
+          helper.style.opacity = '0';
+          document.body.appendChild(helper);
+          helper.select();
+          copied = document.execCommand('copy');
+          helper.remove();
+        } catch (innerError) {
+          copied = false;
+        }
+      }
+      const feedback = document.getElementById('copyEmailFeedback');
+      if (feedback) feedback.textContent = copied ? 'Email copied: ' + address : 'Copy failed — the address is ' + address;
+      copyEmailBtn.dataset.state = copied ? 'copied' : 'failed';
+      window.setTimeout(() => {
+        if (feedback) feedback.textContent = '';
+        copyEmailBtn.dataset.state = '';
+      }, 4000);
+    });
+  }
+
+  // ============================================
+  // SHOWREEL — loaded only on an explicit click
+  // ============================================
+  const showreelBtn = document.getElementById('heroShowreelBtn');
+  const showreelDialog = document.getElementById('showreelDialog');
+  if (showreelBtn && showreelDialog) {
+    const stage = showreelDialog.querySelector('.showreel-stage');
+    const closeBtn = showreelDialog.querySelector('.showreel-close');
+    let lastFocus = null;
+
+    function embedUrl(raw) {
+      try {
+        const url = new URL(raw, window.location.origin);
+        const host = url.hostname.replace(/^www\./, '');
+        if (host === 'youtu.be') return 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(url.pathname.split('/').filter(Boolean)[0] || '');
+        if (host === 'youtube.com' || host.endsWith('.youtube.com')) {
+          const parts = url.pathname.split('/').filter(Boolean);
+          const id = url.searchParams.get('v') || (parts[0] === 'embed' || parts[0] === 'shorts' ? parts[1] : '');
+          return id ? 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) : '';
+        }
+        if (host === 'vimeo.com' || host.endsWith('.vimeo.com')) {
+          const id = url.pathname.split('/').filter(Boolean).find(part => /^\d+$/.test(part));
+          return id ? 'https://player.vimeo.com/video/' + id : '';
+        }
+        if (/\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url.pathname)) return url.href;
+      } catch (error) {}
+      return '';
+    }
+
+    function mountShowreel() {
+      const source = showreelBtn.dataset.videoUrl || '';
+      const embed = embedUrl(source);
+      if (!stage) return;
+      stage.innerHTML = '';
+      if (!embed) {
+        const fallback = document.createElement('p');
+        fallback.className = 'showreel-fallback';
+        fallback.textContent = 'This showreel link cannot be embedded. Opening it in a new tab instead…';
+        stage.appendChild(fallback);
+        window.open(source, '_blank', 'noopener');
+        return;
+      }
+      if (/\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(embed)) {
+        const video = document.createElement('video');
+        video.src = embed;
+        video.controls = true;
+        video.playsInline = true;
+        video.preload = 'metadata';
+        video.setAttribute('aria-label', 'Showreel');
+        stage.appendChild(video);
+        return;
+      }
+      const consents = window.portfolioConsent;
+      const allowed = !consents || consents.allowed('media');
+      if (!allowed) {
+        const gate = document.createElement('div');
+        gate.className = 'showreel-gate';
+        gate.innerHTML = '<p>This video is hosted on YouTube. Loading it sends your IP address to Google.</p>';
+        const load = document.createElement('button');
+        load.type = 'button';
+        load.className = 'btn btn-primary';
+        load.textContent = 'Load video from YouTube';
+        load.addEventListener('click', () => {
+          if (window.portfolioConsent && typeof window.portfolioConsent.allowMediaForSession === 'function') {
+            window.portfolioConsent.allowMediaForSession();
+          }
+          mountShowreel();
+        });
+        gate.appendChild(load);
+        stage.appendChild(gate);
+        return;
+      }
+      const frame = document.createElement('iframe');
+      frame.src = embed + (embed.indexOf('?') > -1 ? '&' : '?') + 'autoplay=1&rel=0';
+      frame.title = 'Showreel';
+      frame.loading = 'lazy';
+      frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+      frame.allowFullscreen = true;
+      frame.referrerPolicy = 'strict-origin-when-cross-origin';
+      stage.appendChild(frame);
+    }
+
+    function openShowreel() {
+      lastFocus = document.activeElement;
+      showreelDialog.hidden = false;
+      document.body.style.overflow = 'hidden';
+      mountShowreel();
+      requestAnimationFrame(() => showreelDialog.classList.add('is-visible'));
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function closeShowreel() {
+      showreelDialog.classList.remove('is-visible');
+      if (stage) {
+        const frame = stage.querySelector('iframe');
+        if (frame) frame.remove();
+        const video = stage.querySelector('video');
+        if (video) video.pause();
+      }
+      showreelDialog.hidden = true;
+      document.body.style.overflow = '';
+      if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+    }
+
+    showreelBtn.addEventListener('click', openShowreel);
+    if (closeBtn) closeBtn.addEventListener('click', closeShowreel);
+    showreelDialog.addEventListener('click', (event) => {
+      if (event.target === showreelDialog) closeShowreel();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !showreelDialog.hidden) closeShowreel();
     });
   }
 

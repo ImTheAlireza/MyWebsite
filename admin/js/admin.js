@@ -1473,7 +1473,7 @@
       const d = await api('settings');
       ['heroEyebrow','heroFirstName','heroLastName','heroSubtitle','heroAvailability',
        'heroStat1Value','heroStat1Label','heroStat2Value','heroStat2Label','heroStat3Value','heroStat3Label',
-       'heroCtaText','heroCtaLink','heroShowreelUrl'].forEach(k => {
+       'heroCtaText','heroCtaLink','heroShowreelUrl','heroPromise'].forEach(k => {
         const el = $(`#${k}`);
         if (el && d[k] != null) el.value = d[k];
       });
@@ -1515,6 +1515,7 @@
         heroCtaText: $('#heroCtaText').value.trim(),
         heroCtaLink: $('#heroCtaLink').value.trim(),
         heroShowreelUrl: $('#heroShowreelUrl').value.trim(),
+        heroPromise: $('#heroPromise').value.trim(),
         heroPortraitDark: $('#heroPortraitDark').value || '',
         heroPortraitDarkOpacity: parseFloat($('#heroPortraitDarkOpacity').value),
         heroPortraitDarkScale: parseFloat($('#heroPortraitDarkScale').value),
@@ -3315,6 +3316,18 @@
     } catch (e) { console.error('Messages load error:', e); }
   }
 
+  const MESSAGE_TYPES = {
+    explainer: 'Explainer / product video',
+    social: 'Social media animation',
+    ui: 'UI / app motion',
+    logo: 'Logo / brand animation',
+    other: 'Something else'
+  };
+
+  function messageTypeLabel(value) {
+    return MESSAGE_TYPES[value] || String(value);
+  }
+
   function renderMessages() {
     const list = $('#messagesList');
     const empty = $('#messagesEmptyState');
@@ -3333,6 +3346,7 @@
           <div>
             <span class="message-sender">${esc(m.name)}</span>
             <span class="message-email">&lt;${esc(m.email)}&gt;</span>
+            ${m.projectType ? `<span class="message-type">${esc(messageTypeLabel(m.projectType))}</span>` : ''}
           </div>
           <div style="display:flex;align-items:center;gap:12px">
             <span class="message-time">${new Date(m.createdAt).toLocaleDateString()} ${new Date(m.createdAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>

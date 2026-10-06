@@ -1,12 +1,31 @@
 /**
  * Client-side analytics tracking + project likes
- * Privacy-friendly: no third-party geo, debounced heartbeats
+ *
+ * Privacy rules in force here:
+ *   - Analytics (pageview, dwell time, clicks, downloads) only runs after the
+ *     visitor accepts statistics in the consent banner. Nothing is stored and
+ *     no request is sent before that. See js/consent.js.
+ *   - Location is a coarse timezone string; the server hashes IPs and prunes
+ *     raw data after 30 days (php/handlers/tracking.php).
+ *   - The pseudonymous visitor id is only created when it is actually needed
+ *     (statistics accepted or the visitor uses the like button).
  */
 (function () {
   'use strict';
 
   const TRACK_URL = '/api.php?_query=track';
   const LIKES_URL = '/api.php?_query=projects';
+  const VISITOR_KEY = 'portfolio-visitor-id';
+  const LIKES_KEY = 'portfolio-likes';
+
+  function consent() {
+    return window.portfolioConsent || null;
+  }
+
+  function analyticsAllowed() {
+    const manager = consent();
+    return !!(manager && manager.allowed('analytics'));
+  }
 
   function randomId(prefix) {
     const core = (typeof crypto !== 'undefined' && crypto.randomUUID)
@@ -15,11 +34,21 @@
     return prefix + core;
   }
 
+  // Created lazily: only when statistics are allowed or the visitor likes a project.
   function getVisitorId() {
-    let id = localStorage.getItem('portfolio-visitor-id');
+    let id = null;
+    try {
+      id = localStorage.getItem(VISITOR_KEY);
+    } catch (error) {
+      id = null;
+    }
     if (!id) {
       id = randomId('v-');
-      localStorage.setItem('portfolio-visitor-id', id);
+      try {
+        localStorage.setItem(VISITOR_KEY, id);
+      } catch (error) {
+        /* private mode: keep the id in memory for this page view only */
+      }
     }
     return id;
   }
@@ -46,6 +75,8 @@
   const lastSent = new Map();
 
   async function track(type, extra = {}) {
+    // Hard gate: no consent, no request, no identifier.
+    if (!analyticsAllowed()) return;
     const key = type + ':' + (extra.page || '') + ':' + (extra.projectId || '');
     const now = Date.now();
     const minGap = type === 'heartbeat' ? 25000 : 8000;
@@ -76,6 +107,7 @@
 
   let heartbeatInterval = null;
   function startTimeTracking() {
+    if (heartbeatInterval) return; // never run two heartbeat timers at once
     track('heartbeat');
     heartbeatInterval = setInterval(() => {
       if (document.visibilityState === 'visible') track('heartbeat');
@@ -93,10 +125,9 @@
   // ============================================
   // LIKE SYSTEM
   // ============================================
-  const visitorId = getVisitorId();
   let likedProjects;
   try {
-    likedProjects = new Set(JSON.parse(localStorage.getItem('portfolio-likes') || '[]'));
+    likedProjects = new Set(JSON.parse(localStorage.getItem(LIKES_KEY) || '[]'));
   } catch {
     likedProjects = new Set();
   }
@@ -122,13 +153,13 @@
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
         cache: 'no-store',
-        body: JSON.stringify({ visitorId })
+        body: JSON.stringify({ visitorId: getVisitorId() })
       });
       if (res.ok) {
         const d = await res.json();
         if (d.liked) likedProjects.add(String(projectId));
         else likedProjects.delete(String(projectId));
-        localStorage.setItem('portfolio-likes', JSON.stringify([...likedProjects]));
+        try { localStorage.setItem(LIKES_KEY, JSON.stringify([...likedProjects])); } catch (error) {}
         return d;
       }
     } catch {}
@@ -219,16 +250,32 @@
     if (resumeLink) trackResumeDownload();
   });
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      trackPageView();
-      startTimeTracking();
-      hydrateCardLikeCounts();
-    });
-  } else {
+  // Guards against starting twice: once on boot for a returning visitor who has
+  // already agreed, and again if the consent callback fires immediately.
+  let analyticsStarted = false;
+  function startAnalytics() {
+    if (analyticsStarted) return;
+    analyticsStarted = true;
     trackPageView();
     startTimeTracking();
+  }
+
+  function boot() {
     hydrateCardLikeCounts();
+    if (analyticsAllowed()) startAnalytics();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+
+  // If the visitor accepts statistics later in the same visit, start now.
+  if (consent() && typeof consent().onChange === 'function') {
+    consent().onChange(state => {
+      if (state && state.analytics) startAnalytics();
+    });
   }
 
   window.addEventListener('hashchange', trackPageView);

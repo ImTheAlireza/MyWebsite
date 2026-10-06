@@ -134,6 +134,7 @@ function export_tracking() {
             return array(
                 'id' => $m['id'], 'name' => $m['name'], 'email' => $m['email'],
                 'message' => $m['message'], 'read' => $m['read'], 'createdAt' => $m['createdAt'],
+                'projectType' => arr_get($m, 'projectType', ''),
             );
         }, arr_get($messages, 'messages', array())),
     );

@@ -14,6 +14,11 @@ function create_message() {
     $name = arr_get($input, 'name', '');
     $email = arr_get($input, 'email', '');
     $message = arr_get($input, 'message', '');
+    $projectType = arr_get($input, 'projectType', '');
+    if (!is_string($projectType)) $projectType = '';
+    // Whitelisted: this value comes straight from a public form.
+    $allowedTypes = array('explainer', 'social', 'ui', 'logo', 'other');
+    if (!in_array($projectType, $allowedTypes, true)) $projectType = '';
 
     if (!$name || !$email || !$message) {
         send_error('Name, email, and message are required');
@@ -32,6 +37,7 @@ function create_message() {
         'name' => sanitize(substr($name, 0, 200)),
         'email' => sanitize(substr($email, 0, 200)),
         'message' => sanitize(substr($message, 0, 5000)),
+        'projectType' => $projectType,
         'read' => false,
         'createdAt' => date('c'),
     );

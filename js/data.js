@@ -112,9 +112,37 @@ function mediaElement(value, options = {}) {
     }
     const embed = externalVideoEmbed(url);
     if (embed) {
+      // Third-party player: only embedded after consent (or after an explicit
+      // click in this session). Until then the visitor sees a clear choice.
+      const manager = window.portfolioConsent;
+      const mediaAllowed = !manager || typeof manager.allowed !== 'function' || manager.allowed('media');
+      if (!mediaAllowed) {
+        const gate = document.createElement('div');
+        gate.className = 'portfolio-embed-gate';
+        const note = document.createElement('p');
+        note.textContent = 'This video is hosted on YouTube/Vimeo. Loading it sends your IP address to that provider.';
+        const load = document.createElement('button');
+        load.type = 'button';
+        load.className = 'btn btn-primary';
+        load.textContent = 'Load video';
+        load.addEventListener('click', () => {
+          if (manager && typeof manager.allowMediaForSession === 'function') manager.allowMediaForSession();
+          const frame = document.createElement('iframe');
+          frame.src = embed + (embed.indexOf('?') > -1 ? '&' : '?') + 'rel=0';
+          frame.title = title || 'Embedded video';
+          frame.loading = 'lazy';
+          frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+          frame.allowFullscreen = true;
+          frame.referrerPolicy = 'strict-origin-when-cross-origin';
+          gate.replaceWith(frame);
+        });
+        gate.append(note, load);
+        return gate;
+      }
       const frame = document.createElement('iframe');
       frame.src = embed;
       frame.title = title || 'Embedded video';
+      frame.loading = 'lazy';
       frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
       frame.allowFullscreen = true;
       frame.referrerPolicy = 'strict-origin-when-cross-origin';
@@ -138,7 +166,9 @@ function mediaElement(value, options = {}) {
 
   const image = document.createElement('img');
   image.src = url;
-  image.alt = title;
+  // Always give the image a usable name: alt text comes from the brand/project
+  // title, and generic previews fall back to something descriptive rather than "".
+  image.alt = title || (options.altFallback || 'Preview image');
   image.loading = viewer ? 'eager' : 'lazy';
   image.decoding = 'async';
   image.draggable = false;
@@ -250,7 +280,9 @@ function renderProjects() {
     card.setAttribute('aria-haspopup', 'dialog');
     card.setAttribute('aria-label', 'Open ' + brand.name + ', ' + countLabel);
 
-    const cover = mediaElement(brand.thumbnail, { title: '' });
+    const cover = mediaElement(brand.thumbnail, {
+      title: brand.name ? brand.name + ' — cover image' : 'Brand cover image'
+    });
     cover.className = 'brand-card-image';
     card.appendChild(cover);
 
@@ -327,7 +359,9 @@ function brandHero(brand, count) {
   const hero = document.createElement('header');
   hero.className = 'portfolio-brand-hero is-' + mode;
 
-  const cover = mediaElement(brand.thumbnail, { title: '' });
+  const cover = mediaElement(brand.thumbnail, {
+    title: brand.name ? brand.name + ' — cover image' : 'Brand cover image'
+  });
   cover.className = 'portfolio-brand-cover';
   hero.appendChild(cover);
 
@@ -514,7 +548,11 @@ function galleryTile(url, index, brand, grid) {
   tile.dataset.aspect = String(persistedAspect || (isVideo(url) ? 16 / 9 : 4 / 3));
   tile.style.setProperty('--gallery-order', index);
 
-  const preview = mediaElement(url, { title: '', poster: brandGalleryPoster(brand, url) });
+  const total = brandGallery(brand).length;
+  const preview = mediaElement(url, {
+    title: (brand.name || 'Brand') + ' — media ' + (index + 1) + ' of ' + total,
+    poster: brandGalleryPoster(brand, url)
+  });
   preview.classList.add('brand-gallery-preview');
   if (preview instanceof HTMLImageElement && (index < 16 || !persistedAspect)) preview.loading = 'eager';
   tile.appendChild(preview);
@@ -576,7 +614,10 @@ function projectCard(project, index) {
   visual.className = 'portfolio-project-visual';
   const previewUrl = projectPreview(project, media);
   if (previewUrl) {
-    const preview = mediaElement(previewUrl, { title: '' });
+    const preview = mediaElement(previewUrl, {
+      title: (project.title || 'Project') + ' — preview',
+      altFallback: (project.title || 'Project') + ' — preview image'
+    });
     preview.classList.add('portfolio-project-preview');
     visual.appendChild(preview);
   } else {
@@ -794,8 +835,8 @@ function openCaseStudy(trigger, project, media) {
     thumbs.className = 'case-study-thumbs';
     thumbs.setAttribute('aria-label', 'Project media');
     media.forEach((url, index) => {
-      const thumb = button('case-study-thumb', 'Show media ' + (index + 1));
-      thumb.appendChild(mediaElement(url, { title: '' }));
+      const thumb = button('case-study-thumb', 'Show media ' + (index + 1) + ' of ' + media.length);
+      thumb.appendChild(mediaElement(url, { title: (project.title || 'Project') + ' — media ' + (index + 1) }));
       if (isVideo(url)) {
         const mark = document.createElement('span');
         mark.innerHTML = ICONS.play;
@@ -857,9 +898,12 @@ function closeCaseStudy(restoreFocus = true) {
   if (restoreFocus && trigger && document.contains(trigger)) trigger.focus({ preventScroll: true });
 }
 
-function lightboxThumb(url, index) {
-  const thumb = button('media-lightbox-thumb', 'Show media ' + (index + 1));
-  thumb.appendChild(mediaElement(url, { title: '' }));
+function lightboxThumb(url, index, total, label) {
+  const thumb = button('media-lightbox-thumb', 'Show media ' + (index + 1) + ' of ' + (total || index + 1));
+  thumb.appendChild(mediaElement(url, {
+    title: (label || 'Media') + ' — thumbnail ' + (index + 1),
+    altFallback: (label || 'Media') + ' — thumbnail ' + (index + 1)
+  }));
   if (isVideo(url)) {
     const mark = document.createElement('span');
     mark.innerHTML = ICONS.play;
@@ -928,7 +972,7 @@ function openMediaLightbox(mediaValues, index, title, trigger) {
   if (media.length > 1) {
     thumbs = document.createElement('div');
     thumbs.className = 'media-lightbox-thumbs';
-    media.forEach((url, thumbIndex) => thumbs.appendChild(lightboxThumb(url, thumbIndex)));
+    media.forEach((url, thumbIndex) => thumbs.appendChild(lightboxThumb(url, thumbIndex, media.length, title)));
     lightbox.appendChild(thumbs);
   }
 

@@ -26,6 +26,19 @@ function login() {
         send_error('Invalid credentials', 401);
     }
 
+    // Guard against the demo password that is committed to this repository's
+    // history ("admin123"): it is public, so it must never open the panel.
+    // Accounts that already use a private password are unaffected.
+    $LEAKED_DEFAULT_PASSWORD = 'admin123';
+    if ($password === $LEAKED_DEFAULT_PASSWORD && password_verify($LEAKED_DEFAULT_PASSWORD, $found['password'])) {
+        send_error(
+            'Security: this password is published in the site repository and no longer works. ' .
+            'To set a new one: create a .env file next to api.php with ADMIN_USER and ADMIN_PASS lines, ' .
+            'delete data/users.json on the server, then sign in here with that new username and password.',
+            403
+        );
+    }
+
     $token = jwt_encode(array(
         'id' => $found['id'],
         'username' => $found['username'],
