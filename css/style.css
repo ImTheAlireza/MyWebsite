@@ -609,12 +609,6 @@ img {
   margin-bottom: var(--space-4xl);
 }
 
-.section-number {
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  color: var(--accent-text);
-  letter-spacing: 0.05em;
-}
 
 .section-title {
   font-family: var(--font-display);
