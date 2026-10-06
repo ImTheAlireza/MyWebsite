@@ -11,12 +11,12 @@
   "heroEyebrow": "Motion Graphics Designer",
   "heroFirstName": "Alireza",
   "heroLastName": "Shabanzadeh",
-  "heroSubtitle": "I turn product ideas into clear motion — explainers, social cuts and UI animation, with the scope and timeline agreed before we start.",
+  "heroSubtitle": "I make product and learning ideas move: explainer videos, UI motion and social cuts that stay legible on a phone. Storyboard to the files your team ships — in English or Persian.",
   "heroAvailability": "Open for freelance projects",
-  "heroStat1Value": "Ae · Ps · Pr",
-  "heroStat1Label": "Tools I use",
-  "heroStat2Value": "Rasht, Iran",
-  "heroStat2Label": "Based in",
+  "heroStat1Value": "Since 2018",
+  "heroStat1Label": "Motion & learning content",
+  "heroStat2Value": "EN · FA",
+  "heroStat2Label": "Working languages",
   "heroStat3Value": "",
   "heroStat3Label": "",
   "heroCtaText": "See selected work",
@@ -29,8 +29,8 @@
   "heroPortraitLightOpacity": 0.87,
   "heroPortraitLightScale": 0.91,
   "aboutImage": "/assets/about-portrait.jpg",
-  "aboutText": "I design motion that explains things: **explainer videos** that make one feature obvious, **social cuts** that survive a scroll, and **UI animation** that makes an interface feel responsive.\n\nI work in **After Effects, Photoshop and Premiere Pro**. The process is simple and visible — we agree the goal and the deliverables, you approve a storyboard, and you get the finished files in the formats each platform needs.\n\nSend me the goal and the deadline; I will tell you honestly what is realistic.",
-  "aboutSkills": "Explainer Videos, Social Cuts, UI Animation, Storyboarding, After Effects",
+  "aboutText": "I animate things that have to *explain* something: a feature nobody understands yet, a course module, an onboarding step.\n\nSince 2018 I have worked on both sides of that job — four years and nine months producing e-learning content at Mehr-e-Alborz University, and since 2023 motion graphics in production at Rahavard Samanehaye Amn in Tehran. I studied software engineering and I am finishing a master's in English language education, which is why briefs, storyboards and review calls do not need a translator in the middle.\n\nI work in After Effects, Photoshop and Premiere Pro. Send the goal and the deadline; you get an honest answer about what is realistic, a scope and a price before anything starts.",
+  "aboutSkills": "Explainer Videos, UI Animation, Social Cuts, Storyboarding, After Effects",
   "aboutResumeUrl": "/uploads/2a1a31a3-c828-4b9e-9fa7-623887db5924.pdf",
   "categories": [],
   "projectLayout": "2col",
@@ -38,19 +38,44 @@
   "footerNote": "Freelance motion designer · Rasht, Iran · open to remote work",
   "experience": [
     {
-      "date": "2019 — 2022",
-      "title": "Motion Designer",
-      "subtitle": "Studio and client projects",
-      "desc": "Animated advertisements and brand content, working alongside art directors on campaign visuals."
+      "date": "2023 — Present",
+      "title": "Motion Graphics Designer",
+      "subtitle": "Rahavard Samanehaye Amn · Tehran",
+      "desc": ""
     },
     {
-      "date": "2022 — Present",
-      "title": "Freelance Motion Graphics Designer",
-      "subtitle": "Independent, remote",
-      "desc": "Explainer videos, social media animation and UI motion for teams in tech, education and e-commerce."
+      "date": "2018 — 2023",
+      "title": "E-learning Content Creator",
+      "subtitle": "Mehr-e-Alborz University · 4 yr 9 mo",
+      "desc": ""
+    },
+    {
+      "date": "2022",
+      "title": "Motion Graphics Animator",
+      "subtitle": "Micfava · Rasht",
+      "desc": ""
     }
   ],
-  "education": [],
+  "education": [
+    {
+      "date": "2024 — Present",
+      "title": "MSc, English Language Education",
+      "subtitle": "Islamic Azad University, Rasht",
+      "desc": ""
+    },
+    {
+      "date": "2022 — 2024",
+      "title": "BSc, Software Engineering",
+      "subtitle": "GPA 17.8 / 20",
+      "desc": ""
+    },
+    {
+      "date": "2020 — 2022",
+      "title": "Associate, Software Engineering",
+      "subtitle": "GPA 18 / 20",
+      "desc": ""
+    }
+  ],
   "servicesTitle": "What I do",
   "servicesIntro": "Three ways I help teams get motion shipped — each one starts with a clear scope, not a pitch.",
   "services": [
@@ -70,28 +95,12 @@
       "desc": "Transitions, onboarding moments and empty states for apps and websites — delivered in the format your developers prefer."
     }
   ],
-  "processTitle": "How I work",
-  "processIntro": "A transparent, collaborative workflow that keeps you in the loop — no surprises, just great motion.",
-  "process": [
-    {
-      "title": "Brief & Strategy",
-      "desc": "We align on goals, audience, message and deliverables before any pixel moves."
-    },
-    {
-      "title": "Storyboard & Style",
-      "desc": "I sketch the flow and define the visual language — colors, typography, motion mood."
-    },
-    {
-      "title": "Motion & Design",
-      "desc": "The core craft. Animation, timing, sound design — iterating with you via frame previews."
-    },
-    {
-      "title": "Delivery & Support",
-      "desc": "Optimized exports for every platform, plus the source files. Revision rounds are agreed before we start."
-    }
-  ],
-  "testimonialsTitle": "Client thoughts",
-  "testimonialsIntro": "Words from clients — shown only when a real client agrees to be quoted.",
-  "testimonials": [],
-  "heroPromise": "Tell me the goal and the deadline — you get a scope, a price and a timeline in reply."
+  "heroPromise": "Tell me the goal and the deadline — you get a scope, a price and a timeline in reply.",
+  "offerTitle": "What you get",
+  "offerIntro": "",
+  "offerReply": "",
+  "offerTimeline": "",
+  "offerFormat": "",
+  "offerRevisions": "",
+  "offerTerms": ""
 }

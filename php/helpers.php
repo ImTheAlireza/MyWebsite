@@ -105,6 +105,14 @@ function normalize_project($raw) {
         'year' => clean_content_text(arr_get($raw, 'year', '')),
         'description' => clean_content_text(arr_get($raw, 'description', '')),
         'role' => clean_content_text(arr_get($raw, 'role', '')),
+        // Evidence fields: without these the portfolio can only show pretty
+        // cards, never proof. Empty strings are fine and simply not rendered.
+        'client' => clean_content_text(arr_get($raw, 'client', '')),
+        'deliverable' => clean_content_text(arr_get($raw, 'deliverable', '')),
+        'outcome' => clean_content_text(arr_get($raw, 'outcome', '')),
+        'previewVideo' => clean_content_text(arr_get($raw, 'previewVideo', '')),
+        'titleFa' => clean_content_text(arr_get($raw, 'titleFa', '')),
+        'descriptionFa' => clean_content_text(arr_get($raw, 'descriptionFa', '')),
         'tools' => array_values($tools),
         'video' => clean_content_text(arr_get($raw, 'video', '')),
         'thumbnail' => clean_content_text(arr_get($raw, 'thumbnail', '')),

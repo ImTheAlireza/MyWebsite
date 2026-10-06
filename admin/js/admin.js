@@ -1332,6 +1332,12 @@
     populateCategoryDropdown(p.brand || p.category || '');
     $('#projectYear').value = p.year || '';
     $('#projectDescription').value = p.description || '';
+    $('#projectClient').value = p.client || '';
+    $('#projectDeliverable').value = p.deliverable || '';
+    $('#projectOutcome').value = p.outcome || '';
+    $('#projectPreviewVideo').value = p.previewVideo || '';
+    $('#projectTitleFa').value = p.titleFa || '';
+    $('#projectDescriptionFa').value = p.descriptionFa || '';
     $('#projectRole').value = p.role || '';
     $('#projectTools').value = (p.tools || []).join(', ');
     $('#projectVideo').value = p.video || '';
@@ -1389,6 +1395,12 @@
       year: $('#projectYear').value.trim(),
       description: $('#projectDescription').value.trim(),
       role: $('#projectRole').value.trim(),
+      client: $('#projectClient').value.trim(),
+      deliverable: $('#projectDeliverable').value.trim(),
+      outcome: $('#projectOutcome').value.trim(),
+      previewVideo: $('#projectPreviewVideo').value.trim(),
+      titleFa: $('#projectTitleFa').value.trim(),
+      descriptionFa: $('#projectDescriptionFa').value.trim(),
       tools: $('#projectTools').value.split(',').map(t => t.trim()).filter(Boolean),
       video: $('#projectVideo').value.trim(),
       thumbnail: $('#projectThumbnailUrl').value || $('#projectThumbUrl').value.trim(),

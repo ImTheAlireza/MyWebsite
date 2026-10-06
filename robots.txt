@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api.php
+Disallow: /php/
+Disallow: /data/
+# The job-vision résumé is a job application, not portfolio material:
+Disallow: /uploads/2a1a31a3-c828-4b9e-9fa7-623887db5924.pdf
+
+Sitemap: https://alirezashabanzadeh.com/sitemap.xml

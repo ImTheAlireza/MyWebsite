@@ -8,10 +8,11 @@
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://alirezashabanzadeh.com/cookies.html">
   <script>document.documentElement.classList.add('js');
+    // Theme is not stored and not toggled: it follows the operating system.
     try {
-      var saved = localStorage.getItem('portfolio-theme');
-      if (saved) document.documentElement.setAttribute('data-theme', saved);
-      else if (window.matchMedia('(prefers-color-scheme: light)').matches) document.documentElement.setAttribute('data-theme', 'light');
+      if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
     } catch (error) {}
   </script>
   <link rel="stylesheet" href="css/fonts.css?v=20261006-1">
@@ -71,20 +72,6 @@
             <td>No — strictly necessary</td>
           </tr>
           <tr>
-            <td><code>portfolio-theme</code></td>
-            <td>local storage</td>
-            <td>Remembers whether you chose the light or dark theme.</td>
-            <td>Until you clear it</td>
-            <td>No — your preference</td>
-          </tr>
-          <tr>
-            <td><code>portfolio-noise</code></td>
-            <td>local storage</td>
-            <td>Remembers whether you switched the decorative film-grain overlay on.</td>
-            <td>Until you clear it</td>
-            <td>No — your preference</td>
-          </tr>
-          <tr>
             <td><code>portfolio-likes</code></td>
             <td>local storage</td>
             <td>Remembers which projects you liked, so the heart shows the right state.</td>
@@ -97,13 +84,6 @@
             <td>Remembers that you chose to load a YouTube/Vimeo player in this tab.</td>
             <td>Until the tab closes</td>
             <td>No — your click</td>
-          </tr>
-          <tr>
-            <td><code>portfolio-loader-seen</code></td>
-            <td>session storage</td>
-            <td>Stops the short intro animation from replaying on every page.</td>
-            <td>Until the tab closes</td>
-            <td>No — presentation only</td>
           </tr>
           <tr>
             <td><code>portfolio-visitor-id</code></td>

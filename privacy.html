@@ -8,10 +8,11 @@
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://alirezashabanzadeh.com/privacy.html">
   <script>document.documentElement.classList.add('js');
+    // Theme is not stored and not toggled: it follows the operating system.
     try {
-      var saved = localStorage.getItem('portfolio-theme');
-      if (saved) document.documentElement.setAttribute('data-theme', saved);
-      else if (window.matchMedia('(prefers-color-scheme: light)').matches) document.documentElement.setAttribute('data-theme', 'light');
+      if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
     } catch (error) {}
   </script>
   <link rel="stylesheet" href="css/fonts.css?v=20261006-1">

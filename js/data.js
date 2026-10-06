@@ -256,13 +256,23 @@ function renderProjects() {
   });
 
   if (!visibleBrands.length) {
+    // Never show admin instructions to a visitor. If the grid is empty, the
+    // useful thing is a straight path to asking for the work directly.
     const empty = document.createElement('div');
     empty.className = 'projects-public-empty';
     const heading = document.createElement('h3');
-    heading.textContent = 'No brands published yet';
+    heading.textContent = 'Want the reel and three recent samples?';
     const copy = document.createElement('p');
-    copy.textContent = 'Add brands in the admin panel. Meanwhile, you can still reach out.';
-    empty.append(heading, copy);
+    copy.textContent = 'Send one line about the project — the goal and the deadline. You get the '
+      + 'most relevant work, a scope and a price, not a gallery dump.';
+    const cta = document.createElement('a');
+    cta.className = 'btn btn-primary';
+    cta.href = '#contact';
+    cta.textContent = 'Send the brief';
+    cta.addEventListener('click', () => {
+      if (window.portfolioTracking) window.portfolioTracking.track('contact_cta', { source: 'empty-work-grid' });
+    });
+    empty.append(heading, copy, cta);
     grid.appendChild(empty);
   }
 
@@ -306,7 +316,6 @@ function renderProjects() {
   const cta = document.createElement('a');
   cta.href = '#contact';
   cta.className = 'brand-card-cta';
-  cta.setAttribute('data-cursor', 'link');
   cta.setAttribute('aria-label', 'Let\'s work together - Contact');
   cta.innerHTML = '' +
     '<span class=\"brand-card-cta-icon\">' +
@@ -640,6 +649,41 @@ function projectCard(project, index) {
     visual.appendChild(mediaCount);
   }
 
+  // Hover preview: a short muted clip is the difference between "nice picture"
+  // and "this person animates". Skipped on touch and for reduced motion.
+  const previewClip = safeUrl(project.previewVideo);
+  const canHover = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (previewClip && isDirectVideo(previewClip) && canHover && !reducedMotion) {
+    const clip = document.createElement('video');
+    clip.className = 'portfolio-project-clip';
+    clip.muted = true;
+    clip.loop = true;
+    clip.playsInline = true;
+    clip.preload = 'none';
+    clip.tabIndex = -1;
+    clip.setAttribute('aria-hidden', 'true');
+    clip.src = previewClip;
+    visual.appendChild(clip);
+    let counted = false;
+    card.addEventListener('pointerenter', () => {
+      const playing = clip.play();
+      if (playing && playing.then) {
+        playing.then(() => {
+          if (counted) return;
+          counted = true;
+          if (window.portfolioTracking) {
+            window.portfolioTracking.track('case_preview_play', { projectId: String(project.id || '') });
+          }
+        }).catch(() => {});
+      }
+    });
+    card.addEventListener('pointerleave', () => {
+      clip.pause();
+      try { clip.currentTime = 0; } catch (error) {}
+    });
+  }
+
   const details = document.createElement('span');
   details.className = 'portfolio-project-details';
   const text = document.createElement('span');
@@ -648,6 +692,16 @@ function projectCard(project, index) {
   const title = document.createElement('strong');
   title.textContent = project.title || 'Untitled project';
   text.append(year, title);
+  // Who it was for and what came out of it — the two things a buyer scans for.
+  const cardFacts = [];
+  if (project.client) cardFacts.push(project.client);
+  if (project.deliverable) cardFacts.push(project.deliverable);
+  if (cardFacts.length) {
+    const facts = document.createElement('span');
+    facts.className = 'portfolio-project-facts';
+    facts.textContent = cardFacts.join(' · ');
+    text.appendChild(facts);
+  }
   const arrow = document.createElement('span');
   arrow.className = 'portfolio-project-arrow';
   arrow.innerHTML = ICONS.arrowRight;
@@ -736,6 +790,29 @@ function caseStudyInfo(project) {
     info.appendChild(description);
   }
 
+  // Client / deliverable / outcome first: the three lines that decide whether
+  // someone keeps reading. Only shown when the CMS actually holds them.
+  const caseFacts = [
+    ['Client', project.client],
+    ['Deliverable', project.deliverable],
+    ['Outcome', project.outcome]
+  ].filter(pair => pair[1] && String(pair[1]).trim() !== '');
+  if (caseFacts.length) {
+    const facts = document.createElement('dl');
+    facts.className = 'case-study-facts';
+    caseFacts.forEach(pair => {
+      const row = document.createElement('div');
+      row.className = 'case-study-fact';
+      const label = document.createElement('dt');
+      label.textContent = pair[0];
+      const value = document.createElement('dd');
+      value.textContent = pair[1];
+      row.append(label, value);
+      facts.appendChild(row);
+    });
+    info.appendChild(facts);
+  }
+
   const hasTools = Array.isArray(project.tools) && project.tools.length > 0;
   if (project.role || hasTools) {
     const details = document.createElement('div');
@@ -785,6 +862,12 @@ function updateCaseMedia(index) {
 }
 
 function openCaseStudy(trigger, project, media) {
+  // One event per open: this is the number that says whether the work section
+  // is doing its job.
+  if (window.portfolioTracking && project) {
+    window.portfolioTracking.track('case_open', { projectId: String(project.id || ''), title: String(project.title || '') });
+  }
+
   const { modal, dialog, mount } = modalElements();
   if (!modal || !dialog || !mount) return;
   closeCaseStudy(false);
