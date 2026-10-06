@@ -37,7 +37,19 @@ const T = LANG === 'fa' ? {
   deliverable: 'Deliverable',
   outcome: 'Outcome',
   browse: 'Browse work',
-  projectsLabel: 'projects'
+  projectsLabel: 'projects',
+  gallery: 'Gallery',
+  caseStudies: 'Case studies',
+  exploreWork: 'Explore the work',
+  exploreHint: 'Select a project to see the full story and media.',
+  open: 'Open',
+  openMedia: 'Open media',
+  project: 'project',
+  externalNote: 'This video is hosted on YouTube/Vimeo. Loading it sends your IP address to that provider.',
+  previousMedia: 'Previous media',
+  nextMedia: 'Next media',
+  loading: 'Loading…',
+  loadError: 'Could not load the portfolio.'
 };
 
 let siteBrands = [];
@@ -157,7 +169,7 @@ function mediaElement(value, options = {}) {
         const gate = document.createElement('div');
         gate.className = 'portfolio-embed-gate';
         const note = document.createElement('p');
-        note.textContent = 'This video is hosted on YouTube/Vimeo. Loading it sends your IP address to that provider.';
+        note.textContent = T.externalNote;
         const load = document.createElement('button');
         load.type = 'button';
         load.className = 'btn btn-primary';
@@ -324,7 +336,7 @@ function renderProjects() {
     card.className = 'brand-card is-' + mode;
     card.style.setProperty('--brand-index', index);
     card.setAttribute('aria-haspopup', 'dialog');
-    card.setAttribute('aria-label', 'Open ' + brand.name + ', ' + countLabel);
+    card.setAttribute('aria-label', T.open + ' ' + brand.name + ', ' + countLabel);
 
     const cover = mediaElement(brand.thumbnail, {
       title: brand.name ? brand.name + ' — cover image' : 'Brand cover image'
@@ -336,7 +348,7 @@ function renderProjects() {
     overlay.className = 'brand-card-overlay';
     const kind = document.createElement('span');
     kind.className = 'brand-card-kind';
-    kind.innerHTML = mode === 'gallery' ? ICONS.gallery + '<span>Gallery</span>' : '<span>Case studies</span>';
+    kind.innerHTML = mode === 'gallery' ? ICONS.gallery + '<span>' + T.gallery + '</span>' : '<span>' + T.caseStudies + '</span>';
     const name = document.createElement('strong');
     name.textContent = brand.name || 'Untitled brand';
     const meta = document.createElement('small');
@@ -587,7 +599,7 @@ function setGalleryTileAspect(tile, preview, grid, persistedAspect) {
 }
 
 function galleryTile(url, index, brand, grid) {
-  const tile = button('brand-gallery-tile', 'Open media ' + (index + 1) + ' of ' + brandGallery(brand).length);
+  const tile = button('brand-gallery-tile', T.openMedia + ' ' + (index + 1) + ' / ' + brandGallery(brand).length);
   tile.dataset.index = String(index);
   const persistedAspect = brandGalleryAspect(brand, url);
   tile.dataset.aspect = String(persistedAspect || (isVideo(url) ? 16 / 9 : 4 / 3));
@@ -651,7 +663,7 @@ function renderGalleryBrand(brand, mount) {
 
 function projectCard(project, index) {
   const media = projectMedia(project);
-  const card = button('portfolio-project-card', 'Open ' + (project.title || 'project'));
+  const card = button('portfolio-project-card', T.open + ' ' + (project.title || T.project));
   card.dataset.id = String(project.id || '');
   card.style.setProperty('--project-order', index);
 
@@ -668,7 +680,7 @@ function projectCard(project, index) {
   } else {
     const missing = document.createElement('span');
     missing.className = 'portfolio-project-empty';
-    missing.textContent = 'No preview';
+    missing.textContent = T.noPreview;
     visual.appendChild(missing);
   }
 
@@ -681,7 +693,7 @@ function projectCard(project, index) {
   if (media.length > 1) {
     const mediaCount = document.createElement('span');
     mediaCount.className = 'portfolio-project-media-count';
-    mediaCount.textContent = media.length + ' media';
+    mediaCount.textContent = media.length + ' ' + T.media;
     visual.appendChild(mediaCount);
   }
 
@@ -780,12 +792,12 @@ function renderProjectBrand(brand, mount) {
   intro.className = 'portfolio-projects-intro';
   const heading = document.createElement('div');
   const eyebrow = document.createElement('span');
-  eyebrow.textContent = 'Case studies';
+  eyebrow.textContent = T.caseStudies;
   const title = document.createElement('h3');
-  title.textContent = 'Explore the work';
+  title.textContent = T.exploreWork;
   heading.append(eyebrow, title);
   const hint = document.createElement('p');
-  hint.textContent = 'Select a project to see the full story and media.';
+  hint.textContent = T.exploreHint;
   intro.append(heading, hint);
 
   const grid = document.createElement('div');
@@ -980,8 +992,8 @@ function openCaseStudy(trigger, project, media) {
   }
 
   if (media.length > 1) {
-    const previous = button('case-study-nav is-previous', 'Previous media', ICONS.arrowLeft);
-    const next = button('case-study-nav is-next', 'Next media', ICONS.arrowRight);
+    const previous = button('case-study-nav is-previous', T.previousMedia, ICONS.arrowLeft);
+    const next = button('case-study-nav is-next', T.nextMedia, ICONS.arrowRight);
     previous.addEventListener('click', () => updateCaseMedia(activeCaseStudy.index - 1));
     next.addEventListener('click', () => updateCaseMedia(activeCaseStudy.index + 1));
     counter = document.createElement('span');

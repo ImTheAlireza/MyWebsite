@@ -609,7 +609,6 @@ img {
   margin-bottom: var(--space-4xl);
 }
 
-
 .section-title {
   font-family: var(--font-display);
   font-size: clamp(2rem, 4vw, 3rem);
@@ -4039,13 +4038,6 @@ html.no-motion .hero-name-char {
   .form-row { grid-template-columns: 1fr; gap: var(--space-md); }
 }
 
-.hero-cta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-md);
-  margin-top: var(--space-lg);
-}
-
 .scope-block {
   margin-top: var(--space-xl);
   padding: var(--space-lg) var(--space-xl);
@@ -4097,21 +4089,59 @@ html.no-motion .hero-name-char {
 .header-lang:hover { opacity: 1; }
 
 /* Persian landing specifics (the page also carries a small RTL block) */
-.fa-history {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--space-md);
+
+/* ============================================
+   RTL / Persian page (fa.html mirrors index.html)
+   The markup is identical to the English page; only direction and a handful of
+   mirrored details change. Font tokens switch to Vazirmatn.
+   ============================================ */
+html[lang^="fa"] {
+  --font-display: 'Vazirmatn', 'Segoe UI', Tahoma, system-ui, sans-serif;
+  --font-body: 'Vazirmatn', 'Segoe UI', Tahoma, system-ui, sans-serif;
+  --font-mono: 'Vazirmatn', 'Segoe UI', Tahoma, system-ui, sans-serif;
 }
-.fa-history li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-sm);
-  padding: var(--space-md) 0;
-  border-bottom: 1px solid var(--border);
-}
-.fa-history li strong { font-weight: 600; }
-.fa-history li span { color: var(--text-tertiary); font-size: 0.875rem; }
+html[dir="rtl"] body { direction: rtl; text-align: right; }
+
+/* Hero: the accent line and portrait side flip */
+html[dir="rtl"] .hero-name-block,
+html[dir="rtl"] .hero-side,
+html[dir="rtl"] .hero-top-bar { text-align: right; }
+/* Persian letters join: negative or positive tracking would tear them apart */
+html[dir="rtl"] .hero-name-first,
+html[dir="rtl"] .hero-name-last,
+html[dir="rtl"] .hero-name-block { letter-spacing: 0; }
+html[dir="rtl"] .hero-name-line { display: block; }
+html[dir="rtl"] .hero-actions { justify-content: flex-start; }
+html[dir="rtl"] .hero-stat { text-align: right; }
+/* .hero-scroll stays centred: left:50% + translateX(-50%) is direction-agnostic */
+
+/* Section headers, intros and lists */
+html[dir="rtl"] .section-header { /* flex already mirrors; nothing to flip */ }
+html[dir="rtl"] .section-intro,
+html[dir="rtl"] .services-section-header,
+html[dir="rtl"] .timeline-section-intro { text-align: right; }
+
+/* Timeline: the rail moves to the right edge */
+html[dir="rtl"] .timeline { padding-left: 0; padding-right: 60px; }
+html[dir="rtl"] .timeline-track { left: auto; right: 28px; }
+html[dir="rtl"] .timeline-marker { left: auto; right: -38px; }
+html[dir="rtl"] .timeline-item { text-align: right; }
+
+/* Cards, forms, contact block */
+html[dir="rtl"] .service-card,
+html[dir="rtl"] .portfolio-project-details,
+html[dir="rtl"] .brand-card { text-align: right; }
+html[dir="rtl"] .contact-form label,
+html[dir="rtl"] .contact-info-item { text-align: right; }
+html[dir="rtl"] .form-hint,
+html[dir="rtl"] .form-next { text-align: right; }
+html[dir="rtl"] .footer-inner { text-align: right; }
+html[dir="rtl"] .mobile-menu { text-align: right; }
+html[dir="rtl"] .hero-reel-toggle { right: auto; left: 0.6rem; }
+/* Keep the utility buttons where they are: the corner does not carry meaning,
+   and moving them would only surprise a visitor switching languages. */
+
+/* Latin runs inside Persian text (tool names, URLs, numbers) */
+html[dir="rtl"] code,
+html[dir="rtl"] .case-study-meta,
+html[dir="rtl"] .portfolio-project-facts { direction: ltr; unicode-bidi: embed; }

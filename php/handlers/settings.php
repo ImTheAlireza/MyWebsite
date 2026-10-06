@@ -7,6 +7,26 @@ $DEFAULT_SETTINGS = array(
     'siteNameFa' => 'علیرضا شابان‌زاده',
     'siteTitleFa' => 'موشن گرافیک و ویدیوی توضیحی',
     'heroSubtitleFa' => 'ایدهٔ محصول و آموزش را به حرکت تبدیل می‌کنم: ویدیوی توضیحی، موشن رابط کاربری و کات‌های شبکه‌های اجتماعی.',
+    'heroEyebrowFa' => 'موشن گرافیک و ویدیوی توضیحی',
+    'heroFirstNameFa' => 'علیرضا',
+    'heroLastNameFa' => 'شابان‌زاده',
+    'heroAvailabilityFa' => 'آمادهٔ پروژه‌های جدید',
+    'heroCtaTextFa' => 'دیدن نمونه‌کارها',
+    'heroStat1LabelFa' => 'ابزارهای کار',
+    'heroStat2ValueFa' => 'رشت، ایران',
+    'heroStat2LabelFa' => 'محل کار',
+    'heroStat3ValueFa' => '',
+    'heroStat3LabelFa' => '',
+    'aboutTextFa' => '',
+    'aboutSkillsFa' => '',
+    'servicesTitleFa' => 'چه کاری برایت می‌کنم',
+    'servicesIntroFa' => '',
+    'servicesFa' => array(),
+    'experienceFa' => array(),
+    'educationFa' => array(),
+    'footerCopyFa' => '© ۱۴۰۵ علیرضا شابان‌زاده',
+    'footerNoteFa' => 'موشن گرافیک · رشت، ایران · آمادهٔ دورکاری',
+    'locationFa' => 'رشت، ایران',
     'heroPromiseFa' => 'هدف و مهلت را بگو — در جواب، تعریف کار، قیمت و زمان‌بندی می‌گیری.',
     'telegram' => '',
     'whatsapp' => '',
@@ -141,7 +161,7 @@ function update_settings() {
     foreach ($input as $key => $value) {
         if (!isset($SETTINGS_KEYS[$key])) continue;
 
-        if ($key === 'experience' || $key === 'education') {
+        if ($key === 'experience' || $key === 'education' || $key === 'experienceFa' || $key === 'educationFa') {
             if (!is_array($value)) continue;
             $patch[$key] = array_map(function($item) {
                 return array(
@@ -151,7 +171,7 @@ function update_settings() {
                     'desc' => clean_content_text((string)arr_get($item, 'desc', '')),
                 );
             }, $value);
-        } elseif ($key === 'services') {
+        } elseif ($key === 'services' || $key === 'servicesFa') {
             if (!is_array($value)) continue;
             $patch[$key] = array_map(function($item) {
                 return array(

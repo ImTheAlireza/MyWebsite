@@ -9,6 +9,76 @@
   // ============================================
   // SETTINGS — populate all content from API
   // ============================================
+  // ============================================
+  // LANGUAGE
+  // One rule for both pages: index.html is English, fa.html is Persian
+  // (<html lang="fa" dir="rtl">). Everything else in the app stays identical.
+  // ============================================
+  const PAGE_LANG = (document.documentElement.getAttribute('lang') || 'en')
+    .toLowerCase().indexOf('fa') === 0 ? 'fa' : 'en';
+
+  function hasValue(value) {
+    if (value == null) return false;
+    if (Array.isArray(value)) return value.length > 0;
+    return String(value).trim() !== '';
+  }
+
+  // Filled by applySettings(); pick() reads from here so the settings loop, the
+  // honesty pass and any later lookup all resolve the same value.
+  let settingsCache = {};
+
+  function pick(key) {
+    const value = settingsCache[key];
+    if (PAGE_LANG === 'fa') {
+      const mirror = settingsCache[key + 'Fa'];
+      if (hasValue(mirror)) return mirror;
+    }
+    return value;
+  }
+
+  // UI strings the app builds in JavaScript (the CMS covers the rest).
+  const STR = PAGE_LANG === 'fa' ? {
+    professional: 'سابقهٔ کاری',
+    academic: 'تحصیلات',
+    untitledEntry: 'بدون عنوان',
+    untitledService: 'خدمت بدون عنوان',
+    step: 'مرحله',
+    service: 'خدمت',
+    fillRequired: 'نام، ایمیل و متن بریف را پر کن.',
+    sending: 'در حال ارسال…',
+    sendingStatus: 'بریف در حال ارسال است…',
+    sent: 'ارسال شد',
+    sentStatus: 'ممنون — بریف به دستم رسید. حداکثر یک روز کاری جواب می‌دهم.',
+    sendFailed: 'ارسال نشد',
+    sendFailedStatus: 'ارسال نشد. لطفاً دوباره تلاش کن یا مستقیم ایمیل بزن.',
+    copyBtn: 'کپی ایمیل',
+    copiedOk: 'ایمیل کپی شد: ',
+    copiedFail: 'کپی نشد — ایمیل: ',
+    resumeFile: 'Alireza-Shabanzadeh-Motion-Designer-Resume.pdf',
+    resumeLabel: 'معرفی یک‌صفحه‌ای (PDF)',
+    showreelFallback: 'این لینک ریل قابل نمایش داخل صفحه نیست؛ در تب تازه باز می‌شود…'
+  } : {
+    professional: 'Professional',
+    academic: 'Academic',
+    untitledEntry: 'Untitled entry',
+    untitledService: 'Untitled service',
+    step: 'Step',
+    service: 'Service',
+    fillRequired: 'Please fill in your name, email and a short message.',
+    sending: 'Sending…',
+    sendingStatus: 'Sending your message…',
+    sent: 'Message sent',
+    sentStatus: 'Thanks — your message is with me. I reply within one business day.',
+    sendFailed: 'Send failed',
+    sendFailedStatus: 'Could not send. Please try again, or email me directly.',
+    copyBtn: 'Copy email address',
+    copiedOk: 'Email copied: ',
+    copiedFail: 'Copy failed — the address is ',
+    resumeFile: 'Alireza-Shabanzadeh-Motion-Designer-Resume.pdf',
+    resumeLabel: 'Client one-pager (PDF)',
+    showreelFallback: 'This showreel link cannot be embedded. Opening it in a new tab instead…'
+  };
+
   function parseMd(text) {
     if (!text) return '';
     let h = text
@@ -55,15 +125,15 @@
   }
 
   function applySettings(settings) {
+    settingsCache = settings || {};
     // Populate all data-setting elements
     document.querySelectorAll('[data-setting]').forEach(el => {
       const key = el.getAttribute('data-setting');
-      // fa.html asks for the Fa mirror first; an empty mirror falls back to the
-      // English value so the Persian page is never half-empty.
-      let val = settings[key];
-      if ((val == null || val === '') && /Fa$/.test(key)) {
-        val = settings[key.slice(0, -2)];
-      }
+      // fa.html renders the same markup as index.html. Any CMS value that has a
+      // Persian twin (heroSubtitleFa, servicesFa, aboutTextFa, ...) wins on the
+      // Persian page; an empty twin falls back to the English value, so the page
+      // is never half-empty.
+      let val = pick(key);
       if (val == null || val === '') return;
 
       if (key === 'heroCtaLink') {
@@ -109,7 +179,7 @@
           el.setAttribute('rel', 'noopener');
           const label = el.querySelector('[data-resume-label]');
           // A client-facing one-pager, not a job-application CV.
-          if (label) label.textContent = 'Client one-pager (PDF)';
+          if (label) label.textContent = STR.resumeLabel;
         }
       } else if (key === 'aboutSkills') {
         const skillPositions = [
@@ -158,10 +228,10 @@
             content.className = 'timeline-content';
             const meta = document.createElement('div');
             meta.className = 'timeline-entry-meta';
-            appendTextElement(meta, 'span', 'timeline-entry-kind', key === 'experience' ? 'Professional' : 'Academic');
+            appendTextElement(meta, 'span', 'timeline-entry-kind', key === 'experience' ? STR.professional : STR.academic);
             appendTextElement(meta, 'span', 'timeline-entry-number', String(index + 1).padStart(2, '0'));
             content.appendChild(meta);
-            appendTextElement(content, 'h3', 'timeline-title', item.title || 'Untitled entry');
+            appendTextElement(content, 'h3', 'timeline-title', item.title || STR.untitledEntry);
             if (item.subtitle) appendTextElement(content, 'span', 'timeline-subtitle', item.subtitle);
             if (item.desc) appendTextElement(content, 'p', 'timeline-desc', item.desc);
             row.append(dateWrap, marker, content);
@@ -192,7 +262,7 @@
             icon.innerHTML = iconMap[item.icon] || iconMap.play;
             const title = document.createElement('h3');
             title.className = 'service-title';
-            title.textContent = item.title || 'Untitled service';
+            title.textContent = item.title || STR.untitledService;
             const desc = document.createElement('p');
             desc.className = 'service-desc';
             desc.textContent = item.desc || '';
@@ -215,7 +285,7 @@
             num.textContent = String(index + 1).padStart(2, '0');
             const title = document.createElement('h3');
             title.className = 'process-step-title';
-            title.textContent = item.title || 'Step';
+            title.textContent = item.title || STR.step;
             const desc = document.createElement('p');
             desc.className = 'process-step-desc';
             desc.textContent = item.desc || '';
@@ -243,20 +313,32 @@
       const valueEl = document.querySelector('[data-setting="' + key + 'Value"]');
       const labelEl = document.querySelector('[data-setting="' + key + 'Label"]');
       const block = valueEl ? valueEl.closest('.hero-stat') : null;
-      const valueEmpty = isBlank(settings[key + 'Value']) || !valueEl || !valueEl.dataset.statValue;
-      const labelEmpty = isBlank(settings[key + 'Label']);
+      const valueEmpty = isBlank(pick(key + 'Value')) || !valueEl || !valueEl.dataset.statValue;
+      const labelEmpty = isBlank(pick(key + 'Label'));
       if (valueEl && valueEmpty) valueEl.textContent = '';
       if (labelEl && labelEmpty) labelEl.textContent = '';
       if (block && (valueEmpty || labelEmpty)) block.hidden = true;
     });
 
     // Whole sections stay off the page while they hold nothing real.
+    const timelineSection = document.getElementById('timeline');
+    if (timelineSection) {
+      const experience = pick('experience');
+      const education = pick('education');
+      const hasExperience = Array.isArray(experience) && experience.length > 0;
+      const hasEducation = Array.isArray(education) && education.length > 0;
+      timelineSection.hidden = !(hasExperience || hasEducation);
+      // The education group carries its own heading, so an empty one must go.
+      const educationGroup = document.getElementById('educationGroup');
+      if (educationGroup) educationGroup.hidden = !hasEducation;
+    }
+
     const workSection = document.getElementById('work');
     if (workSection) workSection.hidden = false; // the CTA card keeps it useful
 
     // Availability badge: only when it is actually true.
     const availability = document.querySelector('.availability-badge');
-    if (availability) availability.hidden = isBlank(settings.heroAvailability);
+    if (availability) availability.hidden = isBlank(pick('heroAvailability'));
 
     // Contact info rows: never show a label with an empty value.
     document.querySelectorAll('.contact-info-item').forEach(item => {
@@ -353,8 +435,7 @@
     const scopeBlock = document.getElementById('scopeBlock');
     const scopeList = document.getElementById('scopeList');
     if (scopeBlock && scopeList) {
-      const isFa = document.documentElement.lang === 'fa';
-      const raw = (isFa && settings.scopeItemsFa) ? settings.scopeItemsFa : settings.scopeItems;
+      const raw = pick('scopeItems');
       const items = String(raw || '').split('\n').map(line => line.trim()).filter(Boolean);
       scopeList.innerHTML = '';
       items.forEach(item => {
@@ -367,7 +448,7 @@
 
     // Promise line: hidden when empty rather than leaving an orphan sentence.
     const promiseLine = document.querySelector('.hero-promise');
-    if (promiseLine) promiseLine.hidden = isBlank(settings.heroPromise);
+    if (promiseLine) promiseLine.hidden = isBlank(pick('heroPromise'));
 
     // Social block: hide the whole row when nothing is configured.
     const socialBlock = document.querySelector('.contact-social');
@@ -679,7 +760,7 @@
       };
 
       if (!payload.name || !payload.email || !payload.message) {
-        setStatus('Please fill in your name, email and a short message.', 'error');
+        setStatus(STR.fillRequired, 'error');
         const firstEmpty = [!payload.name && nameField, !payload.email && emailField, !payload.message && messageField]
           .find(Boolean);
         if (firstEmpty) firstEmpty.focus();
@@ -687,8 +768,8 @@
       }
 
       if (submitBtn) submitBtn.disabled = true;
-      if (submitLabel) submitLabel.textContent = 'Sending…';
-      setStatus('Sending your message…', 'info');
+      if (submitLabel) submitLabel.textContent = STR.sending;
+      setStatus(STR.sendingStatus, 'info');
 
       try {
         const response = await fetch('/api.php?_query=messages', {
@@ -699,8 +780,8 @@
         if (!response.ok) throw new Error('Send failed');
 
         contactForm.reset();
-        if (submitLabel) submitLabel.textContent = 'Message sent';
-        setStatus('Thanks — your message is with me. I reply within one business day.' + emailFallback(), 'success');
+        if (submitLabel) submitLabel.textContent = STR.sent;
+        setStatus(STR.sentStatus + emailFallback(), 'success');
         if (statusEl) statusEl.focus({ preventScroll: true });
         if (window.portfolioTracking) {
           window.portfolioTracking.track('contact_submit', { projectType: payload.projectType || 'none' });
@@ -747,7 +828,7 @@
         }
       }
       const feedback = document.getElementById('copyEmailFeedback');
-      if (feedback) feedback.textContent = copied ? 'Email copied: ' + address : 'Copy failed — the address is ' + address;
+      if (feedback) feedback.textContent = copied ? STR.copiedOk + address : STR.copiedFail + address;
       copyEmailBtn.dataset.state = copied ? 'copied' : 'failed';
       window.setTimeout(() => {
         if (feedback) feedback.textContent = '';
@@ -793,7 +874,7 @@
       if (!embed) {
         const fallback = document.createElement('p');
         fallback.className = 'showreel-fallback';
-        fallback.textContent = 'This showreel link cannot be embedded. Opening it in a new tab instead…';
+        fallback.textContent = STR.showreelFallback;
         stage.appendChild(fallback);
         window.open(source, '_blank', 'noopener');
         return;

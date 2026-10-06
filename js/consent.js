@@ -143,19 +143,40 @@
     banner.className = 'consent-banner';
     banner.id = 'consentBanner';
     banner.setAttribute('role', 'region');
-    banner.setAttribute('aria-label', 'Cookie and privacy settings');
+    // Same banner, same behaviour, in the language of the page.
+    var isFa = (document.documentElement.getAttribute('lang') || 'en').toLowerCase().indexOf('fa') === 0;
+    var COPY = isFa ? {
+      label: 'تنظیمات کوکی و حریم خصوصی',
+      title: 'کوکی و حریم خصوصی',
+      text: 'این سایت هیچ کوکی تبلیغاتی یا شخص‌ثالث نمی‌گذارد. می‌خواهم از آمار خودِ سایت (بازدید صفحه، زمان حضور، کلیک‌ها) استفاده کنم تا ببینم کدام کار توجه می‌گیرد، و ویدیوی یوتیوب/ویمئو را فقط وقتی باز کردی بارگذاری کنم.',
+      policy: 'سیاست کوکی',
+      privacy: 'سیاست حفظ حریم خصوصی',
+      and: ' و ',
+      essential: 'فقط ضروری',
+      all: 'پذیرش آمار'
+    } : {
+      label: 'Cookie and privacy settings',
+      title: 'Cookies &amp; privacy',
+      text: 'This site sets no advertising or third-party cookies. I would like to use first-party statistics (pages, time on site, clicks) to see which work gets attention, and to load video from YouTube/Vimeo only when you open a project. ',
+      policy: 'cookie&nbsp;policy',
+      privacy: 'privacy&nbsp;policy',
+      and: ' and ',
+      essential: 'Essential only',
+      all: 'Accept statistics'
+    };
+    banner.setAttribute('aria-label', COPY.label);
     banner.innerHTML = '' +
       '<div class="consent-banner-inner">' +
         '<div class="consent-copy">' +
-          '<p class="consent-title">Cookies &amp; privacy</p>' +
-          '<p class="consent-text">This site sets no advertising or third-party cookies. ' +
-          'I would like to use first-party statistics (pages, time on site, clicks) to see which work gets attention, ' +
-          'and to load video from YouTube/Vimeo only when you open a project. ' +
-          'Read the <a href="cookies.html">cookie&nbsp;policy</a> and <a href="privacy.html">privacy&nbsp;policy</a>.</p>' +
+          '<p class="consent-title">' + COPY.title + '</p>' +
+          '<p class="consent-text">' + COPY.text +
+          (isFa ? 'جزئیات در ' : 'Read the ') +
+          '<a href="cookies.html">' + COPY.policy + '</a>' + COPY.and +
+          '<a href="privacy.html">' + COPY.privacy + '</a>.</p>' +
         '</div>' +
         '<div class="consent-actions">' +
-          '<button type="button" class="btn btn-ghost consent-btn" data-consent="essential">Essential only</button>' +
-          '<button type="button" class="btn btn-primary consent-btn" data-consent="all">Accept statistics</button>' +
+          '<button type="button" class="btn btn-ghost consent-btn" data-consent="essential">' + COPY.essential + '</button>' +
+          '<button type="button" class="btn btn-primary consent-btn" data-consent="all">' + COPY.all + '</button>' +
         '</div>' +
       '</div>';
 

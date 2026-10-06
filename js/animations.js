@@ -20,7 +20,7 @@
     document.querySelectorAll('.hero-accent-line').forEach(el => {
       el.style.transform = 'scaleY(1)';
     });
-    document.querySelectorAll('.hero-name-char').forEach(el => {
+    document.querySelectorAll('.hero-name-char, .hero-name-whole').forEach(el => {
       el.style.opacity = '1';
       el.style.transform = 'translateY(0)';
     });
@@ -42,7 +42,7 @@
 
   // Safety net: whatever happens with tweens, no hero element may stay invisible.
   window.setTimeout(() => {
-    document.querySelectorAll('.hero-name-char').forEach(el => {
+    document.querySelectorAll('.hero-name-char, .hero-name-whole').forEach(el => {
       if (getComputedStyle(el).opacity === '0') el.style.opacity = '1';
     });
     ['.hero-top-bar', '.hero-side-content', '.hero-scroll'].forEach(selector => {
@@ -59,10 +59,23 @@
   // Split text into chars and hide them instantly
   // so they're never visible before animation
   // ============================================
+  // Arabic/Persian script must never be split per character: the letters join,
+  // and isolated spans would turn the name into unreadable pieces. Those names
+  // animate as whole lines instead.
+  const ARABIC_SCRIPT = /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/;
+
   function setupHeroChars() {
     document.querySelectorAll('.hero-name-line').forEach(line => {
       if (line.querySelector('.hero-name-char')) return;
       const text = line.textContent;
+      if (ARABIC_SCRIPT.test(text) || document.documentElement.getAttribute('dir') === 'rtl') {
+        if (line.classList.contains('hero-name-whole')) return;
+        line.classList.add('hero-name-whole');
+        line.setAttribute('aria-label', text);
+        line.style.opacity = '0';
+        line.style.transform = 'translateY(40px)';
+        return;
+      }
       line.textContent = '';
       line.setAttribute('aria-label', text);
       for (const char of text) {
@@ -106,22 +119,30 @@
 
     const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
+    if (document.querySelector('.hero-name-whole')) {
+      // Persian name: rise as whole lines, same easing and feel as the char run.
+      heroTl.fromTo('.hero-name-whole',
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.9, stagger: 0.1, ease: 'power3.out', delay: 0.15, clearProps: 'transform' }
+      );
+    } else {
+      heroTl
+        .to('.hero-name-first .hero-name-char', {
+          opacity: 1,
+          y: '0%',
+          duration: 0.8,
+          stagger: 0.04,
+          delay: 0.15
+        })
+        .to('.hero-name-last .hero-name-char', {
+          opacity: 1,
+          y: '0%',
+          duration: 0.7,
+          stagger: 0.03
+        }, '-=0.5');
+    }
+
     heroTl
-      // Animate first name chars
-      .to('.hero-name-first .hero-name-char', {
-        opacity: 1,
-        y: '0%',
-        duration: 0.8,
-        stagger: 0.04,
-        delay: 0.15
-      })
-      // Animate last name chars (overlapping)
-      .to('.hero-name-last .hero-name-char', {
-        opacity: 1,
-        y: '0%',
-        duration: 0.7,
-        stagger: 0.03
-      }, '-=0.5')
       // Top bar (availability + role)
       .to('.hero-top-bar', {
         opacity: 1,
@@ -272,8 +293,9 @@
   // ============================================
   // ABOUT SECTION — inner elements
   // ============================================
+  const RTL = document.documentElement.getAttribute('dir') === 'rtl';
   gsap.fromTo('.about-image-frame',
-    { x: -40, opacity: 0 },
+    { x: RTL ? 40 : -40, opacity: 0 },
     {
       scrollTrigger: {
         trigger: '.about-grid',
