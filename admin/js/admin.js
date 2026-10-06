@@ -2007,7 +2007,11 @@
     try {
       const d = await api('settings');
       ['siteName','siteTitle','tagline','email','phone','location','linkedin','behance','instagram','footerCopy','footerNote',
-       'offerTitle','offerIntro','offerReply','offerTimeline','offerFormat','offerRevisions','offerTerms'].forEach(k => {
+       'offerTitle','offerIntro','offerReply','offerTimeline','offerFormat','offerRevisions','offerTerms',
+       'offerFrom','offerAvailability','offerReplyFa','offerTimelineFa','offerFormatFa','offerRevisionsFa','offerTermsFa',
+       'offerTitleFa','offerIntroFa','offerFromFa','offerAvailabilityFa',
+       'telegram','whatsapp','scopeTitle','scopeTitleFa','scopeItems','scopeItemsFa',
+       'siteNameFa','siteTitleFa','heroSubtitleFa','heroPromiseFa'].forEach(k => {
         const el = $(`#setting${k.charAt(0).toUpperCase() + k.slice(1)}`);
         if (el && d[k] != null) el.value = d[k];
       });
@@ -3154,6 +3158,34 @@
       const avgSec = d.avgTimeSpent || 0;
       $('#statAvgTime').textContent = avgSec < 60 ? avgSec + 's' : Math.floor(avgSec / 60) + 'm ' + (avgSec % 60) + 's';
 
+      // Sales funnel: reel -> case open -> brief sent
+      const funnel = d.funnel || {};
+      const setNum = (id, value) => { const el = $(id); if (el) el.textContent = value == null ? 0 : value; };
+      setNum('#statReelPlays', funnel.reel_play);
+      setNum('#statPreviewPlays', funnel.case_preview_play);
+      setNum('#statCaseOpens', funnel.case_open);
+      setNum('#statContactCtas', funnel.contact_cta);
+      setNum('#statContactSubmits', funnel.contact_submit);
+
+      const caseOpensList = $('#caseOpensList');
+      if (caseOpensList) {
+        const opens = Object.entries(d.caseOpensByProject || {});
+        const titles = d.projectTitles || {};
+        if (!opens.length) {
+          caseOpensList.innerHTML = '<p style="color:var(--text-dim);font-size:0.875rem">No case studies opened yet.</p>';
+        } else {
+          const maxOpen = Math.max(...opens.map(([, v]) => v), 1);
+          caseOpensList.innerHTML = opens
+            .sort((a, b) => b[1] - a[1])
+            .map(([id, count]) => `
+            <div class="stats-bar-item">
+              <span class="stats-bar-label">${esc(titles[id] || id)}</span>
+              <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${(count / maxOpen) * 100}%"></div></div>
+              <span class="stats-bar-count">${count}</span>
+            </div>`).join('');
+        }
+      }
+
       // Page views
       const pageViewsList = $('#pageViewsList');
       if (pageViewsList && d.pageViews) {
@@ -3368,6 +3400,9 @@
             <span class="message-sender">${esc(m.name)}</span>
             <span class="message-email">&lt;${esc(m.email)}&gt;</span>
             ${m.projectType ? `<span class="message-type">${esc(messageTypeLabel(m.projectType))}</span>` : ''}
+            ${m.deadline ? `<span class="message-type">Deadline: ${esc(m.deadline)}</span>` : ''}
+            ${m.outputFormat ? `<span class="message-type">Format: ${esc(m.outputFormat)}</span>` : ''}
+            ${m.replyPreference ? `<span class="message-type">Reply via ${esc(m.replyPreference)}</span>` : ''}
           </div>
           <div style="display:flex;align-items:center;gap:12px">
             <span class="message-time">${new Date(m.createdAt).toLocaleDateString()} ${new Date(m.createdAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>

@@ -12,7 +12,9 @@ function track_event() {
 
     if (!$type || !is_string($type)) send_error('type required');
 
-    $allowed = array('pageview', 'heartbeat', 'resume_download', 'project_click');
+    $allowed = array('pageview', 'heartbeat', 'resume_download', 'project_click',
+                    // Sales funnel: what people actually do with the work section.
+                    'reel_play', 'case_open', 'case_preview_play', 'contact_cta', 'contact_submit');
     if (!in_array($type, $allowed)) send_error('invalid type');
 
     $sessionId = isset($input['sessionId']) ? sanitize(substr((string)$input['sessionId'], 0, 80)) : 'anon';

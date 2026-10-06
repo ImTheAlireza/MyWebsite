@@ -1497,38 +1497,6 @@ a.contact-info-value:hover {
 /* ============================================
    SCROLL PROGRESS
    ============================================ */
-.scroll-progress {
-  position: fixed;
-  right: 24px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 90;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-}
-
-.scroll-progress-fill {
-  width: 2px;
-  height: 120px;
-  background: var(--border);
-  border-radius: 1px;
-  position: relative;
-  overflow: hidden;
-}
-
-.scroll-progress-fill::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: var(--progress, 0%);
-  background: var(--accent);
-  border-radius: 1px;
-  transition: height 0.1s linear;
-}
 
 /* ============================================
    NOISE TOGGLE
@@ -3851,7 +3819,6 @@ summary:focus-visible,
   .header,
   .mobile-menu,
   .mobile-menu-btn,
-  .scroll-progress,
   .back-to-top,
   .consent-banner,
   .showreel-dialog,
@@ -4065,3 +4032,92 @@ html.no-motion .hero-name-char {
   .case-study-fact { grid-template-columns: 1fr; gap: 0.2rem; }
   .hero-reel { max-width: none; }
 }
+
+/* ============================================
+   Pass 3 blocks: scope guard, brief rows, Persian page pieces, work pack link
+   ============================================ */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+}
+@media (max-width: 640px) {
+  .form-row { grid-template-columns: 1fr; gap: var(--space-md); }
+}
+
+.hero-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.scope-block {
+  margin-top: var(--space-xl);
+  padding: var(--space-lg) var(--space-xl);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-secondary);
+}
+.scope-title {
+  margin: 0 0 var(--space-md);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.scope-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.scope-list li {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+}
+
+.case-study-live {
+  display: inline-block;
+  margin-top: var(--space-md);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--accent-text);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+.work-pack-link { margin-top: var(--space-lg); }
+
+.header-lang {
+  font-size: 0.8125rem;
+  opacity: 0.85;
+}
+.header-lang:hover { opacity: 1; }
+
+/* Persian landing specifics (the page also carries a small RTL block) */
+.fa-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-md);
+}
+.fa-history li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--border);
+}
+.fa-history li strong { font-weight: 600; }
+.fa-history li span { color: var(--text-tertiary); font-size: 0.875rem; }

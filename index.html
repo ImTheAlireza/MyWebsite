@@ -6,6 +6,9 @@
   <title>Alireza Shabanzadeh — Motion Graphics Designer (Rasht, Iran)</title>
   <meta name="description" content="Freelance motion graphics designer. Explainer videos, social media animation and UI motion for product and marketing teams. See the work, download the résumé, get a reply in one business day.">
   <link rel="canonical" href="https://alirezashabanzadeh.com/">
+  <link rel="alternate" hreflang="en" href="https://alirezashabanzadeh.com/">
+  <link rel="alternate" hreflang="fa" href="https://alirezashabanzadeh.com/fa.html">
+  <link rel="alternate" hreflang="x-default" href="https://alirezashabanzadeh.com/">
   <meta name="theme-color" content="#0C0C0E">
   <meta name="author" content="Alireza Shabanzadeh">
   <meta name="robots" content="index, follow, max-image-preview:large">
@@ -30,10 +33,10 @@
   <!-- Fonts (self-hosted: no request ever leaves this domain) -->
   <link rel="preload" href="fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/space-grotesk-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/fonts.css?v=20261006-1">
+  <link rel="stylesheet" href="css/fonts.css?v=20261006-2">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="css/style.css?v=20261006-1">
+  <link rel="stylesheet" href="css/style.css?v=20261006-2">
 
   <!-- Favicon (inline SVG) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9654;</text></svg>">
@@ -84,6 +87,7 @@
       <a href="#work" class="header-link">Work</a>
       <a href="#services" class="header-link">Services</a>
       <a href="#contact" class="header-link">Contact</a>
+      <a href="fa.html" hreflang="fa" lang="fa" dir="rtl" class="header-link header-lang">فارسی</a>
       <a data-setting="aboutResumeUrl" href="#" class="header-resume" hidden>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -110,7 +114,8 @@
       <a href="#work" class="mobile-menu-link">Work</a>
       <a href="#services" class="mobile-menu-link">Services</a>
       <a href="#contact" class="mobile-menu-link">Contact</a>
-      <a data-setting="aboutResumeUrl" href="#" class="mobile-menu-link" hidden>Download résumé (PDF)</a>
+      <a href="fa.html" class="mobile-menu-link" hreflang="fa" lang="fa" dir="rtl">فارسی</a>
+      <a data-setting="aboutResumeUrl" href="#" class="mobile-menu-link" hidden>Client one-pager (PDF)</a>
       <a href="#contact" class="mobile-menu-link mobile-menu-cta">Hire me</a>
     </nav>
   </div>
@@ -162,7 +167,7 @@
                   <polyline points="7 10 12 15 17 10"></polyline>
                   <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
-                <span data-resume-label>Download résumé (PDF)</span>
+                <span data-resume-label>Client one-pager (PDF)</span>
               </a>
             </div>
             <!-- Every stat below is factual and editable in the CMS (Hero → Stats).
@@ -229,7 +234,13 @@
         <div class="offer-row"><dt>You receive</dt><dd data-setting="offerFormat"></dd></div>
         <div class="offer-row"><dt>Revisions</dt><dd data-setting="offerRevisions"></dd></div>
         <div class="offer-row"><dt>Payment</dt><dd data-setting="offerTerms"></dd></div>
+        <div class="offer-row"><dt>Starting point</dt><dd data-setting="offerFrom"></dd></div>
+        <div class="offer-row"><dt>Next opening</dt><dd data-setting="offerAvailability"></dd></div>
       </dl>
+      <div class="scope-block" id="scopeBlock" hidden>
+        <h3 class="scope-title" data-setting="scopeTitle">What's not included</h3>
+        <ul class="scope-list" id="scopeList"></ul>
+      </div>
     </div>
   </section>
 
@@ -386,11 +397,39 @@
               <option value="other">Something else</option>
             </select>
           </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="contactDeadline">Deadline <span class="optional-mark">(optional)</span></label>
+              <input type="text" id="contactDeadline" name="deadline"
+                     placeholder="e.g. mid-November, or 'no rush'">
+            </div>
+            <div class="form-group">
+              <label for="contactFormat">Output format <span class="optional-mark">(optional)</span></label>
+              <select id="contactFormat" name="outputFormat">
+                <option value="">Not sure yet</option>
+                <option value="16:9">16:9 — website / YouTube</option>
+                <option value="1:1">1:1 — feed</option>
+                <option value="9:16">9:16 — reels / shorts</option>
+                <option value="multiple">Several of them</option>
+                <option value="unsure">Advise me</option>
+              </select>
+            </div>
+          </div>
           <div class="form-group">
-            <label for="contactMessage">Message <span class="required-mark" aria-hidden="true">*</span></label>
+            <label for="contactMessage">The brief <span class="required-mark" aria-hidden="true">*</span></label>
             <textarea id="contactMessage" name="message" rows="5" required
-                      placeholder="What are you making, who is it for, and when do you need it?"
+                      placeholder="What should this video make people do? Who is watching it, and what do you already have (script, brand files, footage)?"
                       aria-describedby="contactFormHint"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="contactReplyPreference">How should I reply? <span class="optional-mark">(optional)</span></label>
+            <select id="contactReplyPreference" name="replyPreference">
+              <option value="">Email is fine</option>
+              <option value="email">Email</option>
+              <option value="telegram">Telegram</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="call">A short call</option>
+            </select>
           </div>
           <p class="form-hint" id="contactFormHint">
             <span aria-hidden="true">*</span> Required fields. Your message and email address are stored on my
@@ -398,7 +437,7 @@
           </p>
           <p class="form-status" id="contactStatus" role="status" aria-live="polite" tabindex="-1" hidden></p>
           <button type="submit" class="btn btn-primary btn-full">
-            <span data-submit-label>Send message</span>
+            <span data-submit-label>Send the brief</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <line x1="22" y1="2" x2="11" y2="13"></line>
               <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
@@ -406,7 +445,8 @@
           </button>
           <p class="form-next">
             <strong>What happens next:</strong> I read it myself and reply within one business day —
-            usually with a couple of questions and a rough timeline.
+            usually with a couple of questions, a scope and a timeline.
+            Prefer email? <a id="briefMailto" href="#">Open this brief as an email instead</a>.
           </p>
         </form>
         <div class="contact-info">
@@ -419,12 +459,23 @@
             <a href="tel:+989116947375" class="contact-info-value" data-setting="phone">+98 911 694 7375</a>
           </div>
           <div class="contact-info-item">
+            <span class="contact-info-label">Telegram</span>
+            <a href="#" class="contact-info-value" data-setting="telegram" rel="noopener" hidden>Telegram</a>
+          </div>
+          <div class="contact-info-item">
+            <span class="contact-info-label">WhatsApp</span>
+            <a href="#" class="contact-info-value" data-setting="whatsapp" rel="noopener" hidden>WhatsApp</a>
+          </div>
+          <div class="contact-info-item">
             <span class="contact-info-label">Email</span>
             <a href="mailto:alirezashabanzadeh01@gmail.com" class="contact-info-value" data-setting="email">alirezashabanzadeh01@gmail.com</a>
             <button type="button" class="copy-email-btn" id="copyEmailBtn">Copy email address</button>
             <span class="copy-email-feedback" id="copyEmailFeedback" role="status" aria-live="polite"></span>
           </div>
-          <div class="contact-social">
+          <a class="btn btn-ghost work-pack-link" href="work-pack.html">
+          Work pack — all work on one page (print / PDF)
+        </a>
+        <div class="contact-social">
             <a href="#" class="social-link" data-setting="linkedin" aria-label="LinkedIn profile" hidden>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
@@ -459,11 +510,6 @@
     </svg>
   </button>
 
-  <!-- Scroll Progress -->
-  <div class="scroll-progress" id="scrollProgress">
-    <div class="scroll-progress-fill"></div>
-  </div>
-
   <!-- Footer -->
   <footer class="footer">
     <div class="container footer-inner">
@@ -474,6 +520,7 @@
       <nav class="footer-links" aria-label="Legal and site information">
         <a href="privacy.html">Privacy policy</a>
         <a href="cookies.html">Cookie policy</a>
+        <a href="fa.html" hreflang="fa" lang="fa" dir="rtl">فارسی</a>
         <button type="button" class="footer-link-button" data-consent-settings>Cookie settings</button>
         <a href="#contact">Contact</a>
       </nav>
@@ -499,10 +546,10 @@
   <!-- Scripts: all served from this domain, no third-party CDN -->
   <script src="js/vendor/gsap.min.js" defer></script>
   <script src="js/vendor/ScrollTrigger.min.js" defer></script>
-  <script src="js/consent.js?v=20261006-1" defer></script>
-  <script src="js/tracking.js?v=20261006-1" defer></script>
-  <script type="module" src="js/data.js?v=20261006-1"></script>
-  <script type="module" src="js/main.js?v=20261006-1"></script>
-  <script type="module" src="js/animations.js?v=20261006-1"></script>
+  <script src="js/consent.js?v=20261006-2" defer></script>
+  <script src="js/tracking.js?v=20261006-2" defer></script>
+  <script type="module" src="js/data.js?v=20261006-2"></script>
+  <script type="module" src="js/main.js?v=20261006-2"></script>
+  <script type="module" src="js/animations.js?v=20261006-2"></script>
 </body>
 </html>

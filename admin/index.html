@@ -824,6 +824,43 @@
             </div>
           </div>
         </div>
+        <div class="stats-section" style="margin-top:24px">
+          <h3>Sales funnel — what visitors actually do</h3>
+          <p class="view-subtitle" style="margin:4px 0 14px">Reel plays and case opens happen before anyone writes. If these numbers are zero, the work section is not doing its job.</p>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-info">
+                <span class="stat-value" id="statReelPlays">0</span>
+                <span class="stat-label">Reel plays</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-info">
+                <span class="stat-value" id="statPreviewPlays">0</span>
+                <span class="stat-label">Card previews played</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-info">
+                <span class="stat-value" id="statCaseOpens">0</span>
+                <span class="stat-label">Case studies opened</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-info">
+                <span class="stat-value" id="statContactCtas">0</span>
+                <span class="stat-label">Contact CTAs clicked</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-info">
+                <span class="stat-value" id="statContactSubmits">0</span>
+                <span class="stat-label">Briefs sent</span>
+              </div>
+            </div>
+          </div>
+          <div id="caseOpensList" class="stats-bars"></div>
+        </div>
         <div class="stats-row-2col">
           <div class="stats-section">
             <h3>Page Views</h3>
@@ -953,6 +990,118 @@
                 <label for="settingOfferTerms">Payment</label>
                 <input type="text" id="settingOfferTerms" name="offerTerms" placeholder="e.g. 50% to start, 50% on delivery">
               </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingOfferFrom">Starting point</label>
+                <input type="text" id="settingOfferFrom" name="offerFrom" placeholder="e.g. Projects start at €X">
+              </div>
+              <div class="form-group">
+                <label for="settingOfferAvailability">Next opening</label>
+                <input type="text" id="settingOfferAvailability" name="offerAvailability" placeholder="e.g. From 3 November">
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Contact channels</h3>
+            <p class="settings-hint">Telegram and WhatsApp matter more than email for Iranian clients. Leave them empty and the row stays hidden.</p>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingTelegram">Telegram link</label>
+                <input type="url" id="settingTelegram" name="telegram" placeholder="https://t.me/yourname">
+              </div>
+              <div class="form-group">
+                <label for="settingWhatsapp">WhatsApp link</label>
+                <input type="url" id="settingWhatsapp" name="whatsapp" placeholder="https://wa.me/98911...">
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Scope guard — what a quote does not include</h3>
+            <p class="settings-hint">One item per line. Saying this up front is what keeps a fixed-price project profitable.</p>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingScopeTitle">Heading (EN)</label>
+                <input type="text" id="settingScopeTitle" name="scopeTitle" placeholder="What's not included">
+              </div>
+              <div class="form-group">
+                <label for="settingScopeTitleFa">Heading (FA)</label>
+                <input type="text" id="settingScopeTitleFa" name="scopeTitleFa" dir="rtl" placeholder="چه چیزی شامل نمی‌شود">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingScopeItems">Items (EN, one per line)</label>
+                <textarea id="settingScopeItems" name="scopeItems" rows="4" placeholder="Voice-over and sound design&#10;Licensed music&#10;More than two revision rounds"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="settingScopeItemsFa">Items (FA, one per line)</label>
+                <textarea id="settingScopeItemsFa" name="scopeItemsFa" rows="4" dir="rtl" placeholder="گویندگی و صداگذاری&#10;موسیقی لایسنس‌دار&#10;بیش از دو دور اصلاح"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Persian page (fa.html)</h3>
+            <p class="settings-hint">Leave any FA field empty and the Persian page falls back to the English value.</p>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingSiteNameFa">Name (FA)</label>
+                <input type="text" id="settingSiteNameFa" name="siteNameFa" dir="rtl">
+              </div>
+              <div class="form-group">
+                <label for="settingSiteTitleFa">Role (FA)</label>
+                <input type="text" id="settingSiteTitleFa" name="siteTitleFa" dir="rtl">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="settingHeroSubtitleFa">Hero subtitle (FA)</label>
+              <textarea id="settingHeroSubtitleFa" name="heroSubtitleFa" rows="2" dir="rtl"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="settingHeroPromiseFa">Hero promise (FA)</label>
+              <input type="text" id="settingHeroPromiseFa" name="heroPromiseFa" dir="rtl">
+            </div>
+            <div class="form-group">
+              <label for="settingOfferTitleFa">"What you get" title (FA)</label>
+              <input type="text" id="settingOfferTitleFa" name="offerTitleFa" dir="rtl">
+            </div>
+            <div class="form-group">
+              <label for="settingOfferIntroFa">"What you get" intro (FA)</label>
+              <input type="text" id="settingOfferIntroFa" name="offerIntroFa" dir="rtl">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingOfferReplyFa">Reply time (FA)</label>
+                <input type="text" id="settingOfferReplyFa" name="offerReplyFa" dir="rtl">
+              </div>
+              <div class="form-group">
+                <label for="settingOfferTimelineFa">Timeline (FA)</label>
+                <input type="text" id="settingOfferTimelineFa" name="offerTimelineFa" dir="rtl">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingOfferFormatFa">You receive (FA)</label>
+                <input type="text" id="settingOfferFormatFa" name="offerFormatFa" dir="rtl">
+              </div>
+              <div class="form-group">
+                <label for="settingOfferRevisionsFa">Revisions (FA)</label>
+                <input type="text" id="settingOfferRevisionsFa" name="offerRevisionsFa" dir="rtl">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingOfferTermsFa">Payment (FA)</label>
+                <input type="text" id="settingOfferTermsFa" name="offerTermsFa" dir="rtl">
+              </div>
+              <div class="form-group">
+                <label for="settingOfferAvailabilityFa">Next opening (FA)</label>
+                <input type="text" id="settingOfferAvailabilityFa" name="offerAvailabilityFa" dir="rtl">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="settingOfferFromFa">Starting point (FA)</label>
+              <input type="text" id="settingOfferFromFa" name="offerFromFa" dir="rtl">
             </div>
           </div>
           <div class="settings-section">

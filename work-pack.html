@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work pack — Alireza Shabanzadeh, motion graphics</title>
+  <meta name="description" content="Every project, what it was for, what shipped, how I work and what it costs — on one page. Print it or save it as a PDF.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://alirezashabanzadeh.com/work-pack.html">
+  <meta property="og:title" content="Work pack — Alireza Shabanzadeh">
+  <meta property="og:description" content="All work, the deliverables, the terms and the contact details on a single printable page.">
+  <meta property="og:url" content="https://alirezashabanzadeh.com/work-pack.html">
+  <meta property="og:image" content="https://alirezashabanzadeh.com/assets/og-cover.jpg">
+  <!-- Standalone: no shared stylesheet, so this page cannot be broken by site
+       changes, and it prints exactly as it looks. -->
+  <style>
+    :root { --ink: #16161a; --muted: #61616b; --line: #e3e3e8; --accent: #c9431f; --bg: #ffffff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4f4f6; color: var(--ink); font: 16px/1.6 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif; }
+    .sheet { max-width: 900px; margin: 24px auto; background: var(--bg); padding: 48px 52px; box-shadow: 0 18px 50px rgba(0,0,0,.10); }
+    h1 { font-size: 30px; margin: 0 0 4px; letter-spacing: -.01em; }
+    h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); margin: 36px 0 14px; font-weight: 600; }
+    h3 { font-size: 19px; margin: 0 0 6px; }
+    p { margin: 0 0 10px; }
+    a { color: var(--accent); }
+    .role { color: var(--muted); margin: 0 0 2px; }
+    .contact { font-size: 14px; color: var(--muted); margin: 0; }
+    .rule { height: 1px; background: var(--line); margin: 26px 0; }
+    .case { border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; margin-bottom: 18px; page-break-inside: avoid; }
+    .case-head { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }
+    .case-year { font-size: 13px; color: var(--muted); white-space: nowrap; }
+    .facts { display: grid; grid-template-columns: 110px 1fr; gap: 6px 14px; margin: 12px 0 0; font-size: 14px; }
+    .facts dt { color: var(--muted); text-transform: uppercase; font-size: 11px; letter-spacing: .1em; padding-top: 3px; }
+    .facts dd { margin: 0; }
+    .media { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 14px; }
+    .media img, .media video { width: 100%; height: 104px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); background: #eee; }
+    .terms { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 26px; }
+    .term strong { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 3px; }
+    ul { margin: 0; padding-left: 20px; }
+    .reel { margin-top: 18px; }
+    .reel video { width: 100%; border-radius: 12px; background: #000; }
+    .toolbar { max-width: 900px; margin: 20px auto 0; display: flex; gap: 10px; justify-content: flex-end; }
+    .btn { font: inherit; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--ink); background: var(--ink); color: #fff; cursor: pointer; text-decoration: none; }
+    .btn.ghost { background: transparent; color: var(--ink); }
+    .empty { color: var(--muted); font-style: italic; }
+    @media print {
+      body { background: #fff; }
+      .sheet { box-shadow: none; margin: 0; max-width: none; padding: 0 8mm; }
+      .toolbar, .no-print { display: none !important; }
+      a { color: var(--ink); text-decoration: none; }
+      h2 { margin-top: 22px; }
+      .case { border-color: #d8d8de; }
+    }
+    @page { margin: 14mm; }
+  </style>
+</head>
+<body>
+  <div class="toolbar no-print">
+    <a class="btn ghost" href="index.html">Back to site</a>
+    <a class="btn ghost" href="fa.html" hreflang="fa" lang="fa">فارسی</a>
+    <button class="btn" type="button" id="printPack">Print / Save as PDF</button>
+  </div>
+
+  <main class="sheet">
+    <header>
+      <h1 id="packName">Alireza Shabanzadeh</h1>
+      <p class="role" id="packRole">Motion graphics designer — explainers, UI motion, social cuts</p>
+      <p class="contact" id="packContact"></p>
+      <p class="contact" id="packSite">alirezashabanzadeh.com</p>
+    </header>
+
+    <div id="packReel" class="reel" hidden></div>
+
+    <h2>Selected work</h2>
+    <div id="packCases"><p class="empty">Loading…</p></div>
+
+    <h2>What you get</h2>
+    <div class="terms" id="packTerms"></div>
+    <div id="packScope"></div>
+
+    <h2>Experience &amp; education</h2>
+    <div id="packHistory"></div>
+
+    <div class="rule"></div>
+    <p class="contact">Rates are quoted per project after the brief — fixed price, agreed before anything starts.</p>
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+    var API = '/api.php?_query=';
+    function el(id) { return document.getElementById(id); }
+    function safeUrl(value) {
+      if (!value) return '';
+      try {
+        var url = new URL(String(value), window.location.origin);
+        if (url.protocol === 'http:' || url.protocol === 'https:') return url.href;
+      } catch (error) {}
+      return '';
+    }
+    function videoUrl(value) {
+      var url = safeUrl(value);
+      return url && /\.(mp4|webm|ogv|ogg|m4v|mov)(?:[?#].*)?$/i.test(url) ? url : '';
+    }
+    function line(label, value) {
+      if (!value) return '';
+      return '<div class="term"><strong>' + label + '</strong>' + escapeHtml(value) + '</div>';
+    }
+    function escapeHtml(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    document.getElementById('printPack').addEventListener('click', function () { window.print(); });
+
+    Promise.all([
+      fetch(API + 'projects').then(function (r) { return r.json(); }).catch(function () { return {}; }),
+      fetch(API + 'settings').then(function (r) { return r.json(); }).catch(function () { return {}; })
+    ]).then(function (results) {
+      var data = results[0] || {};
+      var settings = results[1] || {};
+      var projects = (Array.isArray(data.projects) ? data.projects : []).filter(function (p) { return p.published !== false; });
+      var brands = Array.isArray(data.brands) ? data.brands : [];
+
+      el('packName').textContent = settings.siteName || 'Alireza Shabanzadeh';
+      el('packRole').textContent = settings.siteTitle || '';
+      var contactBits = [settings.email, settings.phone, settings.location].filter(Boolean);
+      el('packContact').textContent = contactBits.join(' · ');
+
+      var reelUrl = videoUrl(settings.heroShowreelUrl);
+      if (reelUrl) {
+        el('packReel').hidden = false;
+        el('packReel').innerHTML = '<video controls muted playsinline preload="metadata" src="' + escapeHtml(reelUrl) + '"></video>';
+      }
+
+      // cases: brands with their projects, plus any loose projects
+      var byBrand = {};
+      projects.forEach(function (project) {
+        var key = String(project.brand || '');
+        (byBrand[key] = byBrand[key] || []).push(project);
+      });
+      var ordered = [];
+      brands.forEach(function (brand) {
+        var list = byBrand[String(brand.id)] || [];
+        if (list.length) ordered.push({ brand: brand, projects: list });
+        delete byBrand[String(brand.id)];
+      });
+      Object.keys(byBrand).forEach(function (key) {
+        if (byBrand[key].length) ordered.push({ brand: { name: '' }, projects: byBrand[key] });
+      });
+
+      var casesHost = el('packCases');
+      if (!ordered.length) {
+        casesHost.innerHTML = '<p class="empty">The work grid is empty right now — ask me for the latest reel and samples.</p>';
+      } else {
+        casesHost.innerHTML = ordered.map(function (group) {
+          return group.projects.map(function (project) {
+            var media = [];
+            if (project.thumbnail) media.push('<img src="' + escapeHtml(safeUrl(project.thumbnail)) + '" alt="' + escapeHtml(project.title || '') + '">');
+            (Array.isArray(project.gallery) ? project.gallery : []).forEach(function (url) {
+              var v = videoUrl(url);
+              media.push(v
+                ? '<video preload="metadata" muted playsinline src="' + escapeHtml(v) + '#t=0.1"></video>'
+                : '<img src="' + escapeHtml(safeUrl(url)) + '" alt="">');
+            });
+            var facts = [
+              ['Client', project.client],
+              ['Deliverable', project.deliverable],
+              ['Outcome', project.outcome],
+              ['Role', project.role]
+            ].filter(function (pair) { return pair[1]; }).map(function (pair) {
+              return '<dt>' + pair[0] + '</dt><dd>' + escapeHtml(pair[1]) + '</dd>';
+            }).join('');
+
+            return '<article class="case">' +
+              '<div class="case-head"><h3>' + escapeHtml(project.title || 'Untitled project') + '</h3>' +
+              (project.year ? '<span class="case-year">' + escapeHtml(project.year) + '</span>' : '') + '</div>' +
+              (project.description ? '<p>' + escapeHtml(project.description) + '</p>' : '') +
+              (facts ? '<dl class="facts">' + facts + '</dl>' : '') +
+              (project.publishedUrl && safeUrl(project.publishedUrl)
+                ? '<p><a href="' + escapeHtml(safeUrl(project.publishedUrl)) + '" rel="noopener">Watch it where it was published</a></p>' : '') +
+              (media.length ? '<div class="media">' + media.join('') + '</div>' : '') +
+            '</article>';
+          }).join('');
+        }).join('');
+      }
+
+      var terms = [
+        line('Reply time', settings.offerReply),
+        line('Typical timeline', settings.offerTimeline),
+        line('You receive', settings.offerFormat),
+        line('Revisions', settings.offerRevisions),
+        line('Payment', settings.offerTerms),
+        line('Starting point', settings.offerFrom),
+        line('Next opening', settings.offerAvailability)
+      ].filter(Boolean).join('');
+      el('packTerms').innerHTML = terms || '<p class="empty">Terms are agreed per project.</p>';
+
+      var scopeItems = String(settings.scopeItems || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+      var scope = String(settings.scopeTitle || 'Not included');
+      el('packScope').innerHTML = scopeItems.length
+        ? '<h2>' + escapeHtml(scope) + '</h2><ul>' + scopeItems.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul>'
+        : '';
+
+      var history = [];
+      (Array.isArray(settings.experience) ? settings.experience : []).forEach(function (item) {
+        history.push('<p><strong>' + escapeHtml(item.title || '') + '</strong> — ' + escapeHtml(item.subtitle || '') +
+          (item.date ? ' <span class="case-year">(' + escapeHtml(item.date) + ')</span>' : '') + '</p>');
+      });
+      (Array.isArray(settings.education) ? settings.education : []).forEach(function (item) {
+        history.push('<p><strong>' + escapeHtml(item.title || '') + '</strong> — ' + escapeHtml(item.subtitle || '') +
+          (item.date ? ' <span class="case-year">(' + escapeHtml(item.date) + ')</span>' : '') + '</p>');
+      });
+      el('packHistory').innerHTML = history.join('') || '<p class="empty">—</p>';
+    });
+  })();
+  </script>
+</body>
+</html>

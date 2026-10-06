@@ -3,6 +3,43 @@
  */
 const PROJECTS_URL = '/api.php?_query=projects';
 
+// The Persian page (fa.html) runs the same renderer. Only the strings data.js
+// owns are translated here; the content itself comes from the CMS.
+const LANG = (document.documentElement.getAttribute('lang') || 'en').toLowerCase().indexOf('fa') === 0 ? 'fa' : 'en';
+const T = LANG === 'fa' ? {
+  caseStudy: 'مطالعهٔ موردی',
+  untitled: 'بدون عنوان',
+  noPreview: 'بدون پیش‌نمایش',
+  media: 'رسانه',
+  open: 'بازکردن',
+  projects: 'پروژه',
+  emptyHeading: 'ریل و سه نمونه‌کار تازه را می‌خواهی؟',
+  emptyCopy: 'یک خط از پروژه بنویس — هدف و مهلت. ربط‌دارترین کارها، تعریف کار و قیمت را می‌گیری، نه یک گالری بی‌ربط.',
+  emptyCta: 'ارسال بریف',
+  liveLabel: 'دیدن کار در محل انتشار',
+  client: 'کارفرما',
+  deliverable: 'تحویل',
+  outcome: 'نتیجه',
+  browse: 'مرور نمونه‌کارها',
+  projectsLabel: 'پروژه'
+} : {
+  caseStudy: 'Case study',
+  untitled: 'Untitled project',
+  noPreview: 'No preview',
+  media: 'media',
+  open: 'Open',
+  projects: 'projects',
+  emptyHeading: 'Want the reel and three recent samples?',
+  emptyCopy: 'Send one line about the project — the goal and the deadline. You get the most relevant work, a scope and a price, not a gallery dump.',
+  emptyCta: 'Send the brief',
+  liveLabel: 'Watch it where it was published',
+  client: 'Client',
+  deliverable: 'Deliverable',
+  outcome: 'Outcome',
+  browse: 'Browse work',
+  projectsLabel: 'projects'
+};
+
 let siteBrands = [];
 let allPortfolioProjects = [];
 let lastProjectTrigger = null;
@@ -261,14 +298,13 @@ function renderProjects() {
     const empty = document.createElement('div');
     empty.className = 'projects-public-empty';
     const heading = document.createElement('h3');
-    heading.textContent = 'Want the reel and three recent samples?';
+    heading.textContent = T.emptyHeading;
     const copy = document.createElement('p');
-    copy.textContent = 'Send one line about the project — the goal and the deadline. You get the '
-      + 'most relevant work, a scope and a price, not a gallery dump.';
+    copy.textContent = T.emptyCopy;
     const cta = document.createElement('a');
     cta.className = 'btn btn-primary';
     cta.href = '#contact';
-    cta.textContent = 'Send the brief';
+    cta.textContent = T.emptyCta;
     cta.addEventListener('click', () => {
       if (window.portfolioTracking) window.portfolioTracking.track('contact_cta', { source: 'empty-work-grid' });
     });
@@ -654,7 +690,8 @@ function projectCard(project, index) {
   const previewClip = safeUrl(project.previewVideo);
   const canHover = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (previewClip && isDirectVideo(previewClip) && canHover && !reducedMotion) {
+  const touchDevice = window.matchMedia && window.matchMedia('(hover: none)').matches;
+  if (previewClip && isDirectVideo(previewClip) && !reducedMotion && (canHover || touchDevice)) {
     const clip = document.createElement('video');
     clip.className = 'portfolio-project-clip';
     clip.muted = true;
@@ -666,6 +703,27 @@ function projectCard(project, index) {
     clip.src = previewClip;
     visual.appendChild(clip);
     let counted = false;
+    if (touchDevice && 'IntersectionObserver' in window) {
+      // Phones have no hover: play the clip only while the card is on screen,
+      // and stop as soon as it leaves. Motion is the product; a still frame
+      // hides it.
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const started = clip.play();
+            if (started && started.catch) started.catch(() => {});
+            if (!counted && window.portfolioTracking) {
+              counted = true;
+              window.portfolioTracking.track('case_preview_play', { projectId: String(project.id || ''), device: 'touch' });
+            }
+          } else {
+            clip.pause();
+          }
+        });
+      }, { threshold: 0.6 });
+      observer.observe(card);
+    }
+
     card.addEventListener('pointerenter', () => {
       const playing = clip.play();
       if (playing && playing.then) {
@@ -688,9 +746,10 @@ function projectCard(project, index) {
   details.className = 'portfolio-project-details';
   const text = document.createElement('span');
   const year = document.createElement('small');
-  year.textContent = project.year || 'Case study';
+  year.textContent = project.year || T.caseStudy;
   const title = document.createElement('strong');
-  title.textContent = project.title || 'Untitled project';
+  title.textContent = (LANG === 'fa' && project.titleFa) ? project.titleFa
+    : (project.title || T.untitled);
   text.append(year, title);
   // Who it was for and what came out of it — the two things a buyer scans for.
   const cardFacts = [];
@@ -780,22 +839,24 @@ function caseStudyInfo(project) {
 
   const title = document.createElement('h2');
   title.id = 'caseStudyTitle';
-  title.textContent = project.title || 'Untitled project';
+  title.textContent = (LANG === 'fa' && project.titleFa) ? project.titleFa
+    : (project.title || T.untitled);
   info.appendChild(title);
 
-  if (project.description) {
+  const summary = (LANG === 'fa' && project.descriptionFa) ? project.descriptionFa : project.description;
+  if (summary) {
     const description = document.createElement('p');
     description.className = 'case-study-description';
-    description.textContent = project.description;
+    description.textContent = summary;
     info.appendChild(description);
   }
 
   // Client / deliverable / outcome first: the three lines that decide whether
   // someone keeps reading. Only shown when the CMS actually holds them.
   const caseFacts = [
-    ['Client', project.client],
-    ['Deliverable', project.deliverable],
-    ['Outcome', project.outcome]
+    [T.client, project.client],
+    [T.deliverable, project.deliverable],
+    [T.outcome, project.outcome]
   ].filter(pair => pair[1] && String(pair[1]).trim() !== '');
   if (caseFacts.length) {
     const facts = document.createElement('dl');
@@ -811,6 +872,22 @@ function caseStudyInfo(project) {
       facts.appendChild(row);
     });
     info.appendChild(facts);
+  }
+
+  // Where the work actually went live: the strongest proof a fixed-price
+  // project can carry, because the visitor can go and watch it.
+  const publishedUrl = safeUrl(project.publishedUrl);
+  if (publishedUrl) {
+    const live = document.createElement('a');
+    live.className = 'case-study-live';
+    live.href = publishedUrl;
+    live.target = '_blank';
+    live.rel = 'noopener';
+    live.textContent = T.liveLabel + ' ↗';
+    live.addEventListener('click', () => {
+      if (window.portfolioTracking) window.portfolioTracking.track('case_live_click', { projectId: String(project.id || '') });
+    });
+    info.appendChild(live);
   }
 
   const hasTools = Array.isArray(project.tools) && project.tools.length > 0;

@@ -52,6 +52,10 @@ function get_statistics() {
     $totalLikes = 0;
     $resumeDownloads = 0;
     $projectClicks = array();
+    // Sales funnel counters
+    $funnel = array('reel_play' => 0, 'case_open' => 0, 'case_preview_play' => 0,
+                    'contact_cta' => 0, 'contact_submit' => 0);
+    $caseOpensByProject = array();
     $locationCounts = array();
     $pageViews = array();
 
@@ -59,6 +63,12 @@ function get_statistics() {
         $eType = arr_get($e, 'type', '');
         if ($eType === 'pageview') $totalViews++;
         if ($eType === 'resume_download') $resumeDownloads++;
+        if (isset($funnel[$eType])) $funnel[$eType]++;
+        if ($eType === 'case_open' && !empty($e['projectId'])) {
+            $pid = (string)$e['projectId'];
+            if (!isset($caseOpensByProject[$pid])) $caseOpensByProject[$pid] = 0;
+            $caseOpensByProject[$pid]++;
+        }
         if ($eType === 'project_click' && !empty($e['projectId'])) {
             $pid = $e['projectId'];
             if (!isset($projectClicks[$pid])) $projectClicks[$pid] = 0;
@@ -159,6 +169,8 @@ function get_statistics() {
         'topLocations' => $topLocations,
         'avgTimeSpent' => $avgTimeSpent,
         'pageViews' => $pageViews,
+        'funnel' => $funnel,
+        'caseOpensByProject' => $caseOpensByProject,
         'likesPerProject' => $likesPerProject,
     ));
 }

@@ -58,7 +58,12 @@
     // Populate all data-setting elements
     document.querySelectorAll('[data-setting]').forEach(el => {
       const key = el.getAttribute('data-setting');
-      const val = settings[key];
+      // fa.html asks for the Fa mirror first; an empty mirror falls back to the
+      // English value so the Persian page is never half-empty.
+      let val = settings[key];
+      if ((val == null || val === '') && /Fa$/.test(key)) {
+        val = settings[key.slice(0, -2)];
+      }
       if (val == null || val === '') return;
 
       if (key === 'heroCtaLink') {
@@ -69,7 +74,8 @@
         // half-animated DOM value back, which is what broke this before.
         if (typeof window.setHeroStatValue === 'function') window.setHeroStatValue(el, val);
         else el.textContent = val;
-      } else if (key === 'linkedin' || key === 'behance' || key === 'instagram') {
+      } else if (key === 'linkedin' || key === 'behance' || key === 'instagram'
+                 || key === 'telegram' || key === 'whatsapp') {
         const socialHref = safeHref(val, ['http:', 'https:']);
         // No dead "#" links: an icon that goes nowhere costs more trust than it adds.
         if (!socialHref) {
@@ -102,7 +108,8 @@
           el.setAttribute('download', 'Alireza-Shabanzadeh-Motion-Designer-Resume.pdf');
           el.setAttribute('rel', 'noopener');
           const label = el.querySelector('[data-resume-label]');
-          if (label) label.textContent = 'Download résumé (PDF)';
+          // A client-facing one-pager, not a job-application CV.
+          if (label) label.textContent = 'Client one-pager (PDF)';
         }
       } else if (key === 'aboutSkills') {
         const skillPositions = [
@@ -339,6 +346,23 @@
       offerSection.hidden = filledRows === 0;
       const offerIntro = offerSection.querySelector('[data-setting="offerIntro"]');
       if (offerIntro) offerIntro.hidden = offerIntro.textContent.trim() === '';
+    }
+
+    // Scope guard: what a quote does not include, one item per line. Saying
+    // "no" up front is what keeps a fixed-price project profitable.
+    const scopeBlock = document.getElementById('scopeBlock');
+    const scopeList = document.getElementById('scopeList');
+    if (scopeBlock && scopeList) {
+      const isFa = document.documentElement.lang === 'fa';
+      const raw = (isFa && settings.scopeItemsFa) ? settings.scopeItemsFa : settings.scopeItems;
+      const items = String(raw || '').split('\n').map(line => line.trim()).filter(Boolean);
+      scopeList.innerHTML = '';
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        scopeList.appendChild(li);
+      });
+      scopeBlock.hidden = items.length === 0;
     }
 
     // Promise line: hidden when empty rather than leaving an orphan sentence.
@@ -603,6 +627,28 @@
       statusEl.hidden = !message;
     }
 
+    // "Or open this as an email" — for people who live in their inbox, and for
+    // anyone whose network blocks the form.
+    const mailtoLink = document.getElementById('briefMailto');
+    if (mailtoLink) {
+      const addressLink = document.querySelector('a[data-setting="email"]');
+      const address = addressLink ? addressLink.textContent.trim() : '';
+      if (address) {
+        const body = [
+          'Goal (what should this make people do):',
+          'Audience:',
+          'Deadline:',
+          'Formats needed:',
+          'What I already have (script / logo / footage):'
+        ].join('\n');
+        mailtoLink.setAttribute('href', 'mailto:' + address +
+          '?subject=' + encodeURIComponent('Project brief') +
+          '&body=' + encodeURIComponent(body));
+      } else {
+        mailtoLink.hidden = true;
+      }
+    }
+
     function emailFallback() {
       const mailLink = document.querySelector('a[data-setting="email"]');
       const address = mailLink ? mailLink.textContent.trim() : '';
@@ -617,11 +663,19 @@
       const emailField = document.getElementById('contactEmail');
       const messageField = document.getElementById('contactMessage');
       const typeField = document.getElementById('contactProjectType');
+      const deadlineField = document.getElementById('contactDeadline');
+      const formatField = document.getElementById('contactFormat');
+      const replyField = document.getElementById('contactReplyPreference');
       const payload = {
         name: nameField ? nameField.value.trim() : '',
         email: emailField ? emailField.value.trim() : '',
         message: messageField ? messageField.value.trim() : '',
-        projectType: typeField ? typeField.value : ''
+        projectType: typeField ? typeField.value : '',
+        // The brief: what a quote actually needs. All three are optional so the
+        // form never becomes a wall, but they turn a vague email into a job.
+        deadline: deadlineField ? deadlineField.value.trim() : '',
+        outputFormat: formatField ? formatField.value : '',
+        replyPreference: replyField ? replyField.value : ''
       };
 
       if (!payload.name || !payload.email || !payload.message) {
@@ -648,6 +702,9 @@
         if (submitLabel) submitLabel.textContent = 'Message sent';
         setStatus('Thanks — your message is with me. I reply within one business day.' + emailFallback(), 'success');
         if (statusEl) statusEl.focus({ preventScroll: true });
+        if (window.portfolioTracking) {
+          window.portfolioTracking.track('contact_submit', { projectType: payload.projectType || 'none' });
+        }
       } catch (error) {
         setStatus('That did not go through — please try again.' + emailFallback(), 'error');
         if (statusEl) statusEl.focus({ preventScroll: true });
