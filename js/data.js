@@ -6,57 +6,141 @@ const PROJECTS_URL = '/api.php?_query=projects';
 // The Persian page (fa.html) runs the same renderer. Only the strings data.js
 // owns are translated here; the content itself comes from the CMS.
 const LANG = (document.documentElement.getAttribute('lang') || 'en').toLowerCase().indexOf('fa') === 0 ? 'fa' : 'en';
-const T = LANG === 'fa' ? {
-  caseStudy: 'مطالعهٔ موردی',
-  untitled: 'بدون عنوان',
-  noPreview: 'بدون پیش‌نمایش',
-  media: 'رسانه',
-  open: 'بازکردن',
-  projects: 'پروژه',
-  emptyHeading: 'ریل و سه نمونه‌کار تازه را می‌خواهی؟',
-  emptyCopy: 'یک خط از پروژه بنویس — هدف و مهلت. ربط‌دارترین کارها، تعریف کار و قیمت را می‌گیری، نه یک گالری بی‌ربط.',
-  emptyCta: 'ارسال بریف',
-  liveLabel: 'دیدن کار در محل انتشار',
-  client: 'کارفرما',
-  deliverable: 'تحویل',
-  outcome: 'نتیجه',
-  browse: 'مرور نمونه‌کارها',
-  projectsLabel: 'پروژه',
-  why: 'چرا مهمه؟'
-} : {
-  caseStudy: 'Case study',
-  untitled: 'Untitled project',
-  noPreview: 'No preview',
-  media: 'media',
-  open: 'Open',
-  projects: 'projects',
-  emptyHeading: 'Want the reel and three recent samples?',
-  emptyCopy: 'Send one line about the project — the goal and the deadline. You get the most relevant work, a scope and a price, not a gallery dump.',
-  emptyCta: 'Send the brief',
-  liveLabel: 'Watch it where it was published',
-  client: 'Client',
-  deliverable: 'Deliverable',
-  outcome: 'Outcome',
-  browse: 'Browse work',
-  projectsLabel: 'projects',
-  gallery: 'Gallery',
-  caseStudies: 'Case studies',
-  exploreWork: 'Explore the work',
-  exploreHint: 'Select a project to see the full story and media.',
-  open: 'Open',
-  openMedia: 'Open media',
-  project: 'project',
-  externalNote: 'This video is hosted on YouTube/Vimeo. Loading it sends your IP address to that provider.',
-  previousMedia: 'Previous media',
-  nextMedia: 'Next media',
-  loading: 'Loading…',
-  loadError: 'Could not load the portfolio.',
-  ctaAria: 'Start a project with me',
-  ctaTitle: 'Your project next?',
-  ctaSub: 'Tell me what the video has to do — you get a scope, a price and a timeline back.',
-  ctaAction: 'Send the brief',
-  why: 'Why it matters'
+// ---------------------------------------------------------------- strings
+// Two complete packs, merged so a missing Persian key can never render as
+// "undefined" on fa.html: anything the FA pack forgets falls back to English.
+// Counted labels are functions because Persian does not pluralise after a
+// number and uses Persian digits.
+const STRINGS = {
+  en: {
+    caseStudy: 'Case study',
+    untitled: 'Untitled project',
+    noPreview: 'No preview',
+    media: 'media',
+    open: 'Open',
+    projects: 'projects',
+    emptyHeading: 'Want the reel and three recent samples?',
+    emptyCopy: 'Send one line about the project — the goal and the deadline. You get the most relevant work, a scope and a price, not a gallery dump.',
+    emptyCta: 'Send the brief',
+    liveLabel: 'Watch it where it was published',
+    client: 'Client',
+    deliverable: 'Deliverable',
+    outcome: 'Outcome',
+    browse: 'Browse work',
+    projectsLabel: 'projects',
+    gallery: 'Gallery',
+    caseStudies: 'Case studies',
+    exploreWork: 'Explore the work',
+    exploreHint: 'Select a project to see the full story and media.',
+    openMedia: 'Open media',
+    project: 'project',
+    externalNote: 'This video is hosted on YouTube/Vimeo. Loading it sends your IP address to that provider.',
+    previousMedia: 'Previous media',
+    nextMedia: 'Next media',
+    loading: 'Loading…',
+    loadError: 'Could not load the portfolio.',
+    ctaAria: 'Start a project with me',
+    ctaTitle: 'Your project next?',
+    ctaSub: 'Tell me what the video has to do — you get a scope, a price and a timeline back.',
+    ctaAction: 'Send the brief',
+    why: 'Why it matters',
+    mediaUnavailable: 'Media unavailable',
+    loadVideo: 'Load video',
+    embeddedVideo: 'Embedded video',
+    videoLabel: 'Video',
+    previewImage: 'Preview image',
+    untitledBrand: 'Untitled brand',
+    brandCover: 'Brand cover image',
+    coverSuffix: ' — cover image',
+    mediaGallery: 'Media gallery',
+    selectedWork: 'Selected work',
+    preparingGallery: 'Preparing gallery',
+    mediaGallerySuffix: ' media gallery',
+    role: 'Role',
+    allProjects: 'All projects',
+    projectMedia: 'Project media',
+    noMediaAdded: 'No media added',
+    backToAll: 'Back to all projects',
+    viewFullscreen: 'View media fullscreen',
+    closeViewer: 'Close media viewer',
+    mediaViewerSuffix: ' viewer',
+    mediaShort: 'Media',
+    previewSuffix: ' — preview',
+    previewImageSuffix: ' — preview image',
+    mediaTitleSuffix: ' — media ',
+    thumbSuffix: ' — thumbnail ',
+    showMedia: 'Show media ',
+    ofWord: ' of ',
+    countProjects: n => n + ' project' + (n === 1 ? '' : 's'),
+    countCaseStudies: n => n + ' case stud' + (n === 1 ? 'y' : 'ies'),
+    countMedia: n => n + ' media item' + (n === 1 ? '' : 's')
+  },
+  fa: {
+    caseStudy: 'پروژه',
+    untitled: 'بدون عنوان',
+    noPreview: 'پیش‌نمایشی نداره',
+    media: 'فایل',
+    open: 'نمایش',
+    projects: 'پروژه',
+    emptyHeading: 'ریل و سه نمونه‌کار تازه می‌خوای؟',
+    emptyCopy: 'یه خط از پروژه بنویس — هدف و ددلاین. مرتبط‌ترین کارها + شرح کار و قیمت رو می‌گیری، نه یه گالری بی‌ربط.',
+    emptyCta: 'بریف رو بفرست',
+    liveLabel: 'کار رو سر جاش ببین',
+    client: 'کارفرما',
+    deliverable: 'تحویل',
+    outcome: 'نتیجه',
+    browse: 'دیدن نمونه‌کارها',
+    projectsLabel: 'پروژه',
+    gallery: 'گالری',
+    caseStudies: 'پروژه‌ها',
+    exploreWork: 'کارها رو ببین',
+    exploreHint: 'یه پروژه رو انتخاب کن تا کل ماجرا و فایل‌هاش رو ببینی.',
+    openMedia: 'بازکردن فایل',
+    project: 'پروژه',
+    externalNote: 'این ویدیو روی یوتیوب/ویمئو میزبانی می‌شه؛ بازکردنش IP شما رو برای اون سرویس می‌فرسته.',
+    previousMedia: 'فایل قبلی',
+    nextMedia: 'فایل بعدی',
+    loading: 'داره بارگذاری می‌شه…',
+    loadError: 'نمونه‌کارها بارگذاری نشد.',
+    ctaAria: 'شروع پروژه با من',
+    ctaTitle: 'پروژهٔ بعدی، مال تو؟',
+    ctaSub: 'بگو این ویدیو باید چه کاری انجام بده — شرح کار و قیمت رو برات می‌فرستم.',
+    ctaAction: 'بریف رو بفرست',
+    why: 'چرا مهمه؟',
+    mediaUnavailable: 'فایل در دسترس نیست',
+    loadVideo: 'پخش ویدیو',
+    embeddedVideo: 'ویدیو',
+    videoLabel: 'ویدیو',
+    previewImage: 'تصویر پیش‌نمایش',
+    untitledBrand: 'برند بدون نام',
+    brandCover: 'تصویر برند',
+    coverSuffix: ' — تصویر برند',
+    mediaGallery: 'گالری فایل',
+    selectedWork: 'نمونه‌کارها',
+    preparingGallery: 'داره آماده می‌شه…',
+    mediaGallerySuffix: ' — گالری فایل',
+    role: 'نقش',
+    allProjects: 'همهٔ پروژه‌ها',
+    projectMedia: 'فایل‌های پروژه',
+    noMediaAdded: 'فایلی اضافه نشده',
+    backToAll: 'برگشت به همهٔ پروژه‌ها',
+    viewFullscreen: 'دیدن فایل در تمام صفحه',
+    closeViewer: 'بستن نمایشگر',
+    mediaViewerSuffix: ' — نمایشگر',
+    mediaShort: 'فایل',
+    previewSuffix: ' — پیش‌نمایش',
+    previewImageSuffix: ' — تصویر پیش‌نمایش',
+    mediaTitleSuffix: ' — فایل ',
+    thumbSuffix: ' — تصویر بندانگشتی ',
+    showMedia: 'نمایش فایل ',
+    ofWord: ' از ',
+    countProjects: n => faDigits(n) + ' پروژه',
+    countCaseStudies: n => faDigits(n) + ' پروژه',
+    countMedia: n => faDigits(n) + ' فایل'
+  }
 };
+
+const T = Object.assign({}, STRINGS.en, STRINGS[LANG]);
 
 let siteBrands = [];
 let allPortfolioProjects = [];
@@ -182,7 +266,7 @@ function mediaElement(value, options = {}) {
   if (!url) {
     const missing = document.createElement('div');
     missing.className = 'portfolio-media-missing';
-    missing.textContent = 'Media unavailable';
+    missing.textContent = T.mediaUnavailable;
     return missing;
   }
 
@@ -207,12 +291,12 @@ function mediaElement(value, options = {}) {
         const load = document.createElement('button');
         load.type = 'button';
         load.className = 'btn btn-primary';
-        load.textContent = 'Load video';
+        load.textContent = T.loadVideo;
         load.addEventListener('click', () => {
           if (manager && typeof manager.allowMediaForSession === 'function') manager.allowMediaForSession();
           const frame = document.createElement('iframe');
           frame.src = embed + (embed.indexOf('?') > -1 ? '&' : '?') + 'rel=0';
-          frame.title = title || 'Embedded video';
+          frame.title = title || T.embeddedVideo;
           frame.loading = 'lazy';
           frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
           frame.allowFullscreen = true;
@@ -224,7 +308,7 @@ function mediaElement(value, options = {}) {
       }
       const frame = document.createElement('iframe');
       frame.src = embed;
-      frame.title = title || 'Embedded video';
+      frame.title = title || T.embeddedVideo;
       frame.loading = 'lazy';
       frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
       frame.allowFullscreen = true;
@@ -242,7 +326,7 @@ function mediaElement(value, options = {}) {
     video.preload = viewer ? 'metadata' : 'metadata';
     video.controls = viewer;
     video.muted = !viewer;
-    video.setAttribute('aria-label', title || 'Video');
+    video.setAttribute('aria-label', title || T.videoLabel);
     if (!viewer) video.tabIndex = -1;
     return video;
   }
@@ -251,7 +335,7 @@ function mediaElement(value, options = {}) {
   image.src = url;
   // Always give the image a usable name: alt text comes from the brand/project
   // title, and generic previews fall back to something descriptive rather than "".
-  image.alt = title || (options.altFallback || 'Preview image');
+  image.alt = title || (options.altFallback || T.previewImage);
   image.loading = viewer ? 'eager' : 'lazy';
   image.decoding = 'async';
   image.draggable = false;
@@ -361,9 +445,7 @@ function renderProjects() {
   visibleBrands.forEach((brand, index) => {
     const mode = brandMode(brand);
     const count = mode === 'gallery' ? brandGallery(brand).length : brandProjects(brand).length;
-    const countLabel = mode === 'gallery'
-      ? count + ' media item' + (count === 1 ? '' : 's')
-      : count + ' project' + (count === 1 ? '' : 's');
+    const countLabel = mode === 'gallery' ? T.countMedia(count) : T.countProjects(count);
 
     const card = document.createElement('button');
     card.type = 'button';
@@ -384,7 +466,7 @@ function renderProjects() {
     kind.className = 'brand-card-kind';
     kind.innerHTML = mode === 'gallery' ? ICONS.gallery + '<span>' + T.gallery + '</span>' : '<span>' + T.caseStudies + '</span>';
     const name = document.createElement('strong');
-    name.textContent = brand.name || 'Untitled brand';
+    name.textContent = brand.name || T.untitledBrand;
     const meta = document.createElement('small');
     meta.textContent = countLabel;
     overlay.append(kind, name, meta);
@@ -464,14 +546,12 @@ function brandHero(brand, count) {
   copy.className = 'portfolio-brand-copy';
   const type = document.createElement('span');
   type.className = 'portfolio-brand-type';
-  type.innerHTML = mode === 'gallery' ? ICONS.gallery + '<span>Media gallery</span>' : '<span>Selected work</span>';
+  type.innerHTML = mode === 'gallery' ? ICONS.gallery + '<span>' + T.mediaGallery + '</span>' : '<span>' + T.selectedWork + '</span>';
   const title = document.createElement('h2');
   title.id = 'portfolioModalTitle';
-  title.textContent = brand.name || 'Untitled brand';
+  title.textContent = brand.name || T.untitledBrand;
   const meta = document.createElement('p');
-  meta.textContent = mode === 'gallery'
-    ? count + ' media item' + (count === 1 ? '' : 's')
-    : count + ' case stud' + (count === 1 ? 'y' : 'ies');
+  meta.textContent = mode === 'gallery' ? T.countMedia(count) : T.countCaseStudies(count);
   copy.append(type, title, meta);
   hero.appendChild(copy);
   return hero;
@@ -641,7 +721,7 @@ function galleryTile(url, index, brand, grid) {
 
   const total = brandGallery(brand).length;
   const preview = mediaElement(url, {
-    title: (brand.name || 'Brand') + ' — media ' + (index + 1) + ' of ' + total,
+    title: (brand.name || T.untitledBrand) + T.mediaTitleSuffix + faDigits(index + 1) + T.ofWord + faDigits(total),
     poster: brandGalleryPoster(brand, url)
   });
   preview.classList.add('brand-gallery-preview');
@@ -668,12 +748,12 @@ function renderGalleryBrand(brand, mount) {
   const media = brandGallery(brand);
   const body = document.createElement('section');
   body.className = 'brand-gallery-body';
-  body.setAttribute('aria-label', brand.name + ' media gallery');
+  body.setAttribute('aria-label', (brand.name || T.untitledBrand) + T.mediaGallerySuffix);
 
   const loader = document.createElement('div');
   loader.className = 'brand-gallery-loading';
   loader.setAttribute('role', 'status');
-  loader.innerHTML = '<span aria-hidden="true"></span><small>Preparing gallery</small>';
+  loader.innerHTML = '<span aria-hidden="true"></span><small>' + T.preparingGallery + '</small>';
 
   const grid = document.createElement('div');
   grid.className = 'brand-gallery-grid';
@@ -706,8 +786,8 @@ function projectCard(project, index) {
   const previewUrl = projectPreview(project, media);
   if (previewUrl) {
     const preview = mediaElement(previewUrl, {
-      title: (project.title || 'Project') + ' — preview',
-      altFallback: (project.title || 'Project') + ' — preview image'
+      title: (project.title || T.untitled) + T.previewSuffix,
+      altFallback: (project.title || T.untitled) + T.previewImageSuffix
     });
     preview.classList.add('portfolio-project-preview');
     visual.appendChild(preview);
@@ -991,7 +1071,7 @@ function caseStudyInfo(project) {
       const role = document.createElement('div');
       role.className = 'case-study-role';
       const label = document.createElement('span');
-      label.textContent = 'Role';
+      label.textContent = T.role;
       const value = document.createElement('strong');
       value.textContent = project.role;
       role.append(label, value);
@@ -1019,8 +1099,8 @@ function updateCaseMedia(index) {
   activeCaseStudy.index = (index + media.length) % media.length;
   const url = media[activeCaseStudy.index];
   stage.innerHTML = '';
-  stage.appendChild(mediaElement(url, { title: project.title || 'Project media', viewer: true }));
-  if (counter) counter.textContent = (activeCaseStudy.index + 1) + ' / ' + media.length;
+  stage.appendChild(mediaElement(url, { title: project.title || T.projectMedia, viewer: true }));
+  if (counter) counter.textContent = faDigits(activeCaseStudy.index + 1) + ' / ' + faDigits(media.length);
   if (thumbs) {
     thumbs.querySelectorAll('button').forEach((thumb, thumbIndex) => {
       const selected = thumbIndex === activeCaseStudy.index;
@@ -1050,13 +1130,13 @@ function openCaseStudy(trigger, project, media) {
 
   const toolbar = document.createElement('div');
   toolbar.className = 'case-study-toolbar';
-  const back = button('case-study-back', 'Back to all projects', ICONS.back);
+  const back = button('case-study-back', T.backToAll, ICONS.back);
   const backText = document.createElement('span');
-  backText.textContent = currentBrand ? currentBrand.name : 'All projects';
+  backText.textContent = currentBrand ? currentBrand.name : T.allProjects;
   back.appendChild(backText);
   const mediaLabel = document.createElement('span');
   mediaLabel.className = 'case-study-toolbar-label';
-  mediaLabel.textContent = 'Case study';
+  mediaLabel.textContent = T.caseStudy;
   toolbar.append(back, mediaLabel);
 
   const viewer = document.createElement('div');
@@ -1067,7 +1147,7 @@ function openCaseStudy(trigger, project, media) {
 
   let counter = null;
   if (media.length) {
-    const expand = button('case-study-expand', 'View media fullscreen', ICONS.expand);
+    const expand = button('case-study-expand', T.viewFullscreen, ICONS.expand);
     expand.addEventListener('click', () => openMediaLightbox(media, activeCaseStudy ? activeCaseStudy.index : 0, project.title, expand));
     viewer.appendChild(expand);
   }
@@ -1086,10 +1166,10 @@ function openCaseStudy(trigger, project, media) {
   if (media.length > 1) {
     thumbs = document.createElement('div');
     thumbs.className = 'case-study-thumbs';
-    thumbs.setAttribute('aria-label', 'Project media');
+    thumbs.setAttribute('aria-label', T.projectMedia);
     media.forEach((url, index) => {
-      const thumb = button('case-study-thumb', 'Show media ' + (index + 1) + ' of ' + media.length);
-      thumb.appendChild(mediaElement(url, { title: (project.title || 'Project') + ' — media ' + (index + 1) }));
+      const thumb = button('case-study-thumb', T.showMedia + faDigits(index + 1) + T.ofWord + faDigits(media.length));
+      thumb.appendChild(mediaElement(url, { title: (project.title || T.untitled) + T.mediaTitleSuffix + faDigits(index + 1) }));
       if (isVideo(url)) {
         const mark = document.createElement('span');
         mark.innerHTML = ICONS.play;
@@ -1123,7 +1203,7 @@ function openCaseStudy(trigger, project, media) {
   else {
     const missing = document.createElement('div');
     missing.className = 'portfolio-media-missing';
-    missing.textContent = 'No media added';
+    missing.textContent = T.noMediaAdded;
     stage.appendChild(missing);
   }
 
@@ -1152,10 +1232,10 @@ function closeCaseStudy(restoreFocus = true) {
 }
 
 function lightboxThumb(url, index, total, label) {
-  const thumb = button('media-lightbox-thumb', 'Show media ' + (index + 1) + ' of ' + (total || index + 1));
+  const thumb = button('media-lightbox-thumb', T.showMedia + faDigits(index + 1) + T.ofWord + faDigits(total || index + 1));
   thumb.appendChild(mediaElement(url, {
-    title: (label || 'Media') + ' — thumbnail ' + (index + 1),
-    altFallback: (label || 'Media') + ' — thumbnail ' + (index + 1)
+    title: (label || T.mediaShort) + T.thumbSuffix + faDigits(index + 1),
+    altFallback: (label || T.mediaShort) + T.thumbSuffix + faDigits(index + 1)
   }));
   if (isVideo(url)) {
     const mark = document.createElement('span');
@@ -1172,8 +1252,8 @@ function updateMediaLightbox(index) {
   activeLightbox.index = (index + media.length) % media.length;
   const url = media[activeLightbox.index];
   stage.innerHTML = '';
-  stage.appendChild(mediaElement(url, { title: title || 'Media', viewer: true }));
-  counter.textContent = (activeLightbox.index + 1) + ' / ' + media.length;
+  stage.appendChild(mediaElement(url, { title: title || T.mediaShort, viewer: true }));
+  counter.textContent = faDigits(activeLightbox.index + 1) + ' / ' + faDigits(media.length);
   if (thumbs) {
     thumbs.querySelectorAll('button').forEach((thumb, thumbIndex) => {
       const selected = thumbIndex === activeLightbox.index;
@@ -1194,17 +1274,17 @@ function openMediaLightbox(mediaValues, index, title, trigger) {
   const lightbox = document.createElement('section');
   lightbox.className = 'media-lightbox';
   lightbox.setAttribute('role', 'document');
-  lightbox.setAttribute('aria-label', (title || 'Media') + ' viewer');
+  lightbox.setAttribute('aria-label', (title || T.mediaShort) + T.mediaViewerSuffix);
 
   const top = document.createElement('div');
   top.className = 'media-lightbox-top';
   const identity = document.createElement('div');
   const name = document.createElement('strong');
-  name.textContent = title || 'Media';
+  name.textContent = title || T.mediaShort;
   const counter = document.createElement('span');
   counter.setAttribute('aria-live', 'polite');
   identity.append(name, counter);
-  const close = button('media-lightbox-close', 'Close media viewer', ICONS.close);
+  const close = button('media-lightbox-close', T.closeViewer, ICONS.close);
   top.append(identity, close);
 
   const stage = document.createElement('div');
@@ -1214,8 +1294,8 @@ function openMediaLightbox(mediaValues, index, title, trigger) {
   let previous = null;
   let next = null;
   if (media.length > 1) {
-    previous = button('media-lightbox-nav is-previous', 'Previous media', ICONS.arrowLeft);
-    next = button('media-lightbox-nav is-next', 'Next media', ICONS.arrowRight);
+    previous = button('media-lightbox-nav is-previous', T.previousMedia, ICONS.arrowLeft);
+    next = button('media-lightbox-nav is-next', T.nextMedia, ICONS.arrowRight);
     previous.addEventListener('click', () => updateMediaLightbox(activeLightbox.index - 1));
     next.addEventListener('click', () => updateMediaLightbox(activeLightbox.index + 1));
     lightbox.append(previous, next);
@@ -1342,5 +1422,9 @@ Object.assign(window, {
   closeProjectModal,
   openBrandModal,
   renderFilters: () => {},
-  filterProjects: () => allPortfolioProjects
+  filterProjects: () => allPortfolioProjects,
+  // Exposed so the automated tests can prove the two language packs stay in
+  // step — a Persian key that goes missing is what renders "undefined".
+  portfolioStrings: STRINGS,
+  portfolioCopy: T
 });

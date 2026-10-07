@@ -87,9 +87,9 @@ const settings = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/settings.json'
   d = w.document;
   const faText = d.getElementById('experiencePanel').textContent;
   check('Persian timeline entries render', faText.includes('طراح موشن گرافیک'), faText.slice(0, 60));
-  check('Persian services render', d.getElementById('servicesGrid').textContent.includes('ویدیوی توضیحی'),
+  check('Persian services render', d.getElementById('servicesGrid').textContent.includes('اکسپلینر محصول'),
     d.getElementById('servicesGrid').textContent.slice(0, 60));
-  check('Persian availability badge', d.querySelector('.availability-badge').textContent.includes('جای پروژهٔ جدید باز است'),
+  check('Persian availability badge', d.querySelector('.availability-badge').textContent.includes('پروژهٔ جدید می‌پذیرم'),
     d.querySelector('.availability-badge').textContent);
 
   console.log('\n== offer + scope (CMS answers) ==');
@@ -107,7 +107,6 @@ const settings = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/settings.json'
     check(page + ': scope block visible', da.getElementById('scopeBlock').hidden === false);
   }
 
-  console.log('\n== why it matters (projects payload) ==');
   const project = {
     id: 'p1', title: 'Onboarding explainer', year: '2025',
     description: 'Short product film.', client: 'Acme', deliverable: '60s explainer',
@@ -117,6 +116,40 @@ const settings = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/settings.json'
     published: true, featured: true, gallery: []
   };
   const brand = { id: 'b1', name: 'Demo brand', mode: 'projects', order: 0 };
+
+  console.log('\n== string packs ==');
+  w = boot('fa.html', { apiDown: true });
+  await new Promise(r => setTimeout(r, 300));
+  const strings = w.portfolioStrings;
+  const packs = { en: Object.keys(strings.en), fa: Object.keys(strings.fa) };
+  const onlyEn = packs.en.filter(k => !packs.fa.includes(k));
+  const onlyFa = packs.fa.filter(k => !packs.en.includes(k));
+  check('data.js: the FA pack covers every EN key', onlyEn.length === 0, onlyEn.join(', '));
+  check('data.js: the FA pack has no stray keys', onlyFa.length === 0, onlyFa.join(', '));
+  const missingValues = packs.fa.filter(k => strings.fa[k] === '' || strings.fa[k] == null);
+  check('data.js: no empty FA value', missingValues.length === 0, missingValues.join(', '));
+
+  console.log('\n== no "undefined" anywhere on the Persian page ==');
+  w = boot('fa.html', { settings, projects: { projects: [project], brands: [brand], categories: [] } });
+  await new Promise(r => setTimeout(r, 400));
+  d = w.document;
+  const cta = d.querySelector('.brand-card-cta');
+  check('CTA card renders real Persian text', !!cta && !/undefined/.test(cta.textContent) && /پروژه|بریف/.test(cta.textContent),
+    cta ? cta.textContent.trim() : 'no CTA card');
+  d.querySelector('.brand-card').click();
+  await new Promise(r => setTimeout(r, 200));
+  const modalText = d.getElementById('portfolioModalContent').textContent;
+  check('brand modal has no "undefined"', !/undefined/.test(modalText), modalText.slice(0, 80));
+  const faBody = d.body.textContent;
+  check('the whole Persian page is free of "undefined"', !/undefined/.test(faBody),
+    faBody.slice(Math.max(0, faBody.indexOf('undefined') - 60), faBody.indexOf('undefined') + 40));
+  const englishLeaks = ['Media unavailable', 'Load video', 'Preparing gallery', 'All projects',
+    'Project media', 'No media added', 'Case study', 'Untitled brand', 'Media gallery',
+    'Close media viewer', 'Previous media', 'Next media']
+    .filter(text => faBody.includes(text));
+  check('no English UI strings left on the Persian page', englishLeaks.length === 0, englishLeaks.join(' | '));
+
+  console.log('\n== why it matters (projects payload) ==');
   w = boot('index.html', { projects: { projects: [project], brands: [brand], categories: [] } });
   await new Promise(r => setTimeout(r, 400));
   d = w.document;

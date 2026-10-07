@@ -56,7 +56,15 @@
     copiedFail: 'کپی نشد — ایمیل: ',
     resumeFile: 'Alireza-Shabanzadeh-Motion-Designer-Resume.pdf',
     resumeLabel: 'معرفی یک‌صفحه‌ای (PDF)',
-    showreelFallback: 'این لینک ریل قابل نمایش داخل صفحه نیست؛ در تب تازه باز می‌شود…'
+    showreelFallback: 'این لینک ریل قابل نمایش داخل صفحه نیست؛ در تب تازه باز می‌شود…',
+    openMenu: 'بازکردن منو',
+    closeMenu: 'بستن منو',
+    playReel: 'پخش ریل',
+    pauseReel: 'توقف ریل',
+    showreel: 'ریل',
+    sendMessage: 'ارسال پیام',
+    youtubeGate: 'این ویدیو روی یوتیوب میزبانی می‌شه؛ با بازکردنش، IP شما به گوگل ارسال می‌شه.',
+    loadFromYoutube: 'پخش ویدیو از یوتیوب'
   } : {
     professional: 'Professional',
     academic: 'Academic',
@@ -76,7 +84,15 @@
     copiedFail: 'Copy failed — the address is ',
     resumeFile: 'Alireza-Shabanzadeh-Motion-Designer-Resume.pdf',
     resumeLabel: 'Client one-pager (PDF)',
-    showreelFallback: 'This showreel link cannot be embedded. Opening it in a new tab instead…'
+    showreelFallback: 'This showreel link cannot be embedded. Opening it in a new tab instead…',
+    openMenu: 'Open menu',
+    closeMenu: 'Close menu',
+    playReel: 'Play reel',
+    pauseReel: 'Pause reel',
+    showreel: 'Showreel',
+    sendMessage: 'Send message',
+    youtubeGate: 'This video is hosted on YouTube. Loading it sends your IP address to Google.',
+    loadFromYoutube: 'Load video from YouTube'
   };
 
   // ============================================
@@ -447,7 +463,7 @@
           const paused = heroReelVideo.paused;
           heroReelToggle.setAttribute('aria-pressed', paused ? 'false' : 'true');
           const label = heroReelToggle.querySelector('.hero-reel-toggle-label');
-          if (label) label.textContent = paused ? 'Play reel' : 'Pause reel';
+          if (label) label.textContent = paused ? STR.playReel : STR.pauseReel;
         };
         if (heroReelToggle && !heroReelToggle.dataset.wired) {
           heroReelToggle.dataset.wired = '1';
@@ -608,14 +624,14 @@
       mobileMenuBtn.classList.toggle('is-active', open);
       mobileMenu.classList.toggle('is-open', open);
       mobileMenuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      mobileMenuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      mobileMenuBtn.setAttribute('aria-label', open ? STR.closeMenu : STR.openMenu);
       document.body.style.overflow = open ? 'hidden' : '';
     };
 
     mobileMenuBtn.setAttribute('type', 'button');
     mobileMenuBtn.setAttribute('aria-controls', 'mobileMenu');
     mobileMenuBtn.setAttribute('aria-expanded', 'false');
-    mobileMenuBtn.setAttribute('aria-label', 'Open menu');
+    mobileMenuBtn.setAttribute('aria-label', STR.openMenu);
 
     mobileMenuBtn.addEventListener('click', () => {
       setMenuState(!mobileMenu.classList.contains('is-open'));
@@ -858,7 +874,7 @@
       } finally {
         window.setTimeout(() => {
           if (submitBtn) submitBtn.disabled = false;
-          if (submitLabel) submitLabel.textContent = originalLabel || 'Send message';
+          if (submitLabel) submitLabel.textContent = originalLabel || STR.sendMessage;
         }, 4000);
       }
     });
@@ -951,7 +967,7 @@
         video.controls = true;
         video.playsInline = true;
         video.preload = 'metadata';
-        video.setAttribute('aria-label', 'Showreel');
+        video.setAttribute('aria-label', STR.showreel);
         stage.appendChild(video);
         return;
       }
@@ -960,11 +976,12 @@
       if (!allowed) {
         const gate = document.createElement('div');
         gate.className = 'showreel-gate';
-        gate.innerHTML = '<p>This video is hosted on YouTube. Loading it sends your IP address to Google.</p>';
+        gate.innerHTML = '<p></p>';
+      gate.querySelector('p').textContent = STR.youtubeGate;
         const load = document.createElement('button');
         load.type = 'button';
         load.className = 'btn btn-primary';
-        load.textContent = 'Load video from YouTube';
+        load.textContent = STR.loadFromYoutube;
         load.addEventListener('click', () => {
           if (window.portfolioConsent && typeof window.portfolioConsent.allowMediaForSession === 'function') {
             window.portfolioConsent.allowMediaForSession();
@@ -977,7 +994,7 @@
       }
       const frame = document.createElement('iframe');
       frame.src = embed + (embed.indexOf('?') > -1 ? '&' : '?') + 'autoplay=1&rel=0';
-      frame.title = 'Showreel';
+      frame.title = STR.showreel;
       frame.loading = 'lazy';
       frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
       frame.allowFullscreen = true;

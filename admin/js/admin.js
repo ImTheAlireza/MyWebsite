@@ -2962,7 +2962,7 @@
             <legend>فارسی — برای صفحهٔ fa.html</legend>
             <div class="form-row">
               <label>عنوان</label>
-              <input type="text" name="titleFa" dir="rtl" value="${esc(item.titleFa || '')}" placeholder="ویدیوی توضیحی محصول">
+              <input type="text" name="titleFa" dir="rtl" value="${esc(item.titleFa || '')}" placeholder="اکسپلینر محصول">
             </div>
             <div class="form-row">
               <label>توضیح</label>
