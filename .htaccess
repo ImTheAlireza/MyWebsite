@@ -1,0 +1,44 @@
+# ============================================================
+# Security + performance headers
+# Everything is wrapped in <IfModule> so a host without these
+# modules (LiteSpeed, minimal Apache builds) simply ignores it.
+# ============================================================
+
+# Never let the server guess a file's type from its content.
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  # Same-origin framing stays allowed: the admin panel previews the site in an iframe.
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# Static assets: long cache (file names/versions are in the URLs),
+# JSON data must never be cached (it is user content).
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 6 months"
+  ExpiresByType image/png "access plus 6 months"
+  ExpiresByType application/json "access plus 0 seconds"
+</IfModule>
+
+# Block listing of folders that only exist for the site itself.
+Options -Indexes
+
+# Do not serve the local secret file even if the host ignores data/.htaccess.
+<FilesMatch "^\.jwt-secret$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# Pretty error pages must not leak server paths.
+<IfModule mod_php.c>
+  php_flag display_errors off
+</IfModule>

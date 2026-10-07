@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin — Portfolio CMS</title>
   <meta name="robots" content="noindex, nofollow">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/admin.css?v=20260805-6">
+  <link rel="stylesheet" href="../css/fonts.css?v=20261006-1">
+  <link rel="stylesheet" href="css/admin.css?v=20261006-2">
 </head>
 <body>
   <!-- Login Screen -->
@@ -36,6 +34,12 @@
         </div>
         <div id="loginError" class="form-error"></div>
         <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+        <p class="login-hint">
+          First run, or locked out? Create a <code>.env</code> file next to <code>api.php</code> containing
+          <code>ADMIN_USER=you</code> and <code>ADMIN_PASS=a-long-private-password</code>, then delete
+          <code>data/users.json</code> on the server and sign in with those details. Never reuse the
+          example password: this repository is public.
+        </p>
       </form>
     </div>
   </div>
@@ -92,18 +96,7 @@
           </svg>
           Services
         </button>
-        <button class="nav-item" data-view="process">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-          </svg>
-          Process
-        </button>
-        <button class="nav-item" data-view="testimonials">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-          </svg>
-          Testimonials
-        </button>
+
         <div class="nav-section-label">Analytics</div>
         <button class="nav-item" data-view="statistics">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -271,6 +264,13 @@
           <!-- Stats -->
           <div class="settings-section">
             <h3>Stats</h3>
+            <p class="field-hint">
+              These three items sit under the hero buttons. Use facts a client can verify
+              (tools, location, languages) — <strong>not numbers you cannot prove</strong>
+              (&ldquo;7 years&rdquo;, &ldquo;50+ projects&rdquo;, &ldquo;100% satisfaction&rdquo;).
+              Leave a value empty and that stat disappears from the page automatically.
+              A number is fine here only if you can show the invoices or analytics behind it.
+            </p>
             <div class="form-row">
               <div class="form-group">
                 <label for="heroStat1Value">Stat 1 Value</label>
@@ -317,8 +317,69 @@
               </div>
             </div>
             <div class="form-group">
-              <label for="heroShowreelUrl">Showreel Embed URL</label>
-              <input type="url" id="heroShowreelUrl" name="heroShowreelUrl" placeholder="https://www.youtube.com/embed/...">
+              <label for="heroPromise">Promise Line (under the stats)</label>
+              <input type="text" id="heroPromise" name="heroPromise" placeholder="Tell me the goal and the deadline...">
+              <p class="field-hint">One sentence describing what the visitor gets by contacting you. Only promise what you always deliver.</p>
+            </div>
+            <fieldset class="admin-fa-fieldset">
+              <legend>فارسی — برای صفحهٔ fa.html</legend>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="heroEyebrowFa">برچسب بالای نام</label>
+                  <input type="text" id="heroEyebrowFa" name="heroEyebrowFa" dir="rtl" placeholder="طراح موشن گرافیک">
+                </div>
+                <div class="form-group">
+                  <label for="heroAvailabilityFa">وضعیت پذیرش کار</label>
+                  <input type="text" id="heroAvailabilityFa" name="heroAvailabilityFa" dir="rtl" placeholder="جای پروژهٔ جدید باز است">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="heroSubtitleFa">زیرعنوان</label>
+                <textarea id="heroSubtitleFa" name="heroSubtitleFa" rows="2" dir="rtl" placeholder="اکسپلینر، موشن UI و کات شبکه‌های اجتماعی…"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="heroPromiseFa">خط قول</label>
+                <input type="text" id="heroPromiseFa" name="heroPromiseFa" dir="rtl" placeholder="هدف و ددلاین رو بگو؛ شرح کار و قیمت می‌گیری.">
+              </div>
+              <div class="form-group">
+                <label for="heroCtaTextFa">متن دکمه</label>
+                <input type="text" id="heroCtaTextFa" name="heroCtaTextFa" dir="rtl" placeholder="نمونه‌کارها را ببین">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="heroStat1ValueFa">آمار ۱ — مقدار</label>
+                  <input type="text" id="heroStat1ValueFa" name="heroStat1ValueFa" dir="rtl" placeholder="از سال ۱۳۹۷">
+                </div>
+                <div class="form-group">
+                  <label for="heroStat1LabelFa">آمار ۱ — برچسب</label>
+                  <input type="text" id="heroStat1LabelFa" name="heroStat1LabelFa" dir="rtl" placeholder="موشن گرافیک و محتوای آموزشی">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="heroStat2ValueFa">آمار ۲ — مقدار</label>
+                  <input type="text" id="heroStat2ValueFa" name="heroStat2ValueFa" dir="rtl" placeholder="فارسی · انگلیسی">
+                </div>
+                <div class="form-group">
+                  <label for="heroStat2LabelFa">آمار ۲ — برچسب</label>
+                  <input type="text" id="heroStat2LabelFa" name="heroStat2LabelFa" dir="rtl" placeholder="زبان کار">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="heroStat3ValueFa">آمار ۳ — مقدار</label>
+                  <input type="text" id="heroStat3ValueFa" name="heroStat3ValueFa" dir="rtl">
+                </div>
+                <div class="form-group">
+                  <label for="heroStat3LabelFa">آمار ۳ — برچسب</label>
+                  <input type="text" id="heroStat3LabelFa" name="heroStat3LabelFa" dir="rtl">
+                </div>
+              </div>
+            </fieldset>
+            <div class="form-group">
+              <label for="heroShowreelUrl">Showreel Video URL</label>
+              <input type="url" id="heroShowreelUrl" name="heroShowreelUrl" placeholder="https://www.youtube.com/watch?v=...">
+              <p class="field-hint">YouTube or Vimeo link. A &ldquo;Watch showreel&rdquo; button appears in the hero when this is filled in. The player only loads after the visitor agrees (or clicks) — nothing is sent to YouTube before that.</p>
             </div>
           </div>
 
@@ -473,6 +534,11 @@
           </div>
           <div class="settings-section">
             <h3>About Text</h3>
+            <p class="field-hint">
+              Describe what you do and what the client receives. Avoid unverifiable claims
+              (age, &ldquo;years of experience&rdquo;, awards, &ldquo;graduated with honors&rdquo;) unless you can
+              show documents for them — recruiters check, and a wrong claim costs the job.
+            </p>
             <div class="form-group">
               <label for="aboutText">Content</label>
               <div class="md-editor">
@@ -498,12 +564,24 @@
               </div>
               <div class="form-hint">Supports **bold**, *italic*, `code`, [links](url), # headings, - lists</div>
             </div>
+            <fieldset class="admin-fa-fieldset">
+              <legend>فارسی — برای صفحهٔ fa.html</legend>
+              <div class="form-group">
+                <label for="aboutTextFa">متن «دربارهٔ من»</label>
+                <textarea id="aboutTextFa" name="aboutTextFa" rows="8" dir="rtl" placeholder="موشن می‌سازم برای چیزهایی که باید توضیح بدهند…"></textarea>
+                <div class="form-hint">پاراگراف‌ها را با یک خط خالی جدا کن. *متن* ایتالیک می‌شود.</div>
+              </div>
+            </fieldset>
           </div>
           <div class="settings-section">
             <h3>Skills & Resume</h3>
             <div class="form-group">
               <label for="aboutSkills">Skills (comma separated)</label>
               <input type="text" id="aboutSkills" name="aboutSkills" placeholder="Motion Design, Explainer Videos, ...">
+            </div>
+            <div class="form-group">
+              <label for="aboutSkillsFa">مهارت‌ها (فارسی)</label>
+              <input type="text" id="aboutSkillsFa" name="aboutSkillsFa" dir="rtl" placeholder="اکسپلینر، موشن UI، …">
             </div>
             <div class="form-group">
               <label>Resume PDF</label>
@@ -562,6 +640,12 @@
         </div>
         <div id="timelineSuccess" class="form-success hidden">Timeline saved successfully!</div>
 
+        <p class="field-hint">
+          List only roles and degrees you can document on request. Keep dates honest —
+          an unexplained gap is far less damaging than an entry that does not check out.
+          If Education is empty, the Education tab is hidden on the site.
+        </p>
+
         <!-- Experience Section -->
         <div class="timeline-admin-section">
           <div class="section-bar">
@@ -605,7 +689,6 @@
         </div>
       </div>
 
-
       <!-- Services View -->
       <div id="servicesView" class="view">
         <div class="view-header">
@@ -629,6 +712,17 @@
             <label for="servicesIntro">Intro Text</label>
             <input type="text" id="servicesIntro" placeholder="Motion that moves people...">
           </div>
+          <fieldset class="admin-fa-fieldset">
+            <legend>فارسی — برای صفحهٔ fa.html</legend>
+            <div class="form-group">
+              <label for="servicesTitleFa">عنوان بخش</label>
+              <input type="text" id="servicesTitleFa" dir="rtl" placeholder="چه کاری برات انجام می‌دم">
+            </div>
+            <div class="form-group">
+              <label for="servicesIntroFa">متن معرفی</label>
+              <input type="text" id="servicesIntroFa" dir="rtl" placeholder="هر کدوم از روز اول شرح کار و قیمت مشخص داره.">
+            </div>
+          </fieldset>
         </div>
         <div class="timeline-admin-section">
           <div class="section-bar">
@@ -644,78 +738,8 @@
       </div>
 
       <!-- Process View -->
-      <div id="processView" class="view">
-        <div class="view-header">
-          <div>
-            <h2>Process</h2>
-            <p class="view-subtitle">Your workflow — 4 steps shown as How I work</p>
-          </div>
-          <button type="button" class="btn btn-primary" id="saveProcessBtn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-            Save Changes
-          </button>
-        </div>
-        <div id="processSuccess" class="form-success hidden">Process saved!</div>
-        <div class="settings-section">
-          <h3>Section Intro</h3>
-          <div class="form-group">
-            <label for="processTitle">Title</label>
-            <input type="text" id="processTitle" placeholder="How I work">
-          </div>
-          <div class="form-group">
-            <label for="processIntro">Intro Text</label>
-            <input type="text" id="processIntro" placeholder="A transparent workflow...">
-          </div>
-        </div>
-        <div class="timeline-admin-section">
-          <div class="section-bar">
-            <div class="section-bar-left">
-              <h3>Steps</h3>
-              <span class="entry-count" id="processCount">0 entries</span>
-            </div>
-            <button type="button" class="btn btn-primary btn-sm" id="addProcessBtn">Add Step</button>
-          </div>
-          <div id="processList" class="timeline-admin-list"></div>
-          <div id="processEmpty" class="empty-state-sm hidden"><p>No steps yet.</p></div>
-        </div>
-      </div>
 
       <!-- Testimonials View -->
-      <div id="testimonialsView" class="view">
-        <div class="view-header">
-          <div>
-            <h2>Testimonials</h2>
-            <p class="view-subtitle">Social proof — quotes from clients</p>
-          </div>
-          <button type="button" class="btn btn-primary" id="saveTestimonialsBtn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-            Save Changes
-          </button>
-        </div>
-        <div id="testimonialsSuccess" class="form-success hidden">Testimonials saved!</div>
-        <div class="settings-section">
-          <h3>Section Intro</h3>
-          <div class="form-group">
-            <label for="testimonialsTitle">Title</label>
-            <input type="text" id="testimonialsTitle" placeholder="Client thoughts">
-          </div>
-          <div class="form-group">
-            <label for="testimonialsIntro">Intro Text</label>
-            <input type="text" id="testimonialsIntro" placeholder="A few words from teams...">
-          </div>
-        </div>
-        <div class="timeline-admin-section">
-          <div class="section-bar">
-            <div class="section-bar-left">
-              <h3>Testimonials</h3>
-              <span class="entry-count" id="testimonialsCount">0 entries</span>
-            </div>
-            <button type="button" class="btn btn-primary btn-sm" id="addTestimonialBtn">Add Testimonial</button>
-          </div>
-          <div id="testimonialsList" class="timeline-admin-list"></div>
-          <div id="testimonialsEmpty" class="empty-state-sm hidden"><p>No testimonials yet.</p></div>
-        </div>
-      </div>
 
       <!-- Assets View -->
       <!-- Assets View -->
@@ -878,6 +902,43 @@
             </div>
           </div>
         </div>
+        <div class="stats-section" style="margin-top:24px">
+          <h3>Sales funnel — what visitors actually do</h3>
+          <p class="view-subtitle" style="margin:4px 0 14px">Reel plays and case opens happen before anyone writes. If these numbers are zero, the work section is not doing its job.</p>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-info">
+                <span class="stat-value" id="statReelPlays">0</span>
+                <span class="stat-label">Reel plays</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-info">
+                <span class="stat-value" id="statPreviewPlays">0</span>
+                <span class="stat-label">Card previews played</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-info">
+                <span class="stat-value" id="statCaseOpens">0</span>
+                <span class="stat-label">Case studies opened</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-info">
+                <span class="stat-value" id="statContactCtas">0</span>
+                <span class="stat-label">Contact CTAs clicked</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-info">
+                <span class="stat-value" id="statContactSubmits">0</span>
+                <span class="stat-label">Briefs sent</span>
+              </div>
+            </div>
+          </div>
+          <div id="caseOpensList" class="stats-bars"></div>
+        </div>
         <div class="stats-row-2col">
           <div class="stats-section">
             <h3>Page Views</h3>
@@ -974,6 +1035,155 @@
             </div>
           </div>
           <div class="settings-section">
+            <h3>What you get</h3>
+            <p class="settings-hint">These answers are the ones a client looks for before writing the email. Leave any of them empty and the row (or the whole block) stays off the site — nothing is invented for you.</p>
+            <div class="form-group">
+              <label for="settingOfferTitle">Block title</label>
+              <input type="text" id="settingOfferTitle" name="offerTitle" placeholder="What you get">
+            </div>
+            <div class="form-group">
+              <label for="settingOfferIntro">Intro line (optional)</label>
+              <input type="text" id="settingOfferIntro" name="offerIntro" placeholder="Fixed scope before we start.">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingOfferReply">Reply time</label>
+                <input type="text" id="settingOfferReply" name="offerReply" placeholder="e.g. Within one working day">
+              </div>
+              <div class="form-group">
+                <label for="settingOfferTimeline">Typical timeline</label>
+                <input type="text" id="settingOfferTimeline" name="offerTimeline" placeholder="e.g. 90s explainer: 2-3 weeks">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="settingOfferFormat">You receive</label>
+              <input type="text" id="settingOfferFormat" name="offerFormat" placeholder="e.g. MP4 (16:9, 1:1, 9:16) + project file">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingOfferRevisions">Revisions</label>
+                <input type="text" id="settingOfferRevisions" name="offerRevisions" placeholder="e.g. Two rounds after the storyboard">
+              </div>
+              <div class="form-group">
+                <label for="settingOfferTerms">Payment</label>
+                <input type="text" id="settingOfferTerms" name="offerTerms" placeholder="e.g. 50% to start, 50% on delivery">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingOfferFrom">Starting point</label>
+                <input type="text" id="settingOfferFrom" name="offerFrom" placeholder="e.g. Projects start at €X">
+              </div>
+              <div class="form-group">
+                <label for="settingOfferAvailability">Next opening</label>
+                <input type="text" id="settingOfferAvailability" name="offerAvailability" placeholder="e.g. From 3 November">
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Contact channels</h3>
+            <p class="settings-hint">Telegram and WhatsApp matter more than email for Iranian clients. Leave them empty and the row stays hidden.</p>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingTelegram">Telegram link</label>
+                <input type="url" id="settingTelegram" name="telegram" placeholder="https://t.me/yourname">
+              </div>
+              <div class="form-group">
+                <label for="settingWhatsapp">WhatsApp link</label>
+                <input type="url" id="settingWhatsapp" name="whatsapp" placeholder="https://wa.me/98911...">
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Scope guard — what a quote does not include</h3>
+            <p class="settings-hint">One item per line. Saying this up front is what keeps a fixed-price project profitable.</p>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingScopeTitle">Heading (EN)</label>
+                <input type="text" id="settingScopeTitle" name="scopeTitle" placeholder="What's not included">
+              </div>
+              <div class="form-group">
+                <label for="settingScopeTitleFa">Heading (FA)</label>
+                <input type="text" id="settingScopeTitleFa" name="scopeTitleFa" dir="rtl" placeholder="چه چیزی شامل نمی‌شود">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingScopeItems">Items (EN, one per line)</label>
+                <textarea id="settingScopeItems" name="scopeItems" rows="4" placeholder="Voice-over and sound design&#10;Licensed music&#10;More than two revision rounds"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="settingScopeItemsFa">Items (FA, one per line)</label>
+                <textarea id="settingScopeItemsFa" name="scopeItemsFa" rows="4" dir="rtl" placeholder="گویندگی و صداگذاری&#10;موسیقی لایسنس‌دار&#10;بیش از دو دور اصلاح"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Persian page (fa.html)</h3>
+            <p class="settings-hint">Leave any FA field empty and the Persian page falls back to the English value.
+              Hero, About, Services and Timeline have their own Persian fields inside their own tabs.</p>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingSiteNameFa">Name (FA)</label>
+                <input type="text" id="settingSiteNameFa" name="siteNameFa" dir="rtl">
+              </div>
+              <div class="form-group">
+                <label for="settingSiteTitleFa">Role (FA)</label>
+                <input type="text" id="settingSiteTitleFa" name="siteTitleFa" dir="rtl">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Hero subtitle (FA)</label>
+              <p class="settings-hint">این فیلد به تب «Hero» منتقل شد.</p>
+            </div>
+            <div class="form-group">
+              <label>Hero promise (FA)</label>
+              <p class="settings-hint">این فیلد به تب «Hero» منتقل شد.</p>
+            </div>
+            <div class="form-group">
+              <label for="settingOfferTitleFa">"What you get" title (FA)</label>
+              <input type="text" id="settingOfferTitleFa" name="offerTitleFa" dir="rtl">
+            </div>
+            <div class="form-group">
+              <label for="settingOfferIntroFa">"What you get" intro (FA)</label>
+              <input type="text" id="settingOfferIntroFa" name="offerIntroFa" dir="rtl">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingOfferReplyFa">Reply time (FA)</label>
+                <input type="text" id="settingOfferReplyFa" name="offerReplyFa" dir="rtl">
+              </div>
+              <div class="form-group">
+                <label for="settingOfferTimelineFa">Timeline (FA)</label>
+                <input type="text" id="settingOfferTimelineFa" name="offerTimelineFa" dir="rtl">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingOfferFormatFa">You receive (FA)</label>
+                <input type="text" id="settingOfferFormatFa" name="offerFormatFa" dir="rtl">
+              </div>
+              <div class="form-group">
+                <label for="settingOfferRevisionsFa">Revisions (FA)</label>
+                <input type="text" id="settingOfferRevisionsFa" name="offerRevisionsFa" dir="rtl">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingOfferTermsFa">Payment (FA)</label>
+                <input type="text" id="settingOfferTermsFa" name="offerTermsFa" dir="rtl">
+              </div>
+              <div class="form-group">
+                <label for="settingOfferAvailabilityFa">Next opening (FA)</label>
+                <input type="text" id="settingOfferAvailabilityFa" name="offerAvailabilityFa" dir="rtl">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="settingOfferFromFa">Starting point (FA)</label>
+              <input type="text" id="settingOfferFromFa" name="offerFromFa" dir="rtl">
+            </div>
+          </div>
+          <div class="settings-section">
             <h3>Social Links</h3>
             <div class="form-row">
               <div class="form-group">
@@ -999,6 +1209,18 @@
             <div class="form-group">
               <label for="settingFooterNote">Footer Note</label>
               <input type="text" id="settingFooterNote" name="footerNote" placeholder="Crafted with motion & care">
+            </div>
+            <div class="form-group">
+              <label for="settingFooterCopyFa">کپی‌رایت (فارسی)</label>
+              <input type="text" id="settingFooterCopyFa" name="footerCopyFa" dir="rtl" placeholder="© ۱۴۰۵ علیرضا شابان‌زاده">
+            </div>
+            <div class="form-group">
+              <label for="settingFooterNoteFa">خط پایین صفحه (فارسی)</label>
+              <input type="text" id="settingFooterNoteFa" name="footerNoteFa" dir="rtl" placeholder="موشن گرافیک · رشت، ایران · آمادهٔ دورکاری">
+            </div>
+            <div class="form-group">
+              <label for="settingLocationFa">محل کار (فارسی)</label>
+              <input type="text" id="settingLocationFa" name="locationFa" dir="rtl" placeholder="رشت، گیلان، ایران">
             </div>
           </div>
           <button type="submit" class="btn btn-primary">Save Settings</button>
@@ -1234,6 +1456,54 @@
             </div>
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="projectClient">Client / team</label>
+            <input type="text" id="projectClient" placeholder="e.g. Rahavard Samanehaye Amn">
+          </div>
+          <div class="form-group">
+            <label for="projectDeliverable">Deliverable</label>
+            <input type="text" id="projectDeliverable" placeholder="e.g. 90s explainer + 3 cutdowns">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="projectOutcome">Outcome — only what you can back up</label>
+          <textarea id="projectOutcome" rows="2" placeholder="e.g. Shipped as the onboarding video and still in use"></textarea>
+        </div>
+        <div class="settings-section settings-subsection">
+          <h3>Why it matters <span class="settings-hint-inline">— optional, shows on the card and in the case study</span></h3>
+          <p class="settings-hint">One or two sentences on what this project actually changed for the client. Leave it empty and nothing is shown on the card.</p>
+          <div class="form-group">
+            <label for="projectWhyText">Why it matters (English)</label>
+            <textarea id="projectWhyText" rows="2" placeholder="e.g. The 40-second cut replaced three support pages — new accounts understand the product before the first call."></textarea>
+          </div>
+          <div class="form-group">
+            <label for="projectWhyFaText">Why it matters (Persian, for fa.html)</label>
+            <textarea id="projectWhyFaText" rows="2" dir="rtl" placeholder="مثلاً: این کات ۴۰ ثانیه‌ای جای سه صفحه راهنما را گرفت — کاربر پیش از اولین تماس، محصول را می‌فهمد."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Numbers (up to 3) — leave empty if you cannot back them up</label>
+            <div id="projectWhyMetrics" class="why-metrics-editor"></div>
+            <button type="button" id="addWhyMetricBtn" class="btn btn-ghost btn-sm">+ Add number</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="projectPreviewVideo">Card preview clip (short, muted, loops on hover)</label>
+            <div class="project-video-field">
+              <input type="text" id="projectPreviewVideo" placeholder="/uploads/case-preview.mp4">
+              <button type="button" id="browseProjectPreviewBtn" class="btn btn-ghost project-video-browse-btn">Browse Videos</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="projectTitleFa">Persian title (for the Persian page)</label>
+            <input type="text" id="projectTitleFa" dir="rtl" placeholder="عنوان فارسی">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="projectDescriptionFa">Persian summary (for the Persian page)</label>
+          <textarea id="projectDescriptionFa" rows="2" dir="rtl" placeholder="خلاصهٔ فارسی"></textarea>
+        </div>
         <div class="form-row project-flags">
           <label class="toggle-field">
             <input type="checkbox" id="projectPublished" checked>
@@ -1279,7 +1549,7 @@
         </div>
         <div class="form-group">
           <label for="projectThumbUrl">Or enter image URL</label>
-          <input type="url" id="projectThumbUrl" placeholder="https://images.unsplash.com/...">
+          <input type="url" id="projectThumbUrl" placeholder="/uploads/your-image.jpg (upload files under Assets)">
         </div>
         <div class="modal-actions">
           <button type="button" id="deleteProjectBtn" class="btn btn-danger hidden">Delete</button>
@@ -1485,20 +1755,13 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 7V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2m14 0V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2"></path></svg>
       Services
     </button>
-    <button class="mobile-nav-item" data-view="process">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-      Process
-    </button>
-    <button class="mobile-nav-item" data-view="testimonials">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-      Reviews
-    </button>
+
     <button class="mobile-nav-item" data-view="settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       Settings
     </button>
   </div>
 
-  <script src="js/admin.js?v=20260805-6"></script>
+  <script src="js/admin.js?v=20261006-7"></script>
 </body>
 </html>

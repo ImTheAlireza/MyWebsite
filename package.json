@@ -1,0 +1,12 @@
+{
+  "name": "alireza-shabanzadeh-website",
+  "private": true,
+  "description": "Local verification tooling for a plain PHP/JS site. Nothing here ships to the browser.",
+  "scripts": {
+    "test": "node tools/tests/render.cjs && node tools/tests/admin.cjs",
+    "build:fa": "python3 tools/build-fa-page.py"
+  },
+  "devDependencies": {
+    "jsdom": "^27.0.0"
+  }
+}

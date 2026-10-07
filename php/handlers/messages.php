@@ -14,6 +14,24 @@ function create_message() {
     $name = arr_get($input, 'name', '');
     $email = arr_get($input, 'email', '');
     $message = arr_get($input, 'message', '');
+    $projectType = arr_get($input, 'projectType', '');
+    if (!is_string($projectType)) $projectType = '';
+    // Whitelisted: these values come straight from a public form.
+    $allowedTypes = array('explainer', 'social', 'ui', 'logo', 'other');
+    if (!in_array($projectType, $allowedTypes, true)) $projectType = '';
+
+    $deadline = arr_get($input, 'deadline', '');
+    if (!is_string($deadline)) $deadline = '';
+
+    $outputFormat = arr_get($input, 'outputFormat', '');
+    if (!is_string($outputFormat)) $outputFormat = '';
+    $allowedFormats = array('16:9', '1:1', '9:16', 'multiple', 'unsure');
+    if (!in_array($outputFormat, $allowedFormats, true)) $outputFormat = '';
+
+    $replyPreference = arr_get($input, 'replyPreference', '');
+    if (!is_string($replyPreference)) $replyPreference = '';
+    $allowedReply = array('email', 'telegram', 'whatsapp', 'call');
+    if (!in_array($replyPreference, $allowedReply, true)) $replyPreference = '';
 
     if (!$name || !$email || !$message) {
         send_error('Name, email, and message are required');
@@ -32,6 +50,10 @@ function create_message() {
         'name' => sanitize(substr($name, 0, 200)),
         'email' => sanitize(substr($email, 0, 200)),
         'message' => sanitize(substr($message, 0, 5000)),
+        'projectType' => $projectType,
+        'deadline' => sanitize(substr($deadline, 0, 120)),
+        'outputFormat' => $outputFormat,
+        'replyPreference' => $replyPreference,
         'read' => false,
         'createdAt' => date('c'),
     );

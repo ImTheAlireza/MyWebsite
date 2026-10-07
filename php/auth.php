@@ -16,8 +16,40 @@ if (file_exists($env_file)) {
     }
 }
 
+/**
+ * Signing secret for the admin session token.
+ *
+ * It must never be guessable: this repository is public, so a hard-coded
+ * default would let anyone mint a valid admin token. Resolution order:
+ *   1. JWT_SECRET in .env (recommended for production)
+ *   2. a random secret generated once and stored in data/.jwt-secret
+ *      (blocked from the web by data/.htaccess, kept out of git)
+ *   3. the old fallback, only if the data directory is not writable
+ */
 if (!defined('JWT_SECRET')) {
-    define('JWT_SECRET', isset($env['JWT_SECRET']) ? $env['JWT_SECRET'] : 'fallback-secret-change-me');
+    $configuredSecret = isset($env['JWT_SECRET']) ? trim($env['JWT_SECRET']) : '';
+    if ($configuredSecret === '' || $configuredSecret === 'fallback-secret-change-me') {
+        $secretFile = __DIR__ . '/../data/.jwt-secret';
+        $storedSecret = '';
+        if (file_exists($secretFile)) {
+            $storedSecret = trim((string)@file_get_contents($secretFile));
+        }
+        if (strlen($storedSecret) < 32) {
+            if (function_exists('random_bytes')) {
+                $fresh = bin2hex(random_bytes(32));
+            } elseif (function_exists('openssl_random_pseudo_bytes')) {
+                $fresh = bin2hex(openssl_random_pseudo_bytes(32));
+            } else {
+                $fresh = hash('sha256', uniqid((string)mt_rand(), true) . microtime(true));
+            }
+            if (@file_put_contents($secretFile, $fresh, LOCK_EX) !== false) {
+                @chmod($secretFile, 0600);
+                $storedSecret = $fresh;
+            }
+        }
+        $configuredSecret = $storedSecret !== '' ? $storedSecret : 'fallback-secret-change-me';
+    }
+    define('JWT_SECRET', $configuredSecret);
 }
 if (!defined('ADMIN_USER')) {
     define('ADMIN_USER', isset($env['ADMIN_USER']) ? $env['ADMIN_USER'] : 'admin');
@@ -91,11 +123,33 @@ function optional_auth() {
 
 function set_auth_cookie($token) {
     $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    if (PHP_VERSION_ID >= 70300) {
+        // SameSite=Lax stops the session cookie from riding along on
+        // cross-site form posts (CSRF).
+        setcookie('token', $token, array(
+            'expires' => time() + (60 * 60 * 24),
+            'path' => '/',
+            'secure' => $secure,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ));
+        return;
+    }
     setcookie('token', $token, time() + (60 * 60 * 24), '/', '', $secure, true);
 }
 
 function clear_auth_cookie() {
     $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    if (PHP_VERSION_ID >= 70300) {
+        setcookie('token', '', array(
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => $secure,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ));
+        return;
+    }
     setcookie('token', '', time() - 3600, '/', '', $secure, true);
 }
 
