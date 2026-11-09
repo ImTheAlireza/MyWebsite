@@ -3087,6 +3087,12 @@ dialog.media-lightbox {
   .work-cta-card { grid-column: span 12; }
   .case-why-metrics { grid-template-columns: 1fr; }
 }
+@media (max-width: 900px) {
+  .offer-grid { grid-template-columns: 1fr; }
+  .case-dialog-media { aspect-ratio: 4 / 3; }
+  .media-lightbox-thumbs { display: none; }
+  .media-lightbox-stage { padding-inline: 6px; }
+}
 @media (max-width: 640px) {
   .case-card-body { padding: 1.2rem 1.2rem 1.3rem; }
   .brand-gallery { columns: 1; }
