@@ -160,7 +160,8 @@
     "showreelCta": "Start a project like this",
     "showreelWork": "See the case studies",
     "showreelNative": "Play in native fullscreen",
-    "closeShowreelLabel": "Close showreel"
+    "closeShowreelLabel": "Close showreel",
+    "seekReel": "Seek the reel"
   },
   "fa": {
     "skipLink": "رفتن به محتوای اصلی",
@@ -323,6 +324,7 @@
     "showreelCta": "پروژه‌ای شبیه این بسازیم",
     "showreelWork": "نمونه‌کارها را ببینید",
     "showreelNative": "تمام‌صفحهٔ مرورگر",
-    "closeShowreelLabel": "بستن ریل نمایشی"
+    "closeShowreelLabel": "بستن ریل نمایشی",
+    "seekReel": "جابه‌جایی در ریل"
   }
 }

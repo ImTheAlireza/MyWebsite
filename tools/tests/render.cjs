@@ -146,6 +146,25 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     check('the fallback control is visually marked as an ask', fullBtn2.classList.contains('is-hollow'));
   }
 
+  console.log('\n== hero reel: a hosted link instead of a file ==');
+  {
+    const w3 = boot('index.html', { settingsOverride: { ...settings, heroShowreelUrl: 'https://youtu.be/aqz-KE-bpKQ', heroPoster: '' } });
+    await wait(500);
+    const d3 = w3.document;
+    const v3 = d3.getElementById('heroReelVideo');
+    check('no inline video for a hosted link', v3.hidden === true);
+    check('poster stays as the stage image', d3.getElementById('stagePoster').hidden === false);
+    d3.getElementById('stageFullscreenBtn').click();
+    await wait(120);
+    const dialog3 = d3.getElementById('showreelDialog');
+    const frame = d3.querySelector('#showreelStage iframe');
+    check('Full Reel still opens the modal for a hosted link', dialog3.hasAttribute('open'));
+    check('the hosted link becomes a privacy-friendly embed',
+      !!frame && /youtube-nocookie\.com/.test(frame.getAttribute('src') || ''),
+      frame ? frame.getAttribute('src') : 'no iframe');
+    check('no native-fullscreen button for an embed', d3.getElementById('showreelNativeBtn').hidden === true);
+  }
+
   // ------------------------------------------------------- work renders (EN)
   console.log('\n== index.html · work grid from the CMS ==');
   let w = boot('index.html');
