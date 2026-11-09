@@ -175,6 +175,8 @@ $DEFAULT_SETTINGS = array(
     'heroPortraitLightScale' => 0.91,
 
     // ------------------------------------------------------------------- about
+    'aboutTitle' => 'About & Toolkit',
+    'aboutTitleFa' => 'دربارهٔ من و ابزارها',
     'aboutIntro' => 'Combining a Software Engineering background with motion craft and university e-learning production.',
     'aboutIntroFa' => 'ترکیب پیشینهٔ مهندسی نرم‌افزار با تجربهٔ موشن و تولید محتوای آموزش الکترونیکی دانشگاهی.',
     'aboutText' => "I animate things that have to *explain* something: a feature nobody understands yet, a course module, an onboarding step.\n\nSince 2018 I have worked on both sides of that job — producing e-learning content at Mehr-e-Alborz University, and since 2023 motion graphics in production at Rahavard Samanehaye Amn. I studied software engineering and I am finishing a master's in English language education, which is why briefs, storyboards and review calls do not need a translator in the middle.\n\nI work in After Effects, Photoshop and Premiere Pro. Send the goal and the deadline; you get an honest answer about what is realistic, a scope and a price before anything starts.",

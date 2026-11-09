@@ -330,5 +330,7 @@
   "testimonialsIntro": "Words from clients — shown only when a real client agrees to be quoted.",
   "testimonials": [],
   "heroHudTag": "UI WALKTHROUGH",
-  "heroHudTagFa": "نمای رابط کاربری"
+  "heroHudTagFa": "نمای رابط کاربری",
+  "aboutTitle": "About & Toolkit",
+  "aboutTitleFa": "دربارهٔ من و ابزارها"
 }

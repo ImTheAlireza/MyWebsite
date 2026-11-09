@@ -904,6 +904,8 @@
 
   // -------------------------------------------------------------- journey
   function renderJourney() {
+    setText('aboutTitle', setting('aboutTitle'));
+    setText('aboutIntro', setting('aboutIntro'));
     var columns = [
       { key: 'experience', list: document.getElementById('experiencePanel'), column: document.getElementById('experienceColumn') },
       { key: 'education', list: document.getElementById('educationPanel'), column: document.getElementById('educationGroup') }

@@ -1772,6 +1772,10 @@
       }
       if (aboutTa) { aboutTa.value = text; }
       if (d.aboutSkills) $('#aboutSkills').value = d.aboutSkills;
+      if ($('#aboutTitle')) $('#aboutTitle').value = d.aboutTitle || '';
+      if ($('#aboutTitleFa')) $('#aboutTitleFa').value = d.aboutTitleFa || '';
+      if ($('#aboutIntro')) $('#aboutIntro').value = d.aboutIntro || '';
+      if ($('#aboutIntroFa')) $('#aboutIntroFa').value = d.aboutIntroFa || '';
       if ($('#aboutTextFa')) $('#aboutTextFa').value = d.aboutTextFa || '';
       if ($('#aboutSkillsFa')) $('#aboutSkillsFa').value = d.aboutSkillsFa || '';
       if (d.aboutImage) uploads.about.setImage(d.aboutImage);
@@ -1789,6 +1793,10 @@
     e.preventDefault();
     try {
       const updated = {
+        aboutTitle: $('#aboutTitle') ? $('#aboutTitle').value.trim() : '',
+        aboutTitleFa: $('#aboutTitleFa') ? $('#aboutTitleFa').value.trim() : '',
+        aboutIntro: $('#aboutIntro') ? $('#aboutIntro').value.trim() : '',
+        aboutIntroFa: $('#aboutIntroFa') ? $('#aboutIntroFa').value.trim() : '',
         aboutImage: $('#aboutImage').value || '',
         aboutText: aboutTa ? aboutTa.value.trim() : '',
         aboutSkills: $('#aboutSkills').value.trim(),
@@ -3085,12 +3093,18 @@
     const payload = {
       servicesTitle: $('#servicesTitle').value.trim(),
       servicesIntro: $('#servicesIntro').value.trim(),
-      services: collected.map(item => ({ icon: item.icon, title: item.title, desc: item.desc })),
+      services: collected.map(item => ({
+        icon: item.icon, title: item.title, desc: item.desc,
+        kicker: item.kicker || '', bullets: item.bullets || []
+      })),
       servicesTitleFa: $('#servicesTitleFa') ? $('#servicesTitleFa').value.trim() : '',
       servicesIntroFa: $('#servicesIntroFa') ? $('#servicesIntroFa').value.trim() : '',
       servicesFa: collected
         .filter(item => item.titleFa || item.descFa)
-        .map(item => ({ icon: item.icon, title: item.titleFa || item.title, desc: item.descFa || item.desc }))
+        .map(item => ({
+          icon: item.icon, title: item.titleFa || item.title, desc: item.descFa || item.desc,
+          kicker: item.kickerFa || '', bullets: item.bulletsFa || []
+        }))
     };
     saveServicesBtn.disabled = true;
     saveServicesBtn.textContent = 'Saving...';
@@ -4103,8 +4117,26 @@
     if (!previewOverlay) return;
     previewOverlay.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
-    if (previewFrame) previewFrame.src = '/';
+    // ?edit=1 puts the site in edit mode: click any text and it is saved
+    // straight back into the CMS.
+    if (previewFrame) previewFrame.src = '/?edit=1';
   }
+
+  // The site posts every inline edit back here; merge it into the live settings
+  // so the panel and the page never disagree.
+  window.addEventListener('message', async event => {
+    if (event.origin !== window.location.origin) return;
+    const data = event.data || {};
+    if (data.type !== 'admin:setting-edit' || !data.key) return;
+    try {
+      const patch = {};
+      patch[data.key] = String(data.value == null ? '' : data.value);
+      await api('settings', { method: 'PUT', body: JSON.stringify(patch) });
+      showToast('Saved “' + data.key + '”', 'success');
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    }
+  });
 
   function closePreview() {
     if (!previewOverlay) return;
