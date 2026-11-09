@@ -129,7 +129,7 @@ function delete_project($id) {
     $newProjects = array();
 
     foreach ($projects as $p) {
-        if ((string)$p['id'] === (string)$id) {
+        if (isset($p['id']) && trim((string)$p['id']) === trim((string)$id)) {
             $removed = $p;
             $found = true;
         } else {
@@ -137,7 +137,7 @@ function delete_project($id) {
         }
     }
 
-    if (!$found) send_error('Project not found', 404);
+    if (!$found) send_error('Project not found — it may already have been deleted. Reload the panel.', 404);
 
     json_write('projects.json', array('projects' => $newProjects, 'brands' => arr_get($data, 'brands', array())));
 

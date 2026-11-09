@@ -51,8 +51,8 @@ if ($path === '/projects' && $method === 'GET') {
     list_projects(); return;
 }
 if ($path === '/brands' && $method === 'POST') { require $base . '/php/handlers/brands.php'; create_brand(); return; }
-if (preg_match('#^/brands/([a-f0-9-]+)$#i', $path, $m) && $method === 'PUT') { require $base . '/php/handlers/brands.php'; update_brand($m[1]); return; }
-if (preg_match('#^/brands/([a-f0-9-]+)$#i', $path, $m) && $method === 'DELETE') { require $base . '/php/handlers/brands.php'; delete_brand($m[1]); return; }
+if (preg_match('#^/brands/([^/]+)$#i', $path, $m) && $method === 'PUT') { require $base . '/php/handlers/brands.php'; update_brand($m[1]); return; }
+if (preg_match('#^/brands/([^/]+)$#i', $path, $m) && $method === 'DELETE') { require $base . '/php/handlers/brands.php'; delete_brand($m[1]); return; }
 
 if ($path === '/projects' && $method === 'POST') {
     require $base . '/php/handlers/projects.php';
@@ -62,21 +62,21 @@ if ($path === '/projects/reorder' && $method === 'PUT') {
     require $base . '/php/handlers/projects.php';
     reorder_projects(); return;
 }
-if (preg_match('#^/projects/([a-f0-9-]+)$#i', $path, $m) && $method === 'PUT') {
+if (preg_match('#^/projects/([^/]+)$#i', $path, $m) && $method === 'PUT') {
     require $base . '/php/handlers/projects.php';
     update_project($m[1]); return;
 }
-if (preg_match('#^/projects/([a-f0-9-]+)$#i', $path, $m) && $method === 'DELETE') {
+if (preg_match('#^/projects/([^/]+)$#i', $path, $m) && $method === 'DELETE') {
     require $base . '/php/handlers/projects.php';
     delete_project($m[1]); return;
 }
 
 // LIKES
-if (preg_match('#^/projects/([a-f0-9-]+)/likes$#i', $path, $m) && $method === 'GET') {
+if (preg_match('#^/projects/([^/]+)/likes$#i', $path, $m) && $method === 'GET') {
     require $base . '/php/handlers/likes.php';
     get_likes($m[1]); return;
 }
-if (preg_match('#^/projects/([a-f0-9-]+)/like$#i', $path, $m) && $method === 'POST') {
+if (preg_match('#^/projects/([^/]+)/like$#i', $path, $m) && $method === 'POST') {
     require $base . '/php/handlers/likes.php';
     toggle_like($m[1]); return;
 }
@@ -104,11 +104,11 @@ if ($path === '/messages' && $method === 'DELETE') {
     require $base . '/php/handlers/messages.php';
     clear_all_messages(); return;
 }
-if (preg_match('#^/messages/([a-f0-9-]+)/read$#i', $path, $m) && $method === 'PUT') {
+if (preg_match('#^/messages/([^/]+)/read$#i', $path, $m) && $method === 'PUT') {
     require $base . '/php/handlers/messages.php';
     mark_read($m[1]); return;
 }
-if (preg_match('#^/messages/([a-f0-9-]+)$#i', $path, $m) && $method === 'DELETE') {
+if (preg_match('#^/messages/([^/]+)$#i', $path, $m) && $method === 'DELETE') {
     require $base . '/php/handlers/messages.php';
     delete_message($m[1]); return;
 }

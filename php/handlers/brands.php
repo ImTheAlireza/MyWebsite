@@ -53,7 +53,7 @@ function update_brand($id) {
     $result = null;
 
     foreach ($brands as $index => $brand) {
-        if ((string)arr_get($brand, 'id', '') !== (string)$id) continue;
+        if (trim((string)arr_get($brand, 'id', '')) !== trim((string)$id)) continue;
 
         $merged = array_merge($brand, $input);
         validate_brand_input($merged, true);
@@ -74,23 +74,43 @@ function update_brand($id) {
 
 function delete_brand($id) {
     require_auth();
+    $id = (string)$id;
     $data = json_read('projects.json');
-    $data['brands'] = array_values(array_filter(
-        arr_get($data, 'brands', array()),
-        function($brand) use ($id) {
-            return (string)arr_get($brand, 'id', '') !== (string)$id;
-        }
-    ));
+    $brands = arr_get($data, 'brands', array());
+    if (!is_array($brands)) $brands = array();
 
+    // Ids are matched loosely (a stale panel tab, an imported slug, or a value
+    // that only differs by surrounding whitespace should still delete), but the
+    // caller is told plainly when nothing matched instead of getting a silent
+    // "success" that leaves the brand on the site.
+    $found = false;
+    $remaining = array();
+    foreach ($brands as $brand) {
+        $brandId = isset($brand['id']) ? trim((string)$brand['id']) : '';
+        if ($brandId === trim($id)) {
+            $found = true;
+            continue;
+        }
+        $remaining[] = $brand;
+    }
+
+    if (!$found) {
+        send_error('Brand not found — it may already have been deleted. Reload the panel.', 404);
+    }
+
+    $data['brands'] = array_values($remaining);
+
+    // Case studies keep existing, but they no longer belong to a brand: the
+    // public API never sends them, so they simply leave the work grid.
     $projects = arr_get($data, 'projects', array());
-    foreach ($projects as &$project) {
-        if ((string)arr_get($project, 'brand', '') === (string)$id) {
-            $project['brand'] = '';
+    if (!is_array($projects)) $projects = array();
+    foreach ($projects as $index => $project) {
+        if (isset($project['brand']) && trim((string)$project['brand']) === trim($id)) {
+            $projects[$index]['brand'] = '';
         }
     }
-    unset($project);
     $data['projects'] = $projects;
 
     json_write('projects.json', $data);
-    send_json(array('success' => true));
+    send_json(array('success' => true, 'deleted' => $id, 'remaining' => count($data['brands'])));
 }

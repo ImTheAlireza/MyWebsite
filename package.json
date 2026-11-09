@@ -3,7 +3,7 @@
   "private": true,
   "description": "Local verification tooling for a plain PHP/JS site. Nothing here ships to the browser.",
   "scripts": {
-    "test": "node tools/tests/render.cjs && node tools/tests/admin.cjs",
+    "test": "node tools/tests/render.cjs && node tools/tests/admin.cjs && python3 tools/tests/api-routes.py",
     "build:fa": "python3 tools/build-fa-page.py"
   },
   "devDependencies": {

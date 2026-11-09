@@ -918,6 +918,10 @@
 
   async function removeBrand(id) {
     const brand = brands.find(item => String(item.id) === String(id));
+    if (!id) {
+      showToast('This brand has no saved id yet — save it first, then delete.', 'error');
+      return;
+    }
     const count = projects.filter(project => String(project.brand) === String(id)).length;
     const galleryCount = brand && Array.isArray(brand.gallery) ? brand.gallery.length : 0;
     let detail = '';
@@ -931,6 +935,16 @@
       await loadProjects();
       showToast('Brand deleted', 'success');
     } catch (error) {
+      // A 404 means the server no longer has this brand (deleted in another
+      // tab, or an id that was never saved). Reload so the list matches the
+      // server instead of leaving a ghost row the panel cannot act on.
+      const notFound = /not found/i.test(error.message || '');
+      if (notFound) {
+        closeBrandEditor();
+        await loadProjects();
+        showToast('That brand was already gone — the list has been refreshed.', 'info');
+        return;
+      }
       showToast('Could not delete brand: ' + error.message, 'error');
     }
   }
