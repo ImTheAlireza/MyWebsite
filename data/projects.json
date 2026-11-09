@@ -1,4 +1,291 @@
 {
-  "projects": [],
-  "brands": []
+  "projects": [
+    {
+      "id": "b1f0c3d2-0001-4b10-9b01-draftproj0001",
+      "title": "Passwordless & Smartphone Security Key Motion Suite",
+      "titleFa": "مجموعه موشن‌های کلید امنیتی و احراز هویت بدون رمز IDmelon",
+      "brand": "a1f0c3d2-0001-4a10-9a01-draftbrand0001",
+      "category": "ui",
+      "year": "2025–2026",
+      "description": "A cohesive library of UI walkthroughs, tap-to-login hardware animations, and enterprise admin dashboard explainers.",
+      "descriptionFa": "مجموعهٔ یکپارچه از موشن‌های رابط کاربری، انیمیشن‌های ورود با تپ موبایل و راهنمای پنل مدیریت سازمانی.",
+      "client": "IDmelon (Enterprise FIDO2 Security)",
+      "deliverable": "8 UI loops (WebM/MP4) + 4 product explainers",
+      "outcome": "SAMPLE — replace with a real, provable outcome before publishing",
+      "role": "Lead Motion Designer (concept, UI prep, animation)",
+      "tools": [
+        "After Effects",
+        "Photoshop",
+        "Illustrator",
+        "Premiere Pro"
+      ],
+      "whyMatters": {
+        "text": "SAMPLE CASE STUDY — written to show the layout. Delete it or replace it with a real project, and publish it only when the numbers are true.",
+        "metrics": [
+          {
+            "value": "12",
+            "label": "Motion assets"
+          },
+          {
+            "value": "60fps",
+            "label": "4K / WebM loops"
+          },
+          {
+            "value": "—",
+            "label": "Engagement"
+          }
+        ]
+      },
+      "whyMattersFa": {
+        "text": "نمونهٔ ساختگی — برای دیدن چیدمان. پیش از انتشار با پروژهٔ واقعی جایگزین کنید.",
+        "metrics": [
+          {
+            "value": "۱۲",
+            "label": "فایل موشن"
+          },
+          {
+            "value": "۶۰fps",
+            "label": "خروجی 4K"
+          },
+          {
+            "value": "—",
+            "label": "تعامل"
+          }
+        ]
+      },
+      "video": "",
+      "thumbnail": "/assets/og-cover.jpg",
+      "gallery": [],
+      "published": false,
+      "featured": false,
+      "order": 0,
+      "createdAt": "2026-11-09T00:00:00+00:00",
+      "updatedAt": "2026-11-09T00:00:00+00:00"
+    },
+    {
+      "id": "b2f0c3d2-0002-4b10-9b02-draftproj0002",
+      "title": "Smart OTP Failover & Multi-Gateway Routing Flow",
+      "titleFa": "نمایش تعاملی مسیریابی هوشمند پیامک OTP و Failover",
+      "brand": "a2f0c3d2-0002-4a10-9a02-draftbrand0002",
+      "category": "ui",
+      "year": "2026",
+      "description": "Visualising real-time SMS gateway health checks, automatic failover switching, and customizable login widgets.",
+      "descriptionFa": "تجسم لحظه‌ای بررسی سلامت درگاه‌های پیامک، سوییچ خودکار هنگام اختلال و شخصی‌سازی فرم ورود.",
+      "client": "Ashna Unified SSO & OTP",
+      "deliverable": "90s Product Launch Video + 6 Feature Micro-clips",
+      "outcome": "SAMPLE — replace before publishing",
+      "role": "UI Motion Designer & Visual Storyboarder",
+      "tools": [
+        "After Effects",
+        "Photoshop",
+        "Figma"
+      ],
+      "whyMatters": {
+        "text": "SAMPLE CASE STUDY — backend reliability is invisible by default; this layout shows how the visual flow would be explained.",
+        "metrics": [
+          {
+            "value": "90s",
+            "label": "Master explainer"
+          },
+          {
+            "value": "8",
+            "label": "UI feature loops"
+          },
+          {
+            "value": "48h",
+            "label": "Animatic"
+          }
+        ]
+      },
+      "whyMattersFa": {
+        "text": "نمونهٔ ساختگی — پایداری زیرساخت معمولاً دیده نمی‌شود؛ این چیدمان نحوهٔ توضیح جریان بصری را نشان می‌دهد.",
+        "metrics": [
+          {
+            "value": "۹۰s",
+            "label": "ویدیوی اصلی"
+          },
+          {
+            "value": "۸",
+            "label": "لوپ فیچر"
+          },
+          {
+            "value": "۴۸h",
+            "label": "انیماتیک"
+          }
+        ]
+      },
+      "video": "",
+      "thumbnail": "/assets/hero-portrait-light.jpg",
+      "gallery": [],
+      "published": false,
+      "featured": false,
+      "order": 1,
+      "createdAt": "2026-11-09T00:00:00+00:00",
+      "updatedAt": "2026-11-09T00:00:00+00:00"
+    },
+    {
+      "id": "b3f0c3d2-0003-4b10-9b03-draftproj0003",
+      "title": "Modular Visual System for Graduate E-Learning Courses",
+      "titleFa": "سیستم بصری و موشن‌های آموزشی دوره‌های کارشناسی ارشد",
+      "brand": "a3f0c3d2-0003-4a10-9a03-draftbrand0003",
+      "category": "explainer",
+      "year": "2023–2025",
+      "description": "Standardized 2D motion templates, animated diagrams, and chapter explainers for online lectures.",
+      "descriptionFa": "قالب‌های استاندارد موشن دوبعدی، دیاگرام‌های متحرک و اکسپلینرهای سرفصل‌های درسی.",
+      "client": "Mehr-e-Alborz University",
+      "deliverable": "Modular AE template system + chapter explainers",
+      "outcome": "SAMPLE — replace before publishing",
+      "role": "E-learning Content Creator & Motion Designer",
+      "tools": [
+        "After Effects",
+        "Photoshop",
+        "Premiere Pro",
+        "Illustrator"
+      ],
+      "whyMatters": {
+        "text": "SAMPLE CASE STUDY — dense academic slides cause fatigue; progressive visual reveals keep attention on the concept.",
+        "metrics": [
+          {
+            "value": "—",
+            "label": "Modules"
+          },
+          {
+            "value": "5 yrs",
+            "label": "University"
+          },
+          {
+            "value": "1080p",
+            "label": "LMS"
+          }
+        ]
+      },
+      "whyMattersFa": {
+        "text": "نمونهٔ ساختگی — اسلایدهای متنی سنگین باعث خستگی می‌شوند؛ نمایش مرحله‌ای مفاهیم توجه را حفظ می‌کند.",
+        "metrics": [
+          {
+            "value": "—",
+            "label": "ماژول"
+          },
+          {
+            "value": "۵ سال",
+            "label": "دانشگاه"
+          },
+          {
+            "value": "1080p",
+            "label": "LMS"
+          }
+        ]
+      },
+      "video": "",
+      "thumbnail": "/assets/about-portrait.jpg",
+      "gallery": [],
+      "published": false,
+      "featured": false,
+      "order": 2,
+      "createdAt": "2026-11-09T00:00:00+00:00",
+      "updatedAt": "2026-11-09T00:00:00+00:00"
+    },
+    {
+      "id": "b4f0c3d2-0004-4b10-9b04-draftproj0004",
+      "title": "SaaS Onboarding & Micro-Interaction Library",
+      "titleFa": "مجموعه انیمیشن‌های آنبوردینگ و تعاملات ریز محصول",
+      "brand": "a4f0c3d2-0004-4a10-9a04-draftbrand0004",
+      "category": "ui",
+      "year": "2025",
+      "description": "Dark-mode UI motion showing collaborative document editing, instant search commands, and team permissions.",
+      "descriptionFa": "نمایش روان ویرایش هم‌زمان اسناد، جستجوی سریع دستورات و مدیریت دسترسی تیم‌ها در محیط دارک‌مود.",
+      "client": "Clexi Cloud Workspace",
+      "deliverable": "6 seamless product loops + brand styleguide",
+      "outcome": "SAMPLE — replace before publishing",
+      "role": "Product Motion Designer",
+      "tools": [
+        "After Effects",
+        "Photoshop"
+      ],
+      "whyMatters": {
+        "text": "SAMPLE CASE STUDY — lightweight muted loops prove speed and polish on first visit instead of static screenshots.",
+        "metrics": [
+          {
+            "value": "6",
+            "label": "Feature loops"
+          },
+          {
+            "value": "<1.2MB",
+            "label": "Per WebM"
+          },
+          {
+            "value": "2 wks",
+            "label": "Delivery"
+          }
+        ]
+      },
+      "whyMattersFa": {
+        "text": "نمونهٔ ساختگی — لوپ‌های ویدیویی سبک سرعت و ظرافت محصول را در نگاه اول نشان می‌دهند.",
+        "metrics": [
+          {
+            "value": "۶",
+            "label": "لوپ فیچر"
+          },
+          {
+            "value": "<۱.۲MB",
+            "label": "هر ویدیو"
+          },
+          {
+            "value": "۲ هفته",
+            "label": "تحویل"
+          }
+        ]
+      },
+      "video": "",
+      "thumbnail": "/assets/hero-portrait-dark.jpg",
+      "gallery": [],
+      "published": false,
+      "featured": false,
+      "order": 3,
+      "createdAt": "2026-11-09T00:00:00+00:00",
+      "updatedAt": "2026-11-09T00:00:00+00:00"
+    }
+  ],
+  "brands": [
+    {
+      "id": "a1f0c3d2-0001-4a10-9a01-draftbrand0001",
+      "name": "IDmelon",
+      "mode": "projects",
+      "thumbnail": "/assets/og-cover.jpg",
+      "gallery": [],
+      "galleryPosters": {},
+      "galleryAspects": {},
+      "order": 0
+    },
+    {
+      "id": "a2f0c3d2-0002-4a10-9a02-draftbrand0002",
+      "name": "Ashna",
+      "mode": "projects",
+      "thumbnail": "/assets/hero-portrait-light.jpg",
+      "gallery": [],
+      "galleryPosters": {},
+      "galleryAspects": {},
+      "order": 1
+    },
+    {
+      "id": "a3f0c3d2-0003-4a10-9a03-draftbrand0003",
+      "name": "Mehr-e-Alborz University",
+      "mode": "projects",
+      "thumbnail": "/assets/about-portrait.jpg",
+      "gallery": [],
+      "galleryPosters": {},
+      "galleryAspects": {},
+      "order": 2
+    },
+    {
+      "id": "a4f0c3d2-0004-4a10-9a04-draftbrand0004",
+      "name": "Clexi",
+      "mode": "projects",
+      "thumbnail": "/assets/hero-portrait-dark.jpg",
+      "gallery": [],
+      "galleryPosters": {},
+      "galleryAspects": {},
+      "order": 3
+    }
+  ]
 }

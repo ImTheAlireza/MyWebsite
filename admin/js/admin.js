@@ -22,6 +22,7 @@
   let framePickerMediaIndex = -1;
   let frameCaptureRunning = false;
   let hasUnsavedChanges = false;
+  let ratesData = [];
 
   const $ = s => document.querySelector(s);
   const $$ = s => document.querySelectorAll(s);
@@ -129,6 +130,7 @@
       if (btn.dataset.view === 'timeline') loadTimeline();
       if (btn.dataset.view === 'statistics') loadStatistics();
       if (btn.dataset.view === 'messages') { loadMessages(); updateMessagesBadge(); }
+      if (['rates', 'offers', 'contact', 'projects-settings'].includes(btn.dataset.view)) loadCopySettings();
     });
   });
 
@@ -1590,7 +1592,7 @@
       const d = await api('settings');
       ['heroEyebrow','heroFirstName','heroLastName','heroSubtitle','heroAvailability',
        'heroStat1Value','heroStat1Label','heroStat2Value','heroStat2Label','heroStat3Value','heroStat3Label',
-       'heroCtaText','heroCtaLink','heroShowreelUrl','heroPromise',
+       'heroCtaText','heroCtaLink','heroShowreelUrl','heroPromise','heroHudTag','heroPoster',
        // Persian mirrors of the same fields (fa.html)
        'heroEyebrowFa','heroSubtitleFa','heroPromiseFa','heroAvailabilityFa','heroCtaTextFa',
        'heroStat1ValueFa','heroStat1LabelFa','heroStat2ValueFa','heroStat2LabelFa',
@@ -1637,6 +1639,8 @@
         heroCtaLink: $('#heroCtaLink').value.trim(),
         heroShowreelUrl: $('#heroShowreelUrl').value.trim(),
         heroPromise: $('#heroPromise').value.trim(),
+        heroHudTag: $('#heroHudTag') ? $('#heroHudTag').value.trim() : '',
+        heroPoster: $('#heroPoster') ? $('#heroPoster').value.trim() : '',
         // Persian mirrors — same fields, fa.html copy
         heroEyebrowFa: $('#heroEyebrowFa') ? $('#heroEyebrowFa').value.trim() : '',
         heroSubtitleFa: $('#heroSubtitleFa') ? $('#heroSubtitleFa').value.trim() : '',
@@ -2958,6 +2962,14 @@
             <label>Description</label>
             <textarea name="desc" rows="2" placeholder="What this service delivers...">${esc(item.desc || '')}</textarea>
           </div>
+          <div class="form-row">
+            <label>Kicker (small label above the title)</label>
+            <input type="text" name="kicker" value="${esc(item.kicker || '')}" placeholder="CORE FOCUS">
+          </div>
+          <div class="form-row">
+            <label>Deliverables — one per line</label>
+            <textarea name="bullets" rows="3" placeholder="SaaS product walkthroughs&#10;UI component transitions">${esc((item.bullets || []).join('\n'))}</textarea>
+          </div>
           <fieldset class="admin-fa-fieldset">
             <legend>فارسی — برای صفحهٔ fa.html</legend>
             <div class="form-row">
@@ -2967,6 +2979,14 @@
             <div class="form-row">
               <label>توضیح</label>
               <textarea name="descFa" rows="2" dir="rtl" placeholder="این خدمت چه چیزی تحویل می‌دهد…">${esc(item.descFa || '')}</textarea>
+            </div>
+            <div class="form-row">
+              <label>برچسب کوچک</label>
+              <input type="text" name="kickerFa" dir="rtl" value="${esc(item.kickerFa || '')}">
+            </div>
+            <div class="form-row">
+              <label>خروجی‌ها — هر خط یک مورد</label>
+              <textarea name="bulletsFa" rows="3" dir="rtl">${esc((item.bulletsFa || []).join('\n'))}</textarea>
             </div>
           </fieldset>
         </div>
@@ -3039,7 +3059,11 @@
         title: card.querySelector('[name="title"]').value.trim(),
         desc: card.querySelector('[name="desc"]').value.trim(),
         titleFa: (card.querySelector('[name="titleFa"]') || {}).value ? card.querySelector('[name="titleFa"]').value.trim() : '',
-        descFa: (card.querySelector('[name="descFa"]') || {}).value ? card.querySelector('[name="descFa"]').value.trim() : ''
+        descFa: (card.querySelector('[name="descFa"]') || {}).value ? card.querySelector('[name="descFa"]').value.trim() : '',
+        kicker: (card.querySelector('[name="kicker"]') || {}).value ? card.querySelector('[name="kicker"]').value.trim() : '',
+        kickerFa: (card.querySelector('[name="kickerFa"]') || {}).value ? card.querySelector('[name="kickerFa"]').value.trim() : '',
+        bullets: ((card.querySelector('[name="bullets"]') || {}).value || '').split('\n').map(x => x.trim()).filter(Boolean),
+        bulletsFa: ((card.querySelector('[name="bulletsFa"]') || {}).value || '').split('\n').map(x => x.trim()).filter(Boolean)
       });
     });
     return result;
@@ -3116,96 +3140,6 @@
       </div>
     `;
   }
-
-  function renderProcessList() {
-    const list = $('#processList');
-    const empty = $('#processEmpty');
-    const count = $('#processCount');
-    if (!list) return;
-    list.innerHTML = processData.map((item, i) => renderProcessCard(item, i, processData.length)).join('');
-    if (empty) empty.classList.toggle('hidden', processData.length > 0);
-    if (count) count.textContent = processData.length + ' entr' + (processData.length === 1 ? 'y' : 'ies');
-    $$('#processList .timeline-admin-card .card-header').forEach(h => {
-      h.addEventListener('click', () => h.parentElement.classList.toggle('expanded'));
-    });
-    $$('#processList .card-actions-bar').forEach(bar => bar.addEventListener('click', e => e.stopPropagation()));
-    $$('#processList .move-btn').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        try { processData = collectProcessData(); } catch {}
-        const card = btn.closest('.timeline-admin-card');
-        const index = parseInt(card.dataset.index);
-        const dir = btn.dataset.dir;
-        const swap = dir === 'up' ? index - 1 : index + 1;
-        if (swap < 0 || swap >= processData.length) return;
-        [processData[index], processData[swap]] = [processData[swap], processData[index]];
-        renderProcessList();
-      });
-    });
-    $$('#processList .delete-btn').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        try { processData = collectProcessData(); } catch {}
-        const card = btn.closest('.timeline-admin-card');
-        const index = parseInt(card.dataset.index);
-        processData.splice(index, 1);
-        renderProcessList();
-      });
-    });
-  }
-
-  async function loadProcess() {
-    try {
-      const data = await api('settings');
-      processData = Array.isArray(data.process) ? JSON.parse(JSON.stringify(data.process)) : [];
-      if ($('#processTitle')) $('#processTitle').value = data.processTitle || '';
-      if ($('#processIntro')) $('#processIntro').value = data.processIntro || '';
-      renderProcessList();
-    } catch (e) { console.error(e); }
-  }
-
-  function collectProcessData() {
-    const result = [];
-    $$('#processList .timeline-admin-card').forEach(card => {
-      result.push({
-        title: card.querySelector('[name="title"]').value.trim(),
-        desc: card.querySelector('[name="desc"]').value.trim()
-      });
-    });
-    return result;
-  }
-
-  const addProcessBtn = $('#addProcessBtn');
-  if (addProcessBtn) addProcessBtn.addEventListener('click', () => {
-    try { processData = collectProcessData(); } catch {}
-    processData.push({ title: '', desc: '' });
-    renderProcessList();
-    const cards = $$('#processList .timeline-admin-card');
-    const last = cards[cards.length - 1];
-    if (last) { last.classList.add('expanded'); last.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
-  });
-
-  const saveProcessBtn = $('#saveProcessBtn');
-  if (saveProcessBtn) saveProcessBtn.addEventListener('click', async () => {
-    const collected = collectProcessData();
-    const payload = {
-      processTitle: $('#processTitle').value.trim(),
-      processIntro: $('#processIntro').value.trim(),
-      process: collected
-    };
-    saveProcessBtn.disabled = true;
-    saveProcessBtn.textContent = 'Saving...';
-    try {
-      const saved = await api('settings', { method: 'PUT', body: JSON.stringify(payload) });
-      if (saved && Array.isArray(saved.process)) processData = JSON.parse(JSON.stringify(saved.process));
-      else processData = JSON.parse(JSON.stringify(collected));
-      renderProcessList();
-      showToast('Process saved!', 'success');
-      const el = $('#processSuccess');
-      if (el) { el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 2500); }
-    } catch (err) { showToast('Error: ' + err.message, 'error'); }
-    finally { saveProcessBtn.disabled = false; saveProcessBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Save Changes'; }
-  });
 
   // ============================================
   // TESTIMONIALS MANAGEMENT
@@ -3348,9 +3282,304 @@
   // Load on view switch
   const originalNavigateHandling = document.querySelectorAll('.nav-item');
   // Hook view switch for new views
+
+  // ============================================
+  // WORK SECTION / TERMS / RATES / PROCESS / CONTACT
+  // Every string the public site prints is editable here.
+  // ============================================
+  const settingValue = (settings, key, fallback = '') =>
+    settings && settings[key] !== undefined && settings[key] !== null ? settings[key] : fallback;
+
+  function fillSettingsForm(form, settings, keys) {
+    if (!form) return;
+    keys.forEach(key => {
+      const field = form.elements[key];
+      if (!field) return;
+      const value = settingValue(settings, key, '');
+      field.value = Array.isArray(value) ? value.join('\n') : value;
+    });
+  }
+
+  async function loadCopySettings() {
+    let settings = {};
+    try { settings = await api('settings'); } catch (e) { console.error(e); }
+    fillSettingsForm($('#workSettingsForm'), settings, ['workTitle', 'workTitleFa', 'workIntro', 'workIntroFa']);
+    fillSettingsForm($('#offersForm'), settings, [
+      'offerTitle', 'offerTitleFa', 'offerIntro', 'offerIntroFa',
+      'offerReply', 'offerReplyFa', 'offerTimeline', 'offerTimelineFa',
+      'offerFormat', 'offerFormatFa', 'offerRevisions', 'offerRevisionsFa',
+      'offerTerms', 'offerTermsFa', 'offerFrom', 'offerFromFa',
+      'offerAvailability', 'offerAvailabilityFa',
+      'scopeTitle', 'scopeTitleFa', 'scopeItems', 'scopeItemsFa'
+    ]);
+    fillSettingsForm($('#contactFormAdmin'), settings, [
+      'contactTitle', 'contactTitleFa', 'contactIntro', 'contactIntroFa',
+      'contactAsyncNote', 'contactAsyncNoteFa'
+    ]);
+    fillSettingsForm($('#ratesForm'), settings, ['ratesTitle', 'ratesTitleFa', 'ratesIntro', 'ratesIntroFa']);
+    fillSettingsForm($('#processCopyForm'), settings, ['processTitle', 'processTitleFa', 'processIntro', 'processIntroFa']);
+    ratesData = Array.isArray(settings.rates) ? settings.rates.slice() : [];
+    renderRates();
+    processData = Array.isArray(settings.process) ? JSON.parse(JSON.stringify(settings.process)) : [];
+    renderProcessEditor();
+    return settings;
+  }
+
+  function wireCopyForm(formSelector, successSelector, label) {
+    const form = $(formSelector);
+    if (!form) return;
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      try {
+        const payload = {};
+        Array.from(form.elements).forEach(field => {
+          if (!field.name) return;
+          payload[field.name] = field.value;
+        });
+        await api('settings', { method: 'PUT', body: JSON.stringify(payload) });
+        hasUnsavedChanges = false;
+        const ok = $(successSelector);
+        if (ok) { ok.classList.remove('hidden'); setTimeout(() => ok.classList.add('hidden'), 3000); }
+        showToast(label + ' saved', 'success');
+      } catch (err) { showToast('Error: ' + err.message, 'error'); }
+    });
+  }
+
+  wireCopyForm('#workSettingsForm', '#workSettingsSuccess', 'Work section');
+  wireCopyForm('#offersForm', '#offersSuccess', 'Terms');
+  wireCopyForm('#contactFormAdmin', '#contactSuccess', 'Contact copy');
+
+  // ---------------- rates editor ----------------
+
+  function renderRates() {
+    const list = $('#ratesList');
+    const empty = $('#ratesEmpty');
+    const count = $('#ratesCount');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!ratesData.length) {
+      if (empty) empty.classList.remove('hidden');
+      if (count) count.textContent = '0 cards';
+      return;
+    }
+    if (empty) empty.classList.add('hidden');
+    if (count) count.textContent = ratesData.length + (ratesData.length === 1 ? ' card' : ' cards');
+
+    ratesData.forEach((rate, index) => {
+      const card = document.createElement('div');
+      card.className = 'service-admin-card rates-admin-card';
+      card.dataset.index = index;
+      card.innerHTML = `
+        <div class="service-admin-head">
+          <span class="service-admin-index">${String(index + 1).padStart(2, '0')}</span>
+          <div class="service-admin-actions">
+            <label class="toggle-inline" title="Show on the site">
+              <input type="checkbox" data-rate-field="visible" ${rate.visible === false ? '' : 'checked'}>
+              <span>Visible</span>
+            </label>
+            <label class="toggle-inline" title="Highlight this card">
+              <input type="checkbox" data-rate-field="featured" ${rate.featured ? 'checked' : ''}>
+              <span>Featured</span>
+            </label>
+            <button type="button" class="icon-btn-sm" data-rate-action="up" title="Move up" ${index === 0 ? 'disabled' : ''}>↑</button>
+            <button type="button" class="icon-btn-sm" data-rate-action="down" title="Move down" ${index === ratesData.length - 1 ? 'disabled' : ''}>↓</button>
+            <button type="button" class="icon-btn-sm danger" data-rate-action="remove" title="Delete card">✕</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Type (EN)</label><input type="text" data-rate-field="type" value="${escAttr(rate.type)}" placeholder="UI & PRODUCT MOTION"></div>
+          <div class="form-group"><label>نوع (فارسی)</label><input type="text" dir="rtl" data-rate-field="typeFa" value="${escAttr(rate.typeFa)}"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Price (EN)</label><input type="text" data-rate-field="price" value="${escAttr(rate.price)}" placeholder="$25–35"></div>
+          <div class="form-group"><label>قیمت (فارسی)</label><input type="text" dir="rtl" data-rate-field="priceFa" value="${escAttr(rate.priceFa)}" placeholder="۲۵ تا ۳۵ دلار"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Unit (EN)</label><input type="text" data-rate-field="unit" value="${escAttr(rate.unit)}" placeholder="per hour"></div>
+          <div class="form-group"><label>واحد (فارسی)</label><input type="text" dir="rtl" data-rate-field="unitFa" value="${escAttr(rate.unitFa)}"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Note (EN)</label><textarea rows="2" data-rate-field="note">${escHtml(rate.note)}</textarea></div>
+          <div class="form-group"><label>توضیح (فارسی)</label><textarea rows="2" dir="rtl" data-rate-field="noteFa">${escHtml(rate.noteFa)}</textarea></div>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    list.oninput = () => { collectRates(); };
+    list.onchange = () => { collectRates(); };
+    list.onclick = event => {
+      const button = event.target.closest('[data-rate-action]');
+      if (!button) return;
+      collectRates();
+      const index = Number(button.closest('.rates-admin-card, .process-admin-card').dataset.index);
+      const action = button.dataset.rateAction;
+      if (action === 'remove') ratesData.splice(index, 1);
+      if (action === 'up' && index > 0) { const tmp = ratesData[index - 1]; ratesData[index - 1] = ratesData[index]; ratesData[index] = tmp; }
+      if (action === 'down' && index < ratesData.length - 1) { const tmp = ratesData[index + 1]; ratesData[index + 1] = ratesData[index]; ratesData[index] = tmp; }
+      renderRates();
+    };
+  }
+
+  function collectRates() {
+    const list = $('#ratesList');
+    if (!list) return;
+    ratesData = Array.from(list.querySelectorAll('.rates-admin-card')).map(card => {
+      const get = field => {
+        const input = card.querySelector(`[data-rate-field="${field}"]`);
+        return input ? input.value.trim() : '';
+      };
+      const flag = field => {
+        const input = card.querySelector(`[data-rate-field="${field}"]`);
+        return input ? input.checked : false;
+      };
+      return {
+        type: get('type'), typeFa: get('typeFa'),
+        price: get('price'), priceFa: get('priceFa'),
+        unit: get('unit'), unitFa: get('unitFa'),
+        note: get('note'), noteFa: get('noteFa'),
+        featured: flag('featured'),
+        visible: flag('visible')
+      };
+    });
+    const count = $('#ratesCount');
+    if (count) count.textContent = ratesData.length + (ratesData.length === 1 ? ' card' : ' cards');
+    const empty = $('#ratesEmpty');
+    if (empty) empty.classList.toggle('hidden', ratesData.length > 0);
+  }
+
+  $('#addRateBtn')?.addEventListener('click', () => {
+    collectRates();
+    ratesData.push({ type: '', typeFa: '', price: '', priceFa: '', unit: '', unitFa: '', note: '', noteFa: '', featured: false, visible: true });
+    renderRates();
+  });
+
+  $('#saveRatesBtn')?.addEventListener('click', async () => {
+    collectRates();
+    try {
+      const form = $('#ratesForm');
+      const payload = { rates: ratesData };
+      if (form) {
+        Array.from(form.elements).forEach(field => {
+          if (!field.name) return;
+          payload[field.name] = field.value;
+        });
+      }
+      await api('settings', { method: 'PUT', body: JSON.stringify(payload) });
+      hasUnsavedChanges = false;
+      const ok = $('#ratesSuccess');
+      if (ok) { ok.classList.remove('hidden'); setTimeout(() => ok.classList.add('hidden'), 3000); }
+      showToast('Rates saved', 'success');
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+  });
+
+  // ---------------- process editor ----------------
+
+  function renderProcessEditor() {
+    const list = $('#processList');
+    const empty = $('#processEmpty');
+    const count = $('#processCount');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!processData.length) {
+      if (empty) empty.classList.remove('hidden');
+      if (count) count.textContent = '0 steps';
+      return;
+    }
+    if (empty) empty.classList.add('hidden');
+    if (count) count.textContent = processData.length + (processData.length === 1 ? ' step' : ' steps');
+
+    processData.forEach((step, index) => {
+      const card = document.createElement('div');
+      card.className = 'service-admin-card process-admin-card';
+      card.dataset.index = index;
+      card.innerHTML = `
+        <div class="service-admin-head">
+          <span class="service-admin-index">STEP ${String(index + 1).padStart(2, '0')}</span>
+          <div class="service-admin-actions">
+            <button type="button" class="icon-btn-sm" data-process-action="up" title="Move up" ${index === 0 ? 'disabled' : ''}>↑</button>
+            <button type="button" class="icon-btn-sm" data-process-action="down" title="Move down" ${index === processData.length - 1 ? 'disabled' : ''}>↓</button>
+            <button type="button" class="icon-btn-sm danger" data-process-action="remove" title="Delete step">✕</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Title (EN)</label><input type="text" data-process-field="title" value="${escAttr(step.title)}"></div>
+          <div class="form-group"><label>عنوان (فارسی)</label><input type="text" dir="rtl" data-process-field="titleFa" value="${escAttr(step.titleFa)}"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Badge (EN)</label><input type="text" data-process-field="badge" value="${escAttr(step.badge)}" placeholder="Async Brief"></div>
+          <div class="form-group"><label>برچسب (فارسی)</label><input type="text" dir="rtl" data-process-field="badgeFa" value="${escAttr(step.badgeFa)}"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Description (EN)</label><textarea rows="2" data-process-field="desc">${escHtml(step.desc)}</textarea></div>
+          <div class="form-group"><label>توضیح (فارسی)</label><textarea rows="2" dir="rtl" data-process-field="descFa">${escHtml(step.descFa)}</textarea></div>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    list.oninput = () => collectProcess();
+    list.onclick = event => {
+      const button = event.target.closest('[data-process-action]');
+      if (!button) return;
+      collectProcess();
+      const index = Number(button.closest('.rates-admin-card, .process-admin-card').dataset.index);
+      const action = button.dataset.processAction;
+      if (action === 'remove') processData.splice(index, 1);
+      if (action === 'up' && index > 0) { const tmp = processData[index - 1]; processData[index - 1] = processData[index]; processData[index] = tmp; }
+      if (action === 'down' && index < processData.length - 1) { const tmp = processData[index + 1]; processData[index + 1] = processData[index]; processData[index] = tmp; }
+      renderProcessEditor();
+    };
+  }
+
+  function collectProcess() {
+    const list = $('#processList');
+    if (!list) return;
+    processData = Array.from(list.querySelectorAll('.process-admin-card')).map(card => {
+      const get = field => {
+        const input = card.querySelector(`[data-process-field="${field}"]`);
+        return input ? input.value.trim() : '';
+      };
+      return { title: get('title'), titleFa: get('titleFa'), badge: get('badge'), badgeFa: get('badgeFa'), desc: get('desc'), descFa: get('descFa') };
+    });
+  }
+
+  $('#addProcessBtn')?.addEventListener('click', () => {
+    collectProcess();
+    processData.push({ title: '', titleFa: '', badge: '', badgeFa: '', desc: '', descFa: '' });
+    renderProcessEditor();
+  });
+
+  $('#saveProcessBtn')?.addEventListener('click', async () => {
+    collectProcess();
+    const button = $('#saveProcessBtn');
+    try {
+      const form = $('#processCopyForm');
+      const payload = { process: processData };
+      if (form) {
+        Array.from(form.elements).forEach(field => {
+          if (!field.name) return;
+          payload[field.name] = field.value;
+        });
+      }
+      if (button) { button.disabled = true; button.textContent = 'Saving…'; }
+      const saved = await api('settings', { method: 'PUT', body: JSON.stringify(payload) });
+      if (saved && Array.isArray(saved.process)) {
+        processData = JSON.parse(JSON.stringify(saved.process));
+        renderProcessEditor();
+      }
+      hasUnsavedChanges = false;
+      const ok = $('#processSuccess');
+      if (ok) { ok.classList.remove('hidden'); setTimeout(() => ok.classList.add('hidden'), 3000); }
+      showToast('Process saved', 'success');
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+    finally { if (button) { button.disabled = false; button.textContent = 'Save process'; } }
+  });
+
   function ensureViewLoads(view) {
     if (view === 'services') loadServices();
-    if (view === 'process') loadProcess();
+    if (view === 'process') { loadCopySettings(); }
+    if (view === 'rates' || view === 'offers' || view === 'projects-settings' || view === 'contact') loadCopySettings();
     if (view === 'testimonials') loadTestimonials();
     if (view === 'timeline') loadTimeline();
   }
@@ -3743,7 +3972,9 @@
   // ============================================
   // UTILS
   // ============================================
-  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+  const escHtml = esc;
+  const escAttr = value => esc(value).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
   // ============================================
   // CONFIRM DIALOG
@@ -4029,6 +4260,7 @@
     if (view === 'timeline') loadTimeline();
     if (view === 'statistics') loadStatistics();
     if (view === 'messages') { loadMessages(); updateMessagesBadge(); }
+    if (['rates', 'offers', 'contact', 'projects-settings'].includes(view)) loadCopySettings();
   }
 
   // Update breadcrumb on nav
@@ -4036,7 +4268,7 @@
   function navigateToWithBreadcrumb(view) {
     originalNavigateTo(view);
     if (breadcrumb) {
-      const labels = { projects: 'Projects', hero: 'Hero', about: 'About', timeline: 'Timeline', statistics: 'Statistics', messages: 'Messages', assets: 'Assets', settings: 'General' };
+      const labels = { projects: 'Projects', hero: 'Hero', about: 'About', timeline: 'Timeline', statistics: 'Statistics', messages: 'Messages', assets: 'Assets', services: 'Services', 'projects-settings': 'Work section', offers: 'Terms', rates: 'Rates', process: 'Process', contact: 'Contact', settings: 'General' };
       breadcrumb.textContent = labels[view] || view;
     }
   }

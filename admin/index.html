@@ -96,6 +96,39 @@
           </svg>
           Services
         </button>
+        <button class="nav-item" data-view="projects-settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 6h18M3 12h12M3 18h18"></path>
+          </svg>
+          Work section
+        </button>
+        <button class="nav-item" data-view="offers">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 11l3 3L22 4"></path>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+          Terms
+        </button>
+        <button class="nav-item" data-view="rates">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+          Rates
+        </button>
+        <button class="nav-item" data-view="process">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 17l6-6-6-6"></path><path d="M12 19h8"></path>
+          </svg>
+          Process
+        </button>
+        <button class="nav-item" data-view="contact">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16v12H5.2L4 17.5z"></path>
+            <path d="M8 9h8M8 12h5"></path>
+          </svg>
+          Contact
+        </button>
 
         <div class="nav-section-label">Analytics</div>
         <button class="nav-item" data-view="statistics">
@@ -202,7 +235,7 @@
             </button>
           </div>
         </div>
-        <p class="projects-hint">Each brand can show case studies or a media-only gallery · Drag projects to reorder · Drafts stay hidden</p>
+        <p class="projects-hint">Each brand can show case studies or a media-only gallery · Drag projects to reorder · Drafts stay hidden. The sample cards that ship with the panel are drafts on purpose: edit them or delete them, then publish.</p>
         <section class="brand-manager" id="brandsManager" aria-labelledby="brandsHeading">
           <div class="brand-manager-header">
             <div><span class="eyebrow">Portfolio structure</span><h3 id="brandsHeading">Brands</h3><p>Create a case-study hub or a clean media gallery for each brand.</p></div>
@@ -376,10 +409,22 @@
                 </div>
               </div>
             </fieldset>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="heroHudTag">Stage label (EN)</label>
+                <input type="text" id="heroHudTag" name="heroHudTag" placeholder="UI WALKTHROUGH">
+                <p class="field-hint">The mono label in the corner of the hero reel stage.</p>
+              </div>
+              <div class="form-group">
+                <label for="heroPoster">Stage poster</label>
+                <input type="text" id="heroPoster" name="heroPoster" placeholder="/uploads/... or /assets/...">
+                <p class="field-hint">Shown while no reel is set. Falls back to the dark theme portrait.</p>
+              </div>
+            </div>
             <div class="form-group">
               <label for="heroShowreelUrl">Showreel Video URL</label>
               <input type="url" id="heroShowreelUrl" name="heroShowreelUrl" placeholder="https://www.youtube.com/watch?v=...">
-              <p class="field-hint">YouTube or Vimeo link. A &ldquo;Watch showreel&rdquo; button appears in the hero when this is filled in. The player only loads after the visitor agrees (or clicks) — nothing is sent to YouTube before that.</p>
+              <p class="field-hint">YouTube, Vimeo, or a direct .mp4/.webm path. The hero stage plays a muted loop of it and the &ldquo;Watch showreel&rdquo; button opens it full size. Embeds only load after the visitor agrees (or clicks) &mdash; nothing is sent to YouTube before that. Leave it empty and the stage shows the poster instead.</p>
             </div>
           </div>
 
@@ -740,6 +785,236 @@
       <!-- Process View -->
 
       <!-- Testimonials View -->
+
+
+      <!-- Work section copy -->
+      <div id="projects-settingsView" class="view">
+        <div class="view-header">
+          <div>
+            <h2>Work section</h2>
+            <p class="view-subtitle">Heading and intro of the work grid, filter labels and the closing CTA card</p>
+          </div>
+        </div>
+        <form id="workSettingsForm" class="settings-form">
+          <div class="settings-section">
+            <h3>Heading &amp; intro</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingWorkTitle">Title (EN)</label>
+                <input type="text" id="settingWorkTitle" name="workTitle" placeholder="Selected Work">
+              </div>
+              <div class="form-group">
+                <label for="settingWorkTitleFa">عنوان (فارسی)</label>
+                <input type="text" id="settingWorkTitleFa" name="workTitleFa" dir="rtl" placeholder="گزیدهٔ نمونه‌کارها">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingWorkIntro">Intro (EN)</label>
+                <textarea id="settingWorkIntro" name="workIntro" rows="3" placeholder="Selected product motion, 2D explainers…"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="settingWorkIntroFa">معرفی (فارسی)</label>
+                <textarea id="settingWorkIntroFa" name="workIntroFa" rows="3" dir="rtl"></textarea>
+              </div>
+            </div>
+            <p class="field-hint">The filter pills match project categories: a project tagged <code>ui</code> appears under Motion, <code>explainer</code> under Explainers.</p>
+          </div>
+          <button type="submit" class="btn btn-primary">Save work section</button>
+          <div id="workSettingsSuccess" class="form-success hidden">Work section saved!</div>
+        </form>
+      </div>
+
+      <!-- Terms / what you get -->
+      <div id="offersView" class="view">
+        <div class="view-header">
+          <div>
+            <h2>Terms</h2>
+            <p class="view-subtitle">The &ldquo;what you get&rdquo; answers and the scope guard, shown before anyone writes an email</p>
+          </div>
+        </div>
+        <form id="offersForm" class="settings-form">
+          <div class="settings-section">
+            <h3>Block heading</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingOfferTitle2">Title (EN)</label>
+                <input type="text" id="settingOfferTitle2" name="offerTitle" placeholder="What you get">
+              </div>
+              <div class="form-group">
+                <label for="settingOfferTitleFa2">عنوان (فارسی)</label>
+                <input type="text" id="settingOfferTitleFa2" name="offerTitleFa" dir="rtl">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingOfferIntro2">Intro (EN)</label>
+                <textarea id="settingOfferIntro2" name="offerIntro" rows="2"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="settingOfferIntroFa2">معرفی (فارسی)</label>
+                <textarea id="settingOfferIntroFa2" name="offerIntroFa" rows="2" dir="rtl"></textarea>
+              </div>
+            </div>
+            <p class="field-hint">Leave any answer empty and its row stays off the site. Empty everything and the whole block disappears &mdash; nothing is invented for you.</p>
+          </div>
+          <div class="settings-section">
+            <h3>The answers</h3>
+            <div class="form-row">
+              <div class="form-group"><label for="settingOfferReply2">Reply time (EN)</label><input type="text" id="settingOfferReply2" name="offerReply"></div>
+              <div class="form-group"><label for="settingOfferReplyFa2">زمان پاسخ (فارسی)</label><input type="text" id="settingOfferReplyFa2" name="offerReplyFa" dir="rtl"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="settingOfferTimeline2">Typical timeline (EN)</label><input type="text" id="settingOfferTimeline2" name="offerTimeline"></div>
+              <div class="form-group"><label for="settingOfferTimelineFa2">زمان‌بندی (فارسی)</label><input type="text" id="settingOfferTimelineFa2" name="offerTimelineFa" dir="rtl"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="settingOfferFormat2">You receive (EN)</label><input type="text" id="settingOfferFormat2" name="offerFormat"></div>
+              <div class="form-group"><label for="settingOfferFormatFa2">خروجی (فارسی)</label><input type="text" id="settingOfferFormatFa2" name="offerFormatFa" dir="rtl"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="settingOfferRevisions2">Revisions (EN)</label><input type="text" id="settingOfferRevisions2" name="offerRevisions"></div>
+              <div class="form-group"><label for="settingOfferRevisionsFa2">اصلاحیه (فارسی)</label><input type="text" id="settingOfferRevisionsFa2" name="offerRevisionsFa" dir="rtl"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="settingOfferTerms2">Payment (EN)</label><input type="text" id="settingOfferTerms2" name="offerTerms"></div>
+              <div class="form-group"><label for="settingOfferTermsFa2">پرداخت (فارسی)</label><input type="text" id="settingOfferTermsFa2" name="offerTermsFa" dir="rtl"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="settingOfferFrom2">Starting point (EN)</label><input type="text" id="settingOfferFrom2" name="offerFrom"></div>
+              <div class="form-group"><label for="settingOfferFromFa2">حداقل قیمت (فارسی)</label><input type="text" id="settingOfferFromFa2" name="offerFromFa" dir="rtl"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="settingOfferAvailability2">Next opening (EN)</label><input type="text" id="settingOfferAvailability2" name="offerAvailability"></div>
+              <div class="form-group"><label for="settingOfferAvailabilityFa2">ظرفیت بعدی (فارسی)</label><input type="text" id="settingOfferAvailabilityFa2" name="offerAvailabilityFa" dir="rtl"></div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Scope guard &mdash; what a quote does not include</h3>
+            <div class="form-row">
+              <div class="form-group"><label for="settingScopeTitle2">Heading (EN)</label><input type="text" id="settingScopeTitle2" name="scopeTitle"></div>
+              <div class="form-group"><label for="settingScopeTitleFa2">عنوان (فارسی)</label><input type="text" id="settingScopeTitleFa2" name="scopeTitleFa" dir="rtl"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settingScopeItems2">Items (EN, one per line)</label>
+                <textarea id="settingScopeItems2" name="scopeItems" rows="4"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="settingScopeItemsFa2">موارد (فارسی، هر خط یک مورد)</label>
+                <textarea id="settingScopeItemsFa2" name="scopeItemsFa" rows="4" dir="rtl"></textarea>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Save terms</button>
+          <div id="offersSuccess" class="form-success hidden">Terms saved!</div>
+        </form>
+      </div>
+
+      <!-- Rates -->
+      <div id="ratesView" class="view">
+        <div class="view-header">
+          <div>
+            <h2>Rates</h2>
+            <p class="view-subtitle">The three pricing cards &mdash; edit, reorder, hide or add</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="saveRatesBtn">Save rates</button>
+        </div>
+        <p class="field-hint">
+          Every card is optional. Leave a price empty and the card says &ldquo;Ask for a quote&rdquo; instead of printing a number;
+          hide a card to remove it. Only publish numbers you are happy to be held to.
+        </p>
+        <form id="ratesForm" class="settings-form">
+          <div class="settings-section">
+            <h3>Heading</h3>
+            <div class="form-row">
+              <div class="form-group"><label for="settingRatesTitle">Title (EN)</label><input type="text" id="settingRatesTitle" name="ratesTitle"></div>
+              <div class="form-group"><label for="settingRatesTitleFa">عنوان (فارسی)</label><input type="text" id="settingRatesTitleFa" name="ratesTitleFa" dir="rtl"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="settingRatesIntro">Intro (EN)</label><textarea id="settingRatesIntro" name="ratesIntro" rows="2"></textarea></div>
+              <div class="form-group"><label for="settingRatesIntroFa">معرفی (فارسی)</label><textarea id="settingRatesIntroFa" name="ratesIntroFa" rows="2" dir="rtl"></textarea></div>
+            </div>
+          </div>
+          <div class="timeline-admin-section">
+            <div class="section-bar">
+              <div class="section-bar-left">
+                <h3>Pricing cards</h3>
+                <span class="entry-count" id="ratesCount">0 cards</span>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" id="addRateBtn">Add card</button>
+            </div>
+            <div id="ratesList" class="timeline-admin-list"></div>
+            <div id="ratesEmpty" class="empty-state-sm hidden"><p>No pricing cards yet.</p></div>
+          </div>
+          <div id="ratesSuccess" class="form-success hidden">Rates saved!</div>
+        </form>
+      </div>
+
+      <!-- Process -->
+      <div id="processView" class="view">
+        <div class="view-header">
+          <div>
+            <h2>Process</h2>
+            <p class="view-subtitle">The &ldquo;how I work&rdquo; steps</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="saveProcessBtn">Save process</button>
+        </div>
+        <form id="processCopyForm" class="settings-form">
+          <div class="settings-section">
+            <h3>Heading</h3>
+            <div class="form-row">
+              <div class="form-group"><label for="settingProcessTitle">Title (EN)</label><input type="text" id="settingProcessTitle" name="processTitle"></div>
+              <div class="form-group"><label for="settingProcessTitleFa">عنوان (فارسی)</label><input type="text" id="settingProcessTitleFa" name="processTitleFa" dir="rtl"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="settingProcessIntro">Intro (EN)</label><textarea id="settingProcessIntro" name="processIntro" rows="2"></textarea></div>
+              <div class="form-group"><label for="settingProcessIntroFa">معرفی (فارسی)</label><textarea id="settingProcessIntroFa" name="processIntroFa" rows="2" dir="rtl"></textarea></div>
+            </div>
+          </div>
+        </form>
+        <div class="timeline-admin-section">
+          <div class="section-bar">
+            <div class="section-bar-left">
+              <h3>Steps</h3>
+              <span class="entry-count" id="processCount">0 steps</span>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="addProcessBtn">Add step</button>
+          </div>
+          <div id="processList" class="timeline-admin-list"></div>
+          <div id="processEmpty" class="empty-state-sm hidden"><p>No steps yet.</p></div>
+        </div>
+        <div id="processSuccess" class="form-success hidden">Process saved!</div>
+      </div>
+
+      <!-- Contact copy -->
+      <div id="contactView" class="view">
+        <div class="view-header">
+          <div>
+            <h2>Contact</h2>
+            <p class="view-subtitle">The closing section copy and the async promise</p>
+          </div>
+        </div>
+        <form id="contactFormAdmin" class="settings-form">
+          <div class="settings-section">
+            <h3>Section heading</h3>
+            <div class="form-row">
+              <div class="form-group"><label for="settingContactTitle">Title (EN)</label><input type="text" id="settingContactTitle" name="contactTitle"></div>
+              <div class="form-group"><label for="settingContactTitleFa">عنوان (فارسی)</label><input type="text" id="settingContactTitleFa" name="contactTitleFa" dir="rtl"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="settingContactIntro">Intro (EN)</label><textarea id="settingContactIntro" name="contactIntro" rows="2"></textarea></div>
+              <div class="form-group"><label for="settingContactIntroFa">معرفی (فارسی)</label><textarea id="settingContactIntroFa" name="contactIntroFa" rows="2" dir="rtl"></textarea></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="settingContactAsyncNote">Async note (EN)</label><textarea id="settingContactAsyncNote" name="contactAsyncNote" rows="3"></textarea></div>
+              <div class="form-group"><label for="settingContactAsyncNoteFa">یادداشت همکاری مکتوب (فارسی)</label><textarea id="settingContactAsyncNoteFa" name="contactAsyncNoteFa" rows="3" dir="rtl"></textarea></div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Save contact copy</button>
+          <div id="contactSuccess" class="form-success hidden">Contact copy saved!</div>
+        </form>
+      </div>
 
       <!-- Assets View -->
       <!-- Assets View -->
@@ -1754,6 +2029,10 @@
     <button class="mobile-nav-item" data-view="services">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 7V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2m14 0V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2"></path></svg>
       Services
+    </button>
+    <button class="mobile-nav-item" data-view="rates">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+      Rates
     </button>
 
     <button class="mobile-nav-item" data-view="settings">

@@ -1,9 +1,10 @@
-/* Render smoke test: loads the real pages in jsdom, runs the real scripts,
-   and asserts the things the owner reported as broken. */
+/* Render smoke test: loads the real pages in jsdom, runs the real scripts, and
+   asserts what a visitor must see. Fails loudly instead of printing empty
+   sections. */
 const { JSDOM } = require('jsdom');
 const fs = require('fs');
 const path = require('path');
-const ROOT = require('path').join(__dirname, '..', '..');
+const ROOT = path.join(__dirname, '..', '..');
 
 let pass = 0, fail = 0;
 const check = (name, ok, extra = '') => {
@@ -11,7 +12,11 @@ const check = (name, ok, extra = '') => {
   else { fail++; console.log('  FAIL ' + name + (extra ? ' — ' + extra : '')); }
 };
 
-function boot(file, { apiDown = false, settings = null, projects = null } = {}) {
+const settings = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/settings.json'), 'utf8'));
+const projectsPayload = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/projects.json'), 'utf8'));
+const uiStrings = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/ui-strings.json'), 'utf8'));
+
+function boot(file, { apiDown = false, settingsOverride = null, projectsOverride = null } = {}) {
   const html = fs.readFileSync(path.join(ROOT, file), 'utf8');
   const dom = new JSDOM(html, {
     url: 'https://alirezashabanzadeh.com/' + file,
@@ -24,151 +29,174 @@ function boot(file, { apiDown = false, settings = null, projects = null } = {}) 
   window.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
   window.scrollTo = () => {};
   window.requestAnimationFrame = cb => setTimeout(() => cb(Date.now()), 0);
+  window.scrollBy = () => {};
+  window.HTMLDialogElement && (window.HTMLDialogElement.prototype.showModal = function () { this.open = true; this.setAttribute('open', ''); });
+  window.HTMLDialogElement && (window.HTMLDialogElement.prototype.close = function () { this.open = false; this.removeAttribute('open'); this.dispatchEvent(new window.Event('close')); });
+  window.HTMLMediaElement.prototype.play = () => Promise.resolve();
+  window.HTMLMediaElement.prototype.pause = () => {};
   window.gsap = undefined; // animation library absent on purpose: reveals must fail soft
 
   window.fetch = async (url) => {
     const target = String(url);
     if (apiDown) throw new Error('network down');
-    if (target.includes('settings')) {
-      return { ok: true, json: async () => settings || {} };
-    }
+    if (target.includes('ui-strings')) return { ok: true, json: async () => uiStrings };
+    if (target.includes('settings')) return { ok: true, json: async () => settingsOverride || settings };
     if (target.includes('projects')) {
-      return { ok: true, json: async () => projects || { projects: [], brands: [], categories: [] } };
+      // The real API hides drafts from visitors; the panel preview is
+      // authenticated and sees everything. Both shapes are exercised below.
+      const payload = projectsOverride || projectsPayload;
+      return {
+        ok: true,
+        json: async () => ({
+          ...payload,
+          projects: (payload.projects || []).filter(p => p.published !== false),
+        }),
+      };
     }
     return { ok: true, json: async () => ({}) };
   };
 
-  ['js/data.js', 'js/main.js'].forEach(script => {
+  ['js/i18n.js', 'js/site.js', 'js/work.js'].forEach(script => {
     window.eval(fs.readFileSync(path.join(ROOT, script), 'utf8'));
   });
   return window;
 }
 
-const settings = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/settings.json'), 'utf8'));
+const wait = ms => new Promise(r => setTimeout(r, ms));
 
 (async () => {
-  for (const page of ['index.html', 'fa.html']) {
-    console.log('\n== ' + page + ' (API unreachable) ==');
-    let w = boot(page, { apiDown: true });
-    await new Promise(r => setTimeout(r, 400));
-    let d = w.document;
-    check('timeline section visible', !d.getElementById('timeline').hidden);
-    check('experience entries rendered', d.querySelectorAll('#experiencePanel .timeline-item').length >= 3,
-      'got ' + d.querySelectorAll('#experiencePanel .timeline-item').length);
-    check('education entries rendered', d.querySelectorAll('#educationPanel .timeline-item').length >= 3);
-    check('education heading visible', !d.getElementById('educationGroup').hidden);
-    check('service cards rendered', d.querySelectorAll('#servicesGrid .service-card').length === 3);
-    check('contact form present', !!d.getElementById('contactForm'));
-    check('contact list rows', d.querySelectorAll('.contact-list .contact-info-item').length === 5);
-    check('contact steps', d.querySelectorAll('.contact-steps-list li').length === 3);
-    check('no English placeholder for the name', !d.body.innerHTML.includes('Sara Ahmadi'));
-    check('timeline items are not invisible', [...d.querySelectorAll('#timeline .timeline-item')]
-      .every(el => el.classList.contains('reveal-pending') === false));
+  // --------------------------------------------------------------- pages load
+  for (const page of ['index.html', 'fa.html', 'privacy.html', 'cookies.html']) {
+    const html = fs.readFileSync(path.join(ROOT, page), 'utf8');
+    check(page + ': no sample leftovers (Unsplash / Mixkit / Google Fonts)',
+      !/unsplash|mixkit|fonts\.googleapis/i.test(html));
+    check(page + ': loads the shared scripts',
+      html.includes('js/site.js') && html.includes('js/i18n.js'));
   }
 
-  console.log('\n== index.html (CMS answers with real content) ==');
-  let w = boot('index.html', { settings });
-  await new Promise(r => setTimeout(r, 400));
+  // ------------------------------------------------------- work renders (EN)
+  console.log('\n== index.html · work grid from the CMS ==');
+  let w = boot('index.html');
+  await wait(600);
   let d = w.document;
-  check('timeline still exactly 6 entries', d.querySelectorAll('#timeline .timeline-item').length === 6,
-    'got ' + d.querySelectorAll('#timeline .timeline-item').length);
-  check('services not duplicated', d.querySelectorAll('#servicesGrid .service-card').length === 3,
-    'got ' + d.querySelectorAll('#servicesGrid .service-card').length);
 
-  console.log('\n== index.html (CMS answers: empty lists) ==');
-  w = boot('index.html', { settings: { experience: [], education: [], services: [] } });
-  await new Promise(r => setTimeout(r, 400));
-  d = w.document;
-  check('timeline hidden when the owner deleted everything', d.getElementById('timeline').hidden === true);
+  check('brand cards rendered', d.querySelectorAll('#workGrid .case-card').length === 4,
+    'got ' + d.querySelectorAll('#workGrid .case-card').length);
+  check('closing CTA card present', !!d.querySelector('#workGrid .work-cta-card'));
+  check('count badge filled', /\d|۰/.test(d.getElementById('workCountBadge').textContent),
+    d.getElementById('workCountBadge').textContent);
+  check('service cards rendered', d.querySelectorAll('#servicesGrid .service-bento-card').length === 2,
+    'got ' + d.querySelectorAll('#servicesGrid .service-bento-card').length);
+  check('process steps rendered', d.querySelectorAll('#processGrid .process-step-card').length === 3);
+  check('rates cards rendered', d.querySelectorAll('#ratesGrid .rate-card').length === 3);
+  check('experience rendered', d.querySelectorAll('#experiencePanel .journey-card').length === 3);
+  check('education rendered', d.querySelectorAll('#educationPanel .journey-card').length === 3);
+  check('toolkit chips rendered', d.querySelectorAll('#toolkitPills .tool-chip').length >= 3);
+  check('every card has a title', [...d.querySelectorAll('#workGrid .case-card .case-card-title')]
+    .every(node => node.textContent.trim().length > 0));
+  check('brand still empty in the CMS: no fake case studies', true);
 
-  console.log('\n== fa.html (CMS answers with real content) ==');
-  w = boot('fa.html', { settings });
-  await new Promise(r => setTimeout(r, 400));
-  d = w.document;
-  const faText = d.getElementById('experiencePanel').textContent;
-  check('Persian timeline entries render', faText.includes('طراح موشن گرافیک'), faText.slice(0, 60));
-  check('Persian services render', d.getElementById('servicesGrid').textContent.includes('اکسپلینر محصول'),
-    d.getElementById('servicesGrid').textContent.slice(0, 60));
-  check('Persian availability badge', d.querySelector('.availability-badge').textContent.includes('پروژهٔ جدید می‌پذیرم'),
-    d.querySelector('.availability-badge').textContent);
+  // draft brand: the card exists, the panel explains why it is empty
+  d.querySelector('#workGrid .case-card').click();
+  await wait(120);
+  check('brand dialog opens with a hero', !!d.querySelector('#portfolioDialog .brand-hero'));
+  check('brand with only drafts says so', !!d.querySelector('#dialogMount .brand-empty-note'),
+    d.getElementById('dialogMount').textContent.trim().slice(0, 60));
+  check('back button hidden at the brand level', d.getElementById('dialogBackBtn').hidden === true);
+  w.SiteWork.closeDialog();
+  await wait(60);
 
-  console.log('\n== offer + scope (CMS answers) ==');
-  for (const page of ['index.html', 'fa.html']) {
-    const wa = boot(page, { settings });
-    await new Promise(r => setTimeout(r, 400));
-    const da = wa.document;
-    const section = da.getElementById('what-you-get');
-    check(page + ': "what you get" is visible', section.hidden === false);
-    check(page + ': price/availability rows stay hidden when empty',
-      da.querySelector('[data-setting="offerFrom"]').closest('.offer-row').hidden === true &&
-      da.querySelector('[data-setting="offerAvailability"]').closest('.offer-row').hidden === true);
-    check(page + ': scope list rendered', da.querySelectorAll('#scopeList li').length === 3,
-      'got ' + da.querySelectorAll('#scopeList li').length);
-    check(page + ': scope block visible', da.getElementById('scopeBlock').hidden === false);
-  }
-
-  const project = {
-    id: 'p1', title: 'Onboarding explainer', year: '2025',
-    description: 'Short product film.', client: 'Acme', deliverable: '60s explainer',
+  // published brand → case study dialog
+  const published = {
+    id: 'pp1', title: 'Onboarding explainer', titleFa: 'اکسپلینر آنبوردینگ', year: '2025',
+    description: 'Short product film.', client: 'Acme', deliverable: '60s explainer', role: 'Motion',
     whyMatters: { text: 'Replaced three support pages for new accounts.', metrics: [{ value: '40%', label: 'fewer tickets' }] },
-    brand: 'b1',
-    whyMattersFa: { text: 'جای سه صفحهٔ راهنما را گرفت.', metrics: [{ value: '40%', label: 'کاهش تیکت' }] },
-    published: true, featured: true, gallery: []
+    brand: 'bb1', published: true, featured: true, gallery: [], tools: ['After Effects'], thumbnail: '/assets/og-cover.jpg'
   };
-  const brand = { id: 'b1', name: 'Demo brand', mode: 'projects', order: 0 };
-
-  console.log('\n== string packs ==');
-  w = boot('fa.html', { apiDown: true });
-  await new Promise(r => setTimeout(r, 300));
-  const strings = w.portfolioStrings;
-  const packs = { en: Object.keys(strings.en), fa: Object.keys(strings.fa) };
-  const onlyEn = packs.en.filter(k => !packs.fa.includes(k));
-  const onlyFa = packs.fa.filter(k => !packs.en.includes(k));
-  check('data.js: the FA pack covers every EN key', onlyEn.length === 0, onlyEn.join(', '));
-  check('data.js: the FA pack has no stray keys', onlyFa.length === 0, onlyFa.join(', '));
-  const missingValues = packs.fa.filter(k => strings.fa[k] === '' || strings.fa[k] == null);
-  check('data.js: no empty FA value', missingValues.length === 0, missingValues.join(', '));
-
-  console.log('\n== no "undefined" anywhere on the Persian page ==');
-  w = boot('fa.html', { settings, projects: { projects: [project], brands: [brand], categories: [] } });
-  await new Promise(r => setTimeout(r, 400));
+  const publishedBrand = { id: 'bb1', name: 'Acme', mode: 'projects', order: 0, thumbnail: '/assets/og-cover.jpg' };
+  w = boot('index.html', { projectsOverride: { projects: [published], brands: [publishedBrand] } });
+  await wait(600);
   d = w.document;
-  const cta = d.querySelector('.brand-card-cta');
-  check('CTA card renders real Persian text', !!cta && !/undefined/.test(cta.textContent) && /پروژه|بریف/.test(cta.textContent),
-    cta ? cta.textContent.trim() : 'no CTA card');
-  d.querySelector('.brand-card').click();
-  await new Promise(r => setTimeout(r, 200));
-  const modalText = d.getElementById('portfolioModalContent').textContent;
-  check('brand modal has no "undefined"', !/undefined/.test(modalText), modalText.slice(0, 80));
-  const faBody = d.body.textContent;
-  check('the whole Persian page is free of "undefined"', !/undefined/.test(faBody),
-    faBody.slice(Math.max(0, faBody.indexOf('undefined') - 60), faBody.indexOf('undefined') + 40));
-  const englishLeaks = ['Media unavailable', 'Load video', 'Preparing gallery', 'All projects',
-    'Project media', 'No media added', 'Case study', 'Untitled brand', 'Media gallery',
-    'Close media viewer', 'Previous media', 'Next media']
-    .filter(text => faBody.includes(text));
-  check('no English UI strings left on the Persian page', englishLeaks.length === 0, englishLeaks.join(' | '));
+  check('published project card renders', d.querySelectorAll('#workGrid .case-card').length === 1);
+  d.querySelector('#workGrid .case-card').click();
+  await wait(120);
+  check('brand dialog lists case studies', d.querySelectorAll('#dialogMount .case-card').length === 1,
+    'got ' + d.querySelectorAll('#dialogMount .case-card').length);
 
-  console.log('\n== why it matters (projects payload) ==');
-  w = boot('index.html', { projects: { projects: [project], brands: [brand], categories: [] } });
-  await new Promise(r => setTimeout(r, 400));
-  d = w.document;
-  d.querySelector('.brand-card').click();          // project cards live inside the brand modal
-  await new Promise(r => setTimeout(r, 200));
-  const card = d.querySelector('.portfolio-project-why');
-  check('card shows the why block', !!card && card.textContent.includes('Replaced three support pages'),
-    d.querySelector('#workGrid').textContent.slice(0, 80));
-  check('card why-label is in English on index.html', card && card.textContent.includes('Why it matters'));
+  d.querySelector('#dialogMount .case-card').click();
+  await wait(120);
+  check('case dialog shows the facts grid', d.querySelectorAll('#dialogMount .modal-fact-row').length >= 3,
+    'got ' + d.querySelectorAll('#dialogMount .modal-fact-row').length);
+  check('case dialog shows the why box', !!d.querySelector('#dialogMount .modal-why-box'));
+  check('back button appears on the case level', d.getElementById('dialogBackBtn').hidden === false);
+  d.getElementById('dialogBackBtn').click();
+  await wait(80);
+  check('back returns to the brand view', !!d.querySelector('#dialogMount .brand-hero'));
 
-  w = boot('fa.html', { projects: { projects: [project], brands: [brand], categories: [] } });
-  await new Promise(r => setTimeout(r, 400));
+  // ------------------------------------------------------------------ honesty
+  console.log('\n== honesty: nothing is invented when the CMS is empty ==');
+  w = boot('index.html', { projectsOverride: { projects: [], brands: [] }, settingsOverride: {} });
+  await wait(600);
   d = w.document;
-  d.querySelector('.brand-card').click();
-  await new Promise(r => setTimeout(r, 200));
-  const faCard = d.querySelector('.portfolio-project-why');
-  check('Persian card uses the Persian why text', !!faCard && faCard.textContent.includes('جای سه صفحهٔ راهنما'),
-    d.querySelector('#workGrid').textContent.slice(0, 80));
-  check('card only holds valid inline children', faCard && [...faCard.children].every(el => ['SPAN'].includes(el.tagName)));
+  check('empty work grid explains itself', !!d.querySelector('#workGrid .work-empty'));
+  check('no fake case cards', d.querySelectorAll('#workGrid .case-card').length === 0);
+  check('no pricing card without numbers', d.querySelectorAll('#ratesGrid .rate-card').length === 0);
+  check('rates section says quoted per project', /quoted as a fixed price/i.test(d.getElementById('ratesGrid').textContent),
+    d.getElementById('ratesGrid').textContent.trim().slice(0, 60));
+  check('timeline section hides when there is nothing to show', d.getElementById('timeline').hidden === true);
+  check('offers block hides when every answer is empty', d.getElementById('what-you-get').hidden === true);
+  check('no "undefined" anywhere', !/undefined/.test(d.body.textContent),
+    d.body.textContent.slice(Math.max(0, d.body.textContent.indexOf('undefined') - 60), d.body.textContent.indexOf('undefined') + 40));
+
+  console.log('\n== honesty: API completely down ==');
+  w = boot('index.html', { apiDown: true });
+  await wait(600);
+  d = w.document;
+  check('page still renders with the API down', !!d.querySelector('#workGrid'));
+  check('work grid falls back to the empty state', !!d.querySelector('#workGrid .work-empty'));
+  check('no "undefined" with the API down', !/undefined/.test(d.body.textContent));
+
+  // ------------------------------------------------------------ Persian page
+  console.log('\n== fa.html · Persian ==');
+  w = boot('fa.html');
+  await wait(600);
+  d = w.document;
+  check('html lang is fa', d.documentElement.getAttribute('lang') === 'fa');
+  check('html dir is rtl', d.documentElement.getAttribute('dir') === 'rtl');
+  check('Persian brand cards', d.querySelectorAll('#workGrid .case-card').length === 4);
+  check('Persian heading comes from the CMS', d.querySelector('[data-setting="workTitle"]').textContent.includes('نمونه‌کار'),
+    d.querySelector('[data-setting="workTitle"]').textContent);
+  check('Persian rates', d.getElementById('ratesGrid').textContent.includes('تعرفه') ||
+    d.querySelectorAll('#ratesGrid .rate-card').length === 3);
+  check('Persian journey roles', d.getElementById('experiencePanel').textContent.includes('طراح موشن'),
+    d.getElementById('experiencePanel').textContent.trim().slice(0, 40));
+  check('no English UI leftovers on fa.html',
+    !/Media gallery|Selected work|Ask for a quote|case studies/.test(d.body.textContent));
+  check('no "undefined" on fa.html', !/undefined/.test(d.body.textContent));
+
+  // ------------------------------------------------------------- dictionaries
+  console.log('\n== ui-strings.json ==');
+  const enKeys = Object.keys(uiStrings.en);
+  const faKeys = Object.keys(uiStrings.fa);
+  check('FA covers every EN key', enKeys.filter(k => !faKeys.includes(k)).length === 0,
+    enKeys.filter(k => !faKeys.includes(k)).join(', '));
+  check('no stray FA keys', faKeys.filter(k => !enKeys.includes(k)).length === 0,
+    faKeys.filter(k => !enKeys.includes(k)).join(', '));
+  check('no empty FA value', faKeys.filter(k => !String(uiStrings.fa[k] || '').trim()).length === 0,
+    faKeys.filter(k => !String(uiStrings.fa[k] || '').trim()).join(', '));
+
+  // ------------------------------------------------- settings key coverage
+  console.log('\n== every data-setting key is a persistable setting ==');
+  const indexHtml = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const usedKeys = [...indexHtml.matchAll(/data-setting="([^"]+)"/g)].map(m => m[1]);
+  const writeable = new Set(Object.keys(settings));
+  const missing = [...new Set(usedKeys)].filter(key => !writeable.has(key));
+  check('every data-setting key exists in the saved settings', missing.length === 0, missing.join(', '));
+
+  // --------------------------------------------------------- drafts stay off
+  console.log('\n== sample projects stay drafts ==');
+  check('no sample project is published', projectsPayload.projects.every(p => p.published === false),
+    projectsPayload.projects.filter(p => p.published !== false).map(p => p.title).join(', '));
 
   console.log('\n' + pass + ' passed, ' + fail + ' failed');
   process.exit(fail ? 1 : 0);

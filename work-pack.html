@@ -78,11 +78,14 @@
     <div class="terms" id="packTerms"></div>
     <div id="packScope"></div>
 
+    <h2 id="packRatesTitle" hidden>Rates &amp; availability</h2>
+    <div class="terms" id="packRates"></div>
+
     <h2>Experience &amp; education</h2>
     <div id="packHistory"></div>
 
     <div class="rule"></div>
-    <p class="contact">Rates are quoted per project after the brief — fixed price, agreed before anything starts.</p>
+    <p class="contact" id="packClose"></p>
   </main>
 
   <script>
@@ -213,6 +216,23 @@
           (item.date ? ' <span class="case-year">(' + escapeHtml(item.date) + ')</span>' : '') + '</p>');
       });
       el('packHistory').innerHTML = history.join('') || '<p class="empty">—</p>';
+
+      var rates = (Array.isArray(settings.rates) ? settings.rates : []).filter(function (rate) {
+        return rate && rate.visible !== false && (rate.type || rate.price);
+      });
+      var ratesTitle = el('packRatesTitle');
+      if (rates.length) {
+        if (ratesTitle) ratesTitle.hidden = false;
+        el('packRates').innerHTML = rates.map(function (rate) {
+          return '<div class="term"><strong>' + escapeHtml(rate.type || rate.price || '') + '</strong>' +
+            escapeHtml([rate.price, rate.unit].filter(Boolean).join(' · ')) +
+            (rate.note ? '<br><span class="role">' + escapeHtml(rate.note) + '</span>' : '') + '</div>';
+        }).join('');
+      }
+
+      el('packClose').textContent = rates.length
+        ? 'Rates above are a starting point — every project gets a fixed quote after the brief, agreed before anything starts.'
+        : 'Rates are quoted per project after the brief — fixed price, agreed before anything starts.';
     });
   })();
   </script>

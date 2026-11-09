@@ -46,6 +46,31 @@ setTimeout(() => {
   check('footer copy FA present', !!d.getElementById('settingFooterCopyFa'));
   check('why-it-matters editor present', !!d.getElementById('projectWhyText') && !!d.getElementById('projectWhyMetrics'));
   check('why-metric add button present', !!d.getElementById('addWhyMetricBtn'));
+  // The new design added sections; every one needs an edit surface in the panel.
+  check('work section copy view present', !!d.getElementById('workSettingsForm'));
+  check('terms view present', !!d.getElementById('offersForm'));
+  check('rates view present', !!d.getElementById('ratesForm') && !!d.getElementById('ratesList'));
+  check('rate add button present', !!d.getElementById('addRateBtn'));
+  check('process steps editor present', !!d.getElementById('processList') && !!d.getElementById('addProcessBtn'));
+  check('process copy separated from steps', !!d.getElementById('processCopyForm'));
+  check('contact copy view present', !!d.getElementById('contactFormAdmin'));
+  check('every new view has a sidebar entry',
+    ['projects-settings', 'offers', 'rates', 'process', 'contact']
+      .every(view => !!d.querySelector(`.nav-item[data-view="${view}"]`)));
+  check('no duplicate element ids in the panel', (() => {
+    const seen = new Set(); const dupes = [];
+    d.querySelectorAll('[id]').forEach(node => {
+      if (seen.has(node.id)) dupes.push(node.id); else seen.add(node.id);
+    });
+    return dupes.length === 0;
+  })());
+  d.querySelector('.nav-item[data-view="rates"]').click();
+  setTimeout(() => {
+    const firstCard = d.querySelector('#ratesList .rates-admin-card');
+    check('rate cards render with editable fields', !!firstCard && !!firstCard.querySelector('[data-rate-field="price"]'));
+    const stepCard = d.querySelector('#processList .process-admin-card');
+    check('process steps render with editable fields', !!stepCard && !!stepCard.querySelector('[data-process-field="titleFa"]'));
+    setTimeout(() => process.exit(errors.length || !firstCard ? 1 : 0), 50);
+  }, 1200);
   console.log(errors.length ? '\n' + errors.length + ' error(s)' : '\nadmin.js loaded clean');
-  process.exit(errors.length ? 1 : 0);
-}, 500);
+}, 700);

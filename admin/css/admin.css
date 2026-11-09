@@ -3547,3 +3547,75 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; }
 }
 .admin-fa-fieldset input,
 .admin-fa-fieldset textarea { text-align: right; }
+
+/* ============================================================
+   RATES / PROCESS COPY EDITORS
+   ============================================================ */
+.service-admin-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  margin-bottom: 14px;
+  background: var(--bg-card);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.service-admin-card:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+.service-admin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.service-admin-index {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-sec);
+}
+.service-admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.icon-btn-sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  transition: background .15s ease, border-color .15s ease;
+}
+.icon-btn-sm:hover:not(:disabled) { background: var(--bg-hover); }
+.icon-btn-sm:disabled { opacity: .35; cursor: not-allowed; }
+.icon-btn-sm.danger:hover { border-color: #e5484d; color: #e5484d; background: rgba(229, 72, 77, .08); }
+.toggle-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-sec);
+  padding: 4px 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+.toggle-inline input { margin: 0; accent-color: var(--accent); }
+.service-admin-card .form-row + .form-row { margin-top: 10px; }
+
+#processCopyForm, #ratesForm, #offersForm, #workSettingsForm, #contactFormAdmin { margin-bottom: 22px; }
+#processSuccess, #ratesSuccess, #offersSuccess, #workSettingsSuccess, #contactSuccess { margin-top: 12px; }
