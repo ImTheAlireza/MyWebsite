@@ -3236,3 +3236,200 @@ html[lang="fa"] .legal-page .legal-body thead th { font-family: var(--font-body)
 
 /* Brand hero cover fills the card like the reference's brand header */
 .brand-hero > img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ============================================================
+   HERO REEL: a real player, and the large modal it opens
+   ============================================================ */
+.stage-viewport { position: relative; }
+
+/* Paused state: dim the frame and float a play button over it */
+.motion-stage-card.is-paused .stage-video { filter: brightness(0.55) saturate(0.85); }
+.stage-big-play {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(10, 10, 14, 0.55);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  cursor: pointer;
+  z-index: 3;
+  padding-inline-start: 4px;
+  transition: transform var(--duration-fast) var(--ease-out),
+              background-color var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out);
+  animation: stagePlayIn 0.35s var(--ease-out) both;
+}
+.stage-big-play:hover,
+.stage-big-play:focus-visible {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  transform: scale(1.06);
+}
+.stage-big-play[hidden] { display: none; }
+@keyframes stagePlayIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* The stage video is the player: pointer cursor and no poster flash */
+.stage-video { cursor: pointer; background: #000; }
+.stage-expand-btn.is-hollow {
+  background: transparent;
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Modal shell */
+dialog.showreel-dialog {
+  width: min(1180px, 94vw);
+  max-width: 1180px;
+  padding: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: #08080a;
+  color: var(--text-primary);
+  overflow: hidden;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.7);
+}
+dialog.showreel-dialog::backdrop {
+  background: rgba(4, 4, 6, 0.86);
+  backdrop-filter: blur(6px);
+}
+dialog.showreel-dialog[open] { animation: showreelIn 0.32s var(--ease-out) both; }
+@keyframes showreelIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Header, stage and footer of the modal */
+.showreel-shell { display: flex; flex-direction: column; max-height: 94dvh; }
+.showreel-dialog .dialog-topbar {
+  background: rgba(12, 12, 16, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.showreel-stage-wrap {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  background: #000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.showreel-stage-wrap .showreel-player,
+.showreel-stage-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  display: block;
+}
+.showreel-stage-wrap.is-embed { aspect-ratio: 16 / 9; }
+.showreel-stage-wrap iframe { width: 100%; height: 100%; border: 0; }
+
+.showreel-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 20px 16px;
+  background: rgba(12, 12, 16, 0.92);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.showreel-note {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+html[lang="fa"] .showreel-note { font-family: var(--font-body); letter-spacing: 0; text-transform: none; }
+.showreel-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.showreel-dialog .dialog-icon-btn {
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition: border-color var(--duration-fast), background-color var(--duration-fast);
+}
+.showreel-dialog .dialog-icon-btn:hover { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+
+@media (max-width: 720px) {
+  dialog.showreel-dialog { width: 100vw; max-width: 100vw; border-radius: 0; max-height: 100dvh; }
+  .showreel-shell { max-height: 100dvh; }
+  .showreel-meta { flex-direction: column; align-items: stretch; }
+  .showreel-meta .showreel-actions .btn { flex: 1; justify-content: center; }
+  .stage-big-play { width: 62px; height: 62px; }
+}
+
+/* Hero reel: progress bar under the viewport */
+.stage-progress {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  padding: 0 0 2px;
+  z-index: 4;
+}
+.stage-progress[hidden] { display: none; }
+.stage-progress-track {
+  position: relative;
+  height: 3px;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.16);
+  cursor: pointer;
+  outline: none;
+  transition: height var(--duration-fast) var(--ease-out);
+}
+.stage-progress-track::before {
+  /* generous hit area without changing the visual thickness */
+  content: "";
+  position: absolute;
+  inset: -8px 0;
+}
+.stage-progress-track:hover,
+.stage-progress-track:focus-visible { height: 5px; }
+.stage-progress-track:focus-visible { box-shadow: 0 0 0 2px rgba(255, 92, 53, 0.5); }
+.stage-progress-fill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 0%;
+  background: var(--accent);
+}
+.stage-progress-knob {
+  position: absolute;
+  top: 50%;
+  inset-inline-start: 0%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+html[dir="rtl"] .stage-progress-knob { transform: translate(50%, -50%); }
+.stage-progress-track:hover .stage-progress-knob,
+.stage-progress-track:focus-visible .stage-progress-knob { opacity: 1; }
+
+.stage-time {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.72);
+  padding-inline: 4px;
+}
+.stage-time[hidden] { display: none; }

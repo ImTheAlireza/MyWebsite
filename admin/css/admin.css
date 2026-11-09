@@ -3619,3 +3619,9 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; }
 
 #processCopyForm, #ratesForm, #offersForm, #workSettingsForm, #contactFormAdmin { margin-bottom: 22px; }
 #processSuccess, #ratesSuccess, #offersSuccess, #workSettingsSuccess, #contactSuccess { margin-top: 12px; }
+
+/* Reel uploader: video preview inside the media dropzone */
+#reelUpload .image-upload-preview video { display: block; width: 100%; border-radius: 12px; background: #000; }
+#reelUpload .image-upload-preview { aspect-ratio: 16 / 9; }
+#reelUpload .image-upload-dropzone { border-color: rgba(255, 92, 53, 0.35); }
+#reelUpload.is-live .image-upload-dropzone { border-color: var(--border); }

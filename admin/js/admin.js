@@ -203,9 +203,35 @@
 
     async function handleImageSelect(file) {
       if (file.size > 50 * 1024 * 1024) { showToast('File too large. Max 50MB.', 'error'); return; }
+      // A video preview inside an <img> is useless: use a muted <video> instead
+      // and mirror the source so the rest of the flow keeps working.
+      const isVideo = /^video\//.test(file.type) || /\.(mp4|webm|ogv|mov|m4v)$/i.test(file.name || '');
+      let previewTarget = previewImg;
+      if (isVideo) {
+        if (previewImg.tagName !== 'VIDEO') {
+          const videoEl = document.createElement('video');
+          videoEl.id = previewImg.id;
+          videoEl.muted = true;
+          videoEl.loop = true;
+          videoEl.playsInline = true;
+          videoEl.preload = 'metadata';
+          videoEl.style.width = '100%';
+          videoEl.style.borderRadius = '12px';
+          previewImg.replaceWith(videoEl);
+          previewTarget = videoEl;
+        } else {
+          previewTarget = previewImg;
+        }
+      } else if (previewImg.tagName === 'VIDEO') {
+        const imgEl = document.createElement('img');
+        imgEl.id = previewImg.id;
+        imgEl.alt = 'Preview';
+        previewImg.replaceWith(imgEl);
+        previewTarget = imgEl;
+      }
       // Show immediate local preview
       const localUrl = URL.createObjectURL(file);
-      previewImg.src = localUrl;
+      previewTarget.src = localUrl;
       preview.classList.remove('hidden');
       dropzone.classList.add('hidden');
 
@@ -222,8 +248,8 @@
         if (!res.ok) throw new Error(d.error);
         URL.revokeObjectURL(localUrl);
         hiddenInput.value = d.url;
-        previewImg.src = d.url;
-        showToast('Image uploaded', 'success');
+        previewTarget.src = d.url;
+        showToast(isVideo ? 'Video uploaded' : 'Image uploaded', 'success');
       } catch (err) {
         URL.revokeObjectURL(localUrl);
         showToast('Upload failed: ' + err.message, 'error');
@@ -252,6 +278,91 @@
   }
 
   // Initialize all image upload components
+  // Reel uploader: same dropzone behaviour, but the value lands in the hidden
+  // heroShowreelUrl field (and the URL box mirrors it).
+  (function setupReelUpload() {
+    const dropzone = $('#reelDropzone');
+    const fileInput = $('#reelFileInput');
+    const preview = $('#reelPreview');
+    const previewVideo = $('#reelPreviewVideo');
+    const removeBtn = $('#reelRemoveBtn');
+    const hidden = $('#heroShowreelUrl');
+    const browse = $('#reelBrowseBtn');
+    if (!dropzone || !fileInput || !preview || !previewVideo || !hidden) return;
+
+    function show(url) {
+      if (!url) {
+        hidden.value = '';
+        previewVideo.removeAttribute('src');
+        const wrap = $('#reelUpload');
+        if (wrap) wrap.classList.remove('is-live');
+        preview.classList.add('hidden');
+        dropzone.classList.remove('hidden');
+        return;
+      }
+      hidden.value = url;
+      previewVideo.src = url;
+      const wrap = $('#reelUpload');
+      if (wrap) wrap.classList.add('is-live');
+      preview.classList.remove('hidden');
+      dropzone.classList.add('hidden');
+    }
+
+    async function upload(file) {
+      if (!file) return;
+      if (file.size > 50 * 1024 * 1024) { showToast('File too large. Max 50MB.', 'error'); return; }
+      const localUrl = URL.createObjectURL(file);
+      previewVideo.src = localUrl;
+      preview.classList.remove('hidden');
+      dropzone.classList.add('hidden');
+      const fd = new FormData();
+      fd.append('file', file);
+      try {
+        const res = await fetch(API + 'upload', { method: 'POST', body: fd, credentials: 'same-origin' });
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.error || 'Upload failed');
+        URL.revokeObjectURL(localUrl);
+        hidden.value = d.url;
+        previewVideo.src = d.url;
+        showToast('Reel uploaded — save the hero to publish it', 'success');
+      } catch (err) {
+        URL.revokeObjectURL(localUrl);
+        showToast('Upload failed: ' + err.message, 'error');
+        show('');
+      }
+    }
+
+    dropzone.addEventListener('click', event => {
+      if (event.target.closest('button')) return;
+      fileInput.click();
+    });
+    if (browse) browse.addEventListener('click', event => {
+      event.stopPropagation();
+      openAssetPicker(function (picked) {
+        const url = Array.isArray(picked) ? picked[0] : picked;
+        if (url) show(url);
+      }, 'video', { title: 'Choose a reel', subtitle: 'Pick a video from your media library, or upload a new one.' });
+    });
+    dropzone.addEventListener('dragover', event => { event.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', event => {
+      event.preventDefault();
+      dropzone.classList.remove('dragover');
+      upload(event.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', event => {
+      upload(event.target.files[0]);
+      fileInput.value = '';
+    });
+    removeBtn.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      show('');
+    });
+
+    window.__setReelPreview = show;
+  })();
+
   const uploads = {
     portraitDark: setupImageUpload({
       dropzoneId: '#portraitDarkDropzone', fileInputId: '#portraitDarkFileInput',
@@ -1615,6 +1726,7 @@
         if (el && d[k] != null) el.value = d[k];
       });
 
+      if (window.__setReelPreview) window.__setReelPreview(d.heroShowreelUrl || '');
       if (d.heroPortraitDark) uploads.portraitDark.setImage(d.heroPortraitDark);
       $('#heroPortraitDarkOpacity').value = d.heroPortraitDarkOpacity ?? 0.18;
       $('#heroPortraitDarkOpacityVal').textContent = $('#heroPortraitDarkOpacity').value;

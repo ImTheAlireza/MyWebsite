@@ -281,6 +281,10 @@
   }
 
   // ------------------------------------------------------------------- hero
+  //
+  // The stage behaves like a real player: it loops muted inline, has a control
+  // bar, a big play button while paused, and the "Full Reel" control opens the
+  // same reel in a large modal with sound and real player controls.
   function wireHero() {
     var video = document.getElementById('heroReelVideo');
     var toggle = document.getElementById('heroReelToggle');
@@ -290,6 +294,9 @@
     var posterImage = document.getElementById('stagePosterImage');
     var showreelBtn = document.getElementById('heroShowreelBtn');
     var fileName = document.getElementById('stageFileName');
+    var bigPlay = document.getElementById('stageBigPlay');
+    var fullBtn = document.getElementById('stageFullscreenBtn');
+    var stage = document.querySelector('.motion-stage-card');
 
     var reelUrl = safeHref(settingsCache.heroShowreelUrl);
     var reelIsFile = !!reelUrl && isVideoFile(reelUrl);
@@ -306,40 +313,162 @@
     if (fileName && reelUrl) {
       try {
         var path = new URL(reelUrl, window.location.origin).pathname;
-        fileName.textContent = decodeURIComponent(path.split('/').pop() || 'showreel.aep');
+        fileName.textContent = decodeURIComponent(path.split('/').pop() || 'showreel.mp4');
       } catch (error) {}
+    }
+
+    function setPaused(paused) {
+      if (toggle) {
+        toggle.setAttribute('aria-pressed', paused ? 'false' : 'true');
+        if (icon) icon.textContent = paused ? '▶' : '❚❚';
+        if (text) text.textContent = paused ? T('playReel') : T('pauseReel');
+      }
+      if (bigPlay) bigPlay.hidden = !paused;
+      if (stage) stage.classList.toggle('is-paused', paused);
+    }
+
+    function playStage() {
+      if (!video) return;
+      var started = video.play();
+      if (started && started.catch) started.catch(function () {});
+      setPaused(false);
     }
 
     if (video && reelIsFile) {
       video.hidden = false;
-      if (poster) poster.style.display = 'none';
+      if (poster) poster.hidden = true;
       if (video.getAttribute('src') !== reelUrl) {
         video.setAttribute('src', reelUrl);
+        if (safeHref(settingsCache.heroPoster)) video.setAttribute('poster', safeHref(settingsCache.heroPoster));
         video.load();
       }
       if (toggle) toggle.hidden = false;
 
-      var syncReel = function () {
-        if (!toggle) return;
-        var paused = video.paused;
-        toggle.setAttribute('aria-pressed', paused ? 'false' : 'true');
-        if (icon) icon.textContent = paused ? '▶' : '❚❚';
-        if (text) text.textContent = paused ? T('playReel') : T('pauseReel');
-      };
+      if (!video.dataset.wired) {
+        video.dataset.wired = '1';
+        video.addEventListener('play', function () { setPaused(false); });
+        video.addEventListener('pause', function () { setPaused(true); });
+        video.addEventListener('click', function () {
+          if (video.paused) {
+            video.dataset.userPaused = '';
+            playStage();
+          } else {
+            video.dataset.userPaused = '1';
+            video.pause();
+          }
+        });
+      }
 
       if (toggle && !toggle.dataset.wired) {
         toggle.dataset.wired = '1';
         toggle.addEventListener('click', function () {
           if (video.paused) {
-            var started = video.play();
-            if (started && started.catch) started.catch(function () {});
+            video.dataset.userPaused = '';
+            playStage();
           } else {
+            video.dataset.userPaused = '1';
             video.pause();
           }
-          syncReel();
         });
-        video.addEventListener('play', syncReel);
-        video.addEventListener('pause', syncReel);
+      }
+
+      // Real progress: elapsed time, a scrub track and a keyboard-seekable slider.
+      var progress = document.getElementById('stageProgress');
+      var track = document.getElementById('stageProgressTrack');
+      var fill = document.getElementById('stageProgressFill');
+      var knob = document.getElementById('stageProgressKnob');
+      var timeLabel = document.getElementById('stageTime');
+
+      function clock(seconds) {
+        if (!isFinite(seconds) || seconds < 0) seconds = 0;
+        var m = Math.floor(seconds / 60);
+        var sec = Math.floor(seconds % 60);
+        return m + ':' + (sec < 10 ? '0' : '') + sec;
+      }
+
+      function paintProgress() {
+        var duration = video.duration;
+        var ratio = duration && isFinite(duration) ? Math.min(video.currentTime / duration, 1) : 0;
+        var percent = (ratio * 100).toFixed(3) + '%';
+        if (fill) fill.style.width = percent;
+        if (knob) knob.style.insetInlineStart = percent;
+        if (track) track.setAttribute('aria-valuenow', Math.round(ratio * 100));
+        if (timeLabel) timeLabel.textContent = clock(video.currentTime) + ' / ' + clock(duration);
+      }
+
+      // The frame ruler under the stage is decorative, but its numbers should
+      // describe the reel that is actually loaded.
+      var ruler = document.querySelectorAll('.timeline-ruler span');
+      function paintRuler() {
+        if (ruler.length !== 5 || !isFinite(video.duration) || !video.duration) return;
+        Array.prototype.forEach.call(ruler, function (span, index) {
+          span.textContent = clock((video.duration / 4) * index) + 'f';
+        });
+      }
+
+      if (progress) progress.hidden = false;
+      if (timeLabel) timeLabel.hidden = false;
+
+      if (!video.dataset.progressWired) {
+        video.dataset.progressWired = '1';
+        video.addEventListener('timeupdate', paintProgress);
+        video.addEventListener('loadedmetadata', paintProgress);
+        video.addEventListener('durationchange', paintProgress);
+        video.addEventListener('loadedmetadata', paintRuler, { once: true });
+      }
+      paintProgress();
+      paintRuler();
+
+      if (track && !track.dataset.wired) {
+        track.dataset.wired = '1';
+        var seekTo = function (clientX) {
+          var rect = track.getBoundingClientRect();
+          if (!rect.width || !isFinite(video.duration) || !video.duration) return;
+          var ratio = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
+          video.currentTime = ratio * video.duration;
+          paintProgress();
+        };
+        track.addEventListener('click', function (event) { seekTo(event.clientX); });
+        track.addEventListener('pointerdown', function (event) {
+          seekTo(event.clientX);
+          var move = function (e) { seekTo(e.clientX); };
+          var up = function () {
+            window.removeEventListener('pointermove', move);
+            window.removeEventListener('pointerup', up);
+          };
+          window.addEventListener('pointermove', move);
+          window.addEventListener('pointerup', up);
+        });
+        track.addEventListener('keydown', function (event) {
+          var step = event.shiftKey ? 10 : 5;
+          if (event.key === 'ArrowRight') { event.preventDefault(); video.currentTime = Math.min(video.currentTime + step, video.duration || 0); }
+          else if (event.key === 'ArrowLeft') { event.preventDefault(); video.currentTime = Math.max(video.currentTime - step, 0); }
+          else if (event.key === ' ' || event.key === 'Enter') {
+            event.preventDefault();
+            if (video.paused) playStage(); else video.pause();
+          }
+          paintProgress();
+        });
+      }
+
+      if (bigPlay && !bigPlay.dataset.wired) {
+        bigPlay.dataset.wired = '1';
+        bigPlay.addEventListener('click', playStage);
+      }
+
+      // Do not decode video that nobody can see: the loop pauses off-screen
+      // and resumes when the hero comes back into view.
+      if (stage && typeof IntersectionObserver === 'function' && !stage.dataset.observed) {
+        stage.dataset.observed = '1';
+        new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              if (video.paused && !video.dataset.userPaused) playStage();
+            } else if (!video.paused) {
+              video.pause();
+            }
+          });
+        }, { threshold: 0.15 }).observe(stage);
       }
 
       var reduced = false;
@@ -352,30 +481,45 @@
               video.dataset.counted = '1';
               window.portfolioTracking.track('reel_play');
             }
-          }).catch(function () {});
+          }).catch(function () { setPaused(true); });
         }
       }
-      syncReel();
+      setPaused(video.paused);
     } else if (video) {
       video.hidden = true;
-      if (poster) poster.style.display = '';
+      if (poster) poster.hidden = false;
+      if (bigPlay) bigPlay.hidden = true;
     }
 
-    // Showreel button: with a real URL it opens the reel. Without one it stays
-    // in place but says what to do instead, so the hero never shows a dead
-    // button and never fakes a video that does not exist.
+    // "Full Reel": opens the large modal. When no reel is set the same control
+    // asks for it instead of pretending a video exists.
+    if (fullBtn) {
+      if (!reelUrl) {
+        var label = fullBtn.querySelector('[data-i18n]') || fullBtn;
+        label.textContent = T('showreelAskLabel');
+        fullBtn.className = 'stage-expand-btn is-hollow';
+        fullBtn.dataset.state = 'ask';
+        fullBtn.addEventListener('click', function () {
+          var contact = document.getElementById('contact');
+          if (contact) contact.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      } else {
+        fullBtn.addEventListener('click', function () {
+          openShowreel(reelUrl, { from: video && !video.paused ? video.currentTime : 0 });
+        });
+      }
+    }
+
     if (showreelBtn) {
       if (!reelUrl) {
-        var label = showreelBtn.querySelector('[data-i18n]') || showreelBtn;
+        var heroLabel = showreelBtn.querySelector('[data-i18n]') || showreelBtn;
         var fallback = T('showreelAskLabel');
-        if (fallback && fallback !== 'showreelAskLabel') label.textContent = fallback;
+        if (fallback && fallback !== 'showreelAskLabel') heroLabel.textContent = fallback;
         showreelBtn.addEventListener('click', function () {
           var contact = document.getElementById('contact');
           if (contact) contact.scrollIntoView({ behavior: 'smooth', block: 'start' });
           var message = document.getElementById('contactMessage');
-          if (message && !message.value.trim()) {
-            message.focus({ preventScroll: true });
-          }
+          if (message && !message.value.trim()) message.focus({ preventScroll: true });
         });
       } else {
         showreelBtn.hidden = false;
@@ -385,16 +529,78 @@
   }
 
   // -------------------------------------------------------------- showreel
-  function openShowreel(url) {
+  // Big modal player: sound on, real controls, keyboard seek, optional native
+  // fullscreen, and the inline loop pauses while it is open so two copies of
+  // the reel never play at once.
+  var showreelState = { url: '', element: null };
+
+  function openShowreel(url, options) {
     var dialog = document.getElementById('showreelDialog');
     var stage = document.getElementById('showreelStage');
     if (!dialog || !stage) return;
+    var opts = options || {};
+    var src = safeHref(url) || safeHref(settingsCache.heroShowreelUrl);
+    if (!src) return;
+
+    var inline = document.getElementById('heroReelVideo');
+    if (inline && !inline.paused) inline.pause();
+
     stage.innerHTML = '';
-    var element = buildMedia(url, { label: T('showreelModalTitle'), controls: true, force: true });
-    if (element.tagName === 'VIDEO') element.autoplay = true;
+    stage.classList.toggle('is-embed', !!externalEmbed(src));
+    var element = buildMedia(src, {
+      label: T('showreelModalTitle'),
+      controls: true,
+      force: true,
+      poster: safeHref(settingsCache.heroPoster)
+    });
+    if (element.tagName === 'VIDEO') {
+      element.controls = true;
+      element.autoplay = true;
+      element.playsInline = true;
+      element.muted = false;
+      element.loop = false;
+      element.className = 'showreel-player';
+      if (opts.from) {
+        element.addEventListener('loadedmetadata', function () {
+          try { element.currentTime = Math.min(opts.from, element.duration || opts.from); } catch (error) {}
+        }, { once: true });
+      }
+      var started = element.play();
+      if (started && started.catch) started.catch(function () {});
+    }
     stage.appendChild(element);
+    showreelState = { url: src, element: element };
+
+    var nativeBtn = document.getElementById('showreelNativeBtn');
+    var canFullscreenNative = element.tagName === 'VIDEO' && typeof element.requestFullscreen === 'function';
+    if (nativeBtn) {
+      nativeBtn.hidden = !canFullscreenNative;
+      nativeBtn.onclick = function () {
+        var request = element.requestFullscreen();
+        if (request && request.catch) request.catch(function () {});
+        if (typeof element.webkitEnterFullscreen === 'function') {
+          try { element.webkitEnterFullscreen(); } catch (error) {}
+        }
+      };
+    }
+
+    var note = document.getElementById('showreelNote');
+    if (note) {
+      note.textContent = element.tagName === 'VIDEO' ? T('showreelSoundOn') : '';
+      if (element.tagName === 'VIDEO') {
+        element.addEventListener('loadedmetadata', function () {
+          if (!isFinite(element.duration)) return;
+          var total = Math.floor(element.duration);
+          var label = Math.floor(total / 60) + ':' + ('0' + (total % 60)).slice(-2);
+          note.textContent = T('showreelSoundOn') + ' · ' + label;
+        }, { once: true });
+      }
+    }
+
     if (typeof dialog.showModal === 'function') dialog.showModal();
     else dialog.setAttribute('open', '');
+
+    if (window.portfolioTracking) window.portfolioTracking.track('reel_play', { context: 'modal' });
   }
 
   function wireShowreelCleanup() {
@@ -403,7 +609,40 @@
     dialog.addEventListener('close', function () {
       dialog.querySelectorAll('video').forEach(function (video) { video.pause(); });
       var stage = document.getElementById('showreelStage');
-      if (stage) stage.innerHTML = '';
+      if (stage) { stage.innerHTML = ''; stage.classList.remove('is-embed'); }
+      showreelState = { url: '', element: null };
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(function () {});
+      }
+    });
+    // Links inside the dialog close it first, then scroll to their target.
+    dialog.querySelectorAll('[data-reel-close]').forEach(function (link) {
+      link.addEventListener('click', function () {
+        if (typeof dialog.close === 'function') dialog.close();
+      });
+    });
+    // Space toggles playback, arrows seek, F goes native fullscreen.
+    dialog.addEventListener('keydown', function (event) {
+      var element = showreelState.element;
+      if (!element || element.tagName !== 'VIDEO') return;
+      if (event.target !== dialog && event.target !== element) return;
+      if (event.key === ' ' || event.key === 'k') {
+        event.preventDefault();
+        if (element.paused) element.play().catch(function () {});
+        else element.pause();
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        element.currentTime = Math.min(element.currentTime + 5, element.duration || element.currentTime + 5);
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        element.currentTime = Math.max(element.currentTime - 5, 0);
+      } else if (event.key === 'f' || event.key === 'F') {
+        event.preventDefault();
+        var request = element.requestFullscreen && element.requestFullscreen();
+        if (request && request.catch) request.catch(function () {});
+      } else if (event.key === 'm' || event.key === 'M') {
+        element.muted = !element.muted;
+      }
     });
   }
 

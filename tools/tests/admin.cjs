@@ -57,6 +57,15 @@ setTimeout(() => {
   check('every new view has a sidebar entry',
     ['projects-settings', 'offers', 'rates', 'process', 'contact']
       .every(view => !!d.querySelector(`.nav-item[data-view="${view}"]`)));
+  // The hero reel must be editable end-to-end: upload a file, pick an existing
+  // video, or paste a URL — all writing the same heroShowreelUrl key.
+  check('reel uploader present in the hero view',
+    !!d.getElementById('reelDropzone') && !!d.getElementById('reelFileInput') && !!d.getElementById('reelPreviewVideo'));
+  check('reel uploader writes into heroShowreelUrl', !!d.getElementById('heroShowreelUrl'));
+  check('reel file input only accepts video',
+    /video/.test(d.getElementById('reelFileInput').getAttribute('accept') || ''));
+  check('Browse Existing button opens the media picker', !!d.getElementById('reelBrowseBtn'));
+  check('reel preview is a <video>, not an <img>', d.getElementById('reelPreviewVideo').tagName === 'VIDEO');
   check('no duplicate element ids in the panel', (() => {
     const seen = new Set(); const dupes = [];
     d.querySelectorAll('[id]').forEach(node => {

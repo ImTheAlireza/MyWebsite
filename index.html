@@ -256,6 +256,11 @@
                   preload="metadata"
                   aria-label="Motion reel preview loop"
                   hidden></video>
+                <button type="button" class="stage-big-play" id="stageBigPlay" hidden aria-label="Play the reel" data-i18n-label="playReel">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M8 5.14v14l11-7-11-7z"/>
+                  </svg>
+                </button>
 
                 <!-- Poster / placeholder until a reel exists in the CMS -->
                 <div class="stage-poster" id="stagePoster" aria-hidden="true">
@@ -279,12 +284,21 @@
                       <span class="toggle-icon" id="heroReelToggleIcon">❚❚</span>
                       <span id="heroReelToggleText" data-i18n="pauseReel">Pause reel</span>
                     </button>
-                    <a href="#work" class="stage-expand-btn" id="stageFullscreenBtn">
-                      <span data-i18n="expandReel">Full Work</span>
+                    <span class="stage-time" id="stageTime" hidden>0:00 / 0:00</span>
+                    <button type="button" class="stage-expand-btn" id="stageFullscreenBtn" aria-haspopup="dialog">
+                      <span data-i18n="expandReel">Full Reel</span>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
                       </svg>
-                    </a>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="stage-progress" id="stageProgress" hidden>
+                  <div class="stage-progress-track" role="slider" tabindex="0" id="stageProgressTrack"
+                       aria-label="Seek the reel" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <span class="stage-progress-fill" id="stageProgressFill"></span>
+                    <span class="stage-progress-knob" id="stageProgressKnob"></span>
                   </div>
                 </div>
               </div>
@@ -793,15 +807,29 @@
           <span class="dialog-kicker" data-i18n="showreelKicker">SHOWREEL</span>
           <h2 class="dialog-title" id="showreelTitle" data-i18n="showreelModalTitle">Alireza Shabanzadeh — Motion Showreel</h2>
         </div>
-        <form method="dialog">
-          <button type="submit" class="dialog-close-btn" value="close" aria-label="Close showreel">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M18 6 6 18M6 6l12 12"/>
+        <div class="dialog-actions">
+          <button type="button" class="dialog-icon-btn" id="showreelNativeBtn" aria-label="Play in native fullscreen" data-i18n-label="showreelNative" hidden>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/>
             </svg>
           </button>
-        </form>
+          <form method="dialog">
+            <button type="submit" class="dialog-close-btn" value="close" aria-label="Close showreel" data-i18n-label="closeShowreelLabel">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M18 6 6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </form>
+        </div>
       </header>
       <div class="showreel-stage-wrap" id="showreelStage"></div>
+      <footer class="showreel-meta">
+        <p class="showreel-note" id="showreelNote"></p>
+        <div class="showreel-actions">
+          <a href="#contact" class="btn btn-primary btn-sm" data-reel-close data-i18n="showreelCta">Start a project like this</a>
+          <a href="#work" class="btn btn-ghost btn-sm" data-reel-close data-i18n="showreelWork">See the case studies</a>
+        </div>
+      </footer>
     </div>
   </dialog>
 

@@ -17,7 +17,7 @@
     "heroCtaSecondary": "Send a brief",
     "pauseReel": "Pause reel",
     "playReel": "Play reel",
-    "expandReel": "Full Work",
+    "expandReel": "Full Reel",
     "workKicker": "01 // PORTFOLIO & CASE STUDIES",
     "workTitle": "Selected Work",
     "workIntro": "Selected product motion, 2D explainers and e-learning visual systems. Explore by client brand or filter individual case studies with real outcomes.",
@@ -155,7 +155,12 @@
     "countBrands": "brands",
     "telegramLabel": "Telegram",
     "whatsappLabel": "WhatsApp",
-    "showreelAskLabel": "Ask for the reel"
+    "showreelAskLabel": "Ask for the reel",
+    "showreelSoundOn": "Sound on",
+    "showreelCta": "Start a project like this",
+    "showreelWork": "See the case studies",
+    "showreelNative": "Play in native fullscreen",
+    "closeShowreelLabel": "Close showreel"
   },
   "fa": {
     "skipLink": "رفتن به محتوای اصلی",
@@ -175,7 +180,7 @@
     "heroCtaSecondary": "ارسال بریف",
     "pauseReel": "توقف ریل",
     "playReel": "پخش ریل",
-    "expandReel": "همهٔ کارها",
+    "expandReel": "ریل کامل",
     "workKicker": "۰۱ // پورتفولیو و نمونه‌کارها",
     "workTitle": "گزیدهٔ نمونه‌کارها",
     "workIntro": "گزیده‌ای از موشن محصول، اکسپلینر دوبعدی و سیستم‌های بصری آموزش الکترونیکی. بر اساس برند کارفرما یا نوع پروژه فیلتر کنید و جزئیات هر کار را ببینید.",
@@ -313,6 +318,11 @@
     "countBrands": "برند",
     "telegramLabel": "تلگرام",
     "whatsappLabel": "واتس‌اپ",
-    "showreelAskLabel": "درخواست ریل نمایشی"
+    "showreelAskLabel": "درخواست ریل نمایشی",
+    "showreelSoundOn": "با صدا",
+    "showreelCta": "پروژه‌ای شبیه این بسازیم",
+    "showreelWork": "نمونه‌کارها را ببینید",
+    "showreelNative": "تمام‌صفحهٔ مرورگر",
+    "closeShowreelLabel": "بستن ریل نمایشی"
   }
 }

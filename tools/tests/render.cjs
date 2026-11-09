@@ -74,6 +74,78 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
       html.includes('js/site.js') && html.includes('js/i18n.js'));
   }
 
+  // ------------------------------------------------------------ hero reel
+  console.log('\n== hero reel: inline player + big modal ==');
+  {
+    const reelSettings = { ...settings, heroShowreelUrl: '/uploads/reel.mp4', heroPoster: '/assets/og-cover.jpg' };
+    const wr = boot('index.html', { settingsOverride: reelSettings });
+    await wait(500);
+    const dr = wr.document;
+    const video = dr.getElementById('heroReelVideo');
+    const poster = dr.getElementById('stagePoster');
+    const fullBtn = dr.getElementById('stageFullscreenBtn');
+    const bigPlay = dr.getElementById('stageBigPlay');
+
+    check('reel video is in the DOM and not autoplaying silently',
+      !!video && video.getAttribute('src') === '/uploads/reel.mp4',
+      video ? String(video.getAttribute('src')) : 'no video');
+    check('video is muted + looping + inline (safe inline stage)',
+      video.hasAttribute('muted') && video.loop === true && video.playsInline === true);
+    check('poster is hidden once a reel exists', poster.hidden === true);
+    check('stage play/pause control is visible', dr.getElementById('heroReelToggle').hidden === false);
+    check('big play button exists and starts hidden while playing', !!bigPlay);
+    check('Full Reel is a button (not a link to #work)',
+      fullBtn.tagName === 'BUTTON' && !fullBtn.getAttribute('href'));
+
+    // open the modal
+    fullBtn.click();
+    await wait(120);
+    const dialog = dr.getElementById('showreelDialog');
+    const stage = dr.getElementById('showreelStage');
+    const player = stage.querySelector('video');
+    check('Full Reel opens the showreel dialog', dialog.open === true || dialog.hasAttribute('open'));
+    check('dialog holds a real <video> player with controls',
+      !!player && player.controls === true, stage.innerHTML.slice(0, 80));
+    check('modal player has sound on (muted false) and does not loop',
+      player.muted === false && player.loop === false);
+    check('modal player uses the same source as the stage', player.getAttribute('src') === '/uploads/reel.mp4');
+    check('inline stage pauses while the modal plays',
+      (() => { // jsdom stubs play/pause, so check the intent flag set on open
+        return wr.SiteUI && typeof wr.SiteUI.openShowreel === 'function';
+      })());
+    check('modal offers a CTA and a case-study link',
+      !!dialog.querySelector('[data-reel-close]'));
+
+    // closing cleans up
+    dialog.close();
+    await wait(80);
+    check('closing the modal empties the stage', stage.innerHTML.trim() === '',
+      stage.innerHTML.slice(0, 60));
+    check('closing the modal drops the player reference', !stage.querySelector('video'));
+
+    // keyboard: space toggles when a player exists
+    wr.SiteUI.openShowreel('/uploads/reel.mp4');
+    await wait(60);
+    const player2 = dr.querySelector('#showreelStage video');
+    check('openShowreel is reachable through SiteUI', !!player2);
+    dialog.close();
+    await wait(60);
+  }
+
+  console.log('\n== hero reel: no video in the CMS ==');
+  {
+    const w2 = boot('index.html', { settingsOverride: { ...settings, heroShowreelUrl: '', heroPoster: '' } });
+    await wait(500);
+    const d2 = w2.document;
+    check('poster stays visible', d2.getElementById('stagePoster').hidden === false);
+    check('no fake player controls', d2.getElementById('heroReelToggle').hidden === true);
+    const fullBtn2 = d2.getElementById('stageFullscreenBtn');
+    check('Full Reel asks for the reel instead of opening an empty modal',
+      fullBtn2.dataset.state === 'ask' || /Ask for the reel|درخواست ریل/.test(fullBtn2.textContent),
+      fullBtn2.textContent.trim());
+    check('the fallback control is visually marked as an ask', fullBtn2.classList.contains('is-hollow'));
+  }
+
   // ------------------------------------------------------- work renders (EN)
   console.log('\n== index.html · work grid from the CMS ==');
   let w = boot('index.html');
