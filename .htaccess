@@ -22,7 +22,16 @@
   ExpiresByType font/woff2 "access plus 1 year"
   ExpiresByType image/jpeg "access plus 6 months"
   ExpiresByType image/png "access plus 6 months"
+  ExpiresByType video/mp4 "access plus 6 months"
+  ExpiresByType video/webm "access plus 6 months"
   ExpiresByType application/json "access plus 0 seconds"
+</IfModule>
+
+# Video MIME types (some hosts do not map them): <video> seeking needs these.
+<IfModule mod_mime.c>
+  AddType video/mp4 .mp4 .m4v
+  AddType video/webm .webm
+  AddType video/quicktime .mov
 </IfModule>
 
 # Block listing of folders that only exist for the site itself.
