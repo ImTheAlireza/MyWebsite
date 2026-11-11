@@ -301,6 +301,15 @@
     var reelUrl = safeHref(settingsCache.heroShowreelUrl);
     var reelIsFile = !!reelUrl && isVideoFile(reelUrl);
 
+    // Optional module: the owner can hide the whole reel (stage + button)
+    // from the panel while keeping the URL saved. Default is visible.
+    if (settingsCache.heroShowreelVisible === false) {
+      var stageWrap = document.querySelector('.hero-stage-wrap');
+      if (stageWrap) stageWrap.hidden = true;
+      if (showreelBtn) showreelBtn.hidden = true;
+      return;
+    }
+
     if (posterImage) {
       var posterUrl = safeHref(settingsCache.heroPoster || settingsCache.heroPortraitDark || '');
       if (posterUrl) {
@@ -959,6 +968,12 @@
     }
 
     // The hero reel stage falls back to the portrait when there is no video.
+    if (settingsCache.heroShowreelVisible === false) {
+      var stageWrap = document.querySelector('.hero-stage-wrap');
+      if (stageWrap) stageWrap.hidden = true;
+      var reelBtn = document.getElementById('heroShowreelBtn');
+      if (reelBtn) reelBtn.hidden = true;
+    }
     var stage = document.getElementById('stagePoster');
     var stageVideo = document.getElementById('heroReelVideo');
     if (stage) {

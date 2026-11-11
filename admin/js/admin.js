@@ -1727,6 +1727,8 @@
       });
 
       if (window.__setReelPreview) window.__setReelPreview(d.heroShowreelUrl || '');
+      const showreelVisible = $('#heroShowreelVisible');
+      if (showreelVisible) showreelVisible.checked = d.heroShowreelVisible !== false;
       if (d.heroPortraitDark) uploads.portraitDark.setImage(d.heroPortraitDark);
       $('#heroPortraitDarkOpacity').value = d.heroPortraitDarkOpacity ?? 0.18;
       $('#heroPortraitDarkOpacityVal').textContent = $('#heroPortraitDarkOpacity').value;
@@ -1764,6 +1766,7 @@
         heroCtaText: $('#heroCtaText').value.trim(),
         heroCtaLink: $('#heroCtaLink').value.trim(),
         heroShowreelUrl: $('#heroShowreelUrl').value.trim(),
+        heroShowreelVisible: $('#heroShowreelVisible') ? $('#heroShowreelVisible').checked : true,
         heroPromise: $('#heroPromise').value.trim(),
         heroHudTag: $('#heroHudTag') ? $('#heroHudTag').value.trim() : '',
         heroPoster: $('#heroPoster') ? $('#heroPoster').value.trim() : '',

@@ -78,7 +78,7 @@
     <div class="terms" id="packTerms"></div>
     <div id="packScope"></div>
 
-    <h2 id="packRatesTitle" hidden>Project estimates</h2>
+    <h2 id="packRatesTitle" hidden>Rates &amp; availability</h2>
     <div class="terms" id="packRates"></div>
 
     <h2>Experience &amp; education</h2>
@@ -190,10 +190,10 @@
       }
 
       var terms = [
-        line('Timing', settings.offerReply),
-        line('Schedule', settings.offerTimeline),
-        line('Deliverables', settings.offerFormat),
-        line('Review', settings.offerRevisions),
+        line('Reply time', settings.offerReply),
+        line('Typical timeline', settings.offerTimeline),
+        line('You receive', settings.offerFormat),
+        line('Revisions', settings.offerRevisions),
         line('Payment', settings.offerTerms),
         line('Starting point', settings.offerFrom),
         line('Next opening', settings.offerAvailability)
@@ -231,8 +231,8 @@
       }
 
       el('packClose').textContent = rates.length
-        ? 'Pricing and timing depend on the deliverables — every project gets a written estimate after the brief.'
-        : 'Pricing and timing depend on the deliverables — every project gets a written estimate after the brief.';
+        ? 'Rates above are a starting point — every project gets a fixed quote after the brief, agreed before anything starts.'
+        : 'Rates above are a starting point — every project gets a fixed quote after the brief, agreed before anything starts.';
     });
   })();
   </script>
