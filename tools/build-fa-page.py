@@ -212,9 +212,20 @@ def build():
     text = text.replace('index.html', 'fa.html')
     text = text.replace('.html" hreflang="fa"', '.html" hreflang="fa"')  # no-op guard
 
+    # The language links must point at the *other* page, not at themselves.
+    # The blanket replace above turns the footer/mobile "فارسی" link
+    # (href="fa.html") into a self-link on the Persian page; fix both back
+    # to the English page with an English label.
+    text = text.replace(
+        '<a href="fa.html" hreflang="fa" lang="fa" dir="rtl" class="footer-lang">فارسی</a>',
+        '<a href="index.html" hreflang="en" lang="en" class="footer-lang">English</a>')
+    text = text.replace(
+        '<a href="fa.html" hreflang="fa" lang="fa" dir="rtl" class="mobile-lang-link" data-i18n="langToggleLabel">فارسی</a>',
+        '<a href="index.html" hreflang="en" lang="en" class="mobile-lang-link" data-i18n="langToggleLabel">English</a>')
+
     # <title>, meta description, canonical, hreflang, og:url
     text = text.replace('<title>', '<title>')
-    title_fa = settings.get('siteNameFa') or 'علیرضا شابان‌زاده'
+    title_fa = settings.get('siteNameFa') or 'علیرضا شعبان‌زاده'
     title_role = settings.get('siteTitleFa') or 'طراح موشن'
     text = re.sub(r'<title>.*?</title>', '<title>' + title_fa + ' — ' + title_role + '</title>', text, count=1)
     text = re.sub(r'(<link rel="canonical" href=")[^"]*(")', r'\g<1>' + SITE + '/fa.html' + r'\g<2>', text)

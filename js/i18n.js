@@ -28,17 +28,20 @@
       caseRole: 'Role', caseTools: 'Tools Used', caseWhy: 'WHY IT MATTERS & IMPACT',
       caseLive: 'Watch it where it was published', caseGallery: 'Media gallery',
       caseSelectedWork: 'Selected work', galleryOpen: 'Open media', lightboxTitle: 'Media',
-      workEmptyTitle: 'Want the reel and three recent samples?',
-      workEmptyCopy: 'Send one line about the project — the goal and the deadline.',
+      workEmptyTitle: 'I’m adding case studies here',
+      workEmptyCopy: 'To discuss a similar brief, send me a short note.',
       workEmptyCta: 'Send the brief', ctaCardTitle: 'Your project next?',
-      ctaCardSub: 'Tell me what the motion needs to explain.', ctaCardAction: 'Send the brief',
+      ctaCardSub: 'Tell me what the motion needs to explain — get a clear scope, price and timeline back.', ctaCardAction: 'Send the brief',
       countProjects: 'projects', countCases: 'case studies', countMedia: 'media',
       rateFeaturedBadge: 'MOST REQUESTED', rateAskPricing: 'Ask for a quote',
       journeyEmpty: 'Nothing added here yet.', tagCurrent: 'Current',
       serviceDefaultBullet1: 'Clear scope agreed before the first frame',
       serviceDefaultBullet2: 'Master files and web-ready exports',
       embedGate: 'This video is hosted on YouTube/Vimeo. Loading it sends your IP address to that provider.',
-      loadVideo: 'Load video'
+      loadVideo: 'Load video',
+      workLoading: 'Loading work…', gridLoading: 'Loading…', resumeLabel: 'Client one-pager (PDF)',
+      trackOneName: 'Product motion', trackTwoName: 'Explainer', stagePosterLabel: 'Motion reel',
+      stageFileNameLabel: 'Motion reel preview'
     },
     fa: {
       caseOpen: 'نمایش', caseKicker: 'پروژه', brandKicker: 'برند', caseUntitled: 'پروژهٔ بدون عنوان',
@@ -47,17 +50,20 @@
       caseRole: 'نقش من', caseTools: 'ابزارهای استفاده‌شده', caseWhy: 'چرا اهمیت دارد و نتیجهٔ کار',
       caseLive: 'کار را سر جایش ببینید', caseGallery: 'گالری فایل',
       caseSelectedWork: 'نمونه‌کارها', galleryOpen: 'بازکردن فایل', lightboxTitle: 'فایل',
-      workEmptyTitle: 'ریل و سه نمونه‌کار تازه می‌خواهید؟',
-      workEmptyCopy: 'یک خط از پروژه بنویسید — هدف و ددلاین.',
+      workEmptyTitle: 'نمونه‌های این بخش را طی روزهای آینده اضافه می‌کنم',
+      workEmptyCopy: 'اگر برای کاری مشابه دنبال موشن هستید، هدف و زمان تحویل را کوتاه بنویسید.',
       workEmptyCta: 'ارسال بریف', ctaCardTitle: 'پروژهٔ بعدی از شما؟',
-      ctaCardSub: 'بگویید موشن باید چه چیزی را نشان دهد.', ctaCardAction: 'ارسال بریف',
+      ctaCardSub: 'بگویید موشن باید چه چیزی را نشان دهد تا شرح کار، قیمت و زمان‌بندی دقیق را بفرستم.', ctaCardAction: 'ارسال بریف',
       countProjects: 'پروژه', countCases: 'پروژه', countMedia: 'فایل',
       rateFeaturedBadge: 'پرتقاضاترین خدمت', rateAskPricing: 'استعلام قیمت',
       journeyEmpty: 'هنوز چیزی اضافه نشده است.', tagCurrent: 'همکاری فعلی',
       serviceDefaultBullet1: 'شرح کار روشن، پیش از اولین فریم',
       serviceDefaultBullet2: 'فایل مستر و خروجی آمادهٔ وب',
       embedGate: 'این ویدیو روی یوتیوب/ویمئو میزبانی می‌شود؛ با بازکردنش، IP شما برای آن سرویس ارسال می‌شود.',
-      loadVideo: 'پخش ویدیو'
+      loadVideo: 'پخش ویدیو',
+      workLoading: 'در حال بارگذاری نمونه‌کارها…', gridLoading: 'در حال بارگذاری…', resumeLabel: 'وان‌پیجر مشتری (PDF)',
+      trackOneName: 'موشن محصول', trackTwoName: 'اکسپلینر', stagePosterLabel: 'ریل موشن',
+      stageFileNameLabel: 'پیش‌نمایش ریل موشن'
     }
   };
 

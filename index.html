@@ -30,12 +30,13 @@
 
   <!-- Marks the document as script-enabled: without JS nothing is hidden by CSS -->
   <script>document.documentElement.classList.add('js');</script>
+  <script>try{var __t=localStorage.getItem('portfolio-theme');if(__t!=='light'&&__t!=='dark'){__t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.setAttribute('data-theme',__t)}catch(e){}</script>
 
   <!-- Fonts (self-hosted: no request ever leaves this domain) -->
   <link rel="preload" href="fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/space-grotesk-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/fonts.css?v=20261109-1">
-  <link rel="stylesheet" href="css/style.css?v=20261109-1">
+  <link rel="stylesheet" href="css/fonts.css?v=20261111-1">
+  <link rel="stylesheet" href="css/style.css?v=20261111-1">
 
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23FF5C35'/><polygon points='38,28 74,50 38,72' fill='%23120B07'/></svg>">
@@ -149,6 +150,7 @@
       </nav>
       <div class="mobile-drawer-footer">
         <a href="#contact" class="btn btn-primary btn-full mobile-nav-cta" data-i18n="navCta">Start a project</a>
+        <a href="fa.html" hreflang="fa" lang="fa" dir="rtl" class="mobile-lang-link" data-i18n="langToggleLabel">فارسی</a>
       </div>
     </div>
   </div>
@@ -162,12 +164,12 @@
         <div class="hero-status-bar">
           <div class="status-pill">
             <span class="status-dot"></span>
-            <span data-setting="heroAvailability">Capacity: 20–30 hours / month</span>
+            <span data-setting="heroAvailability">Open for freelance projects</span>
           </div>
           <div class="eyebrow-tag">
-            <span class="eyebrow-code" data-i18n="heroEyebrowCode">00 // MOTION STUDIO</span>
+            <span class="eyebrow-code" data-i18n="heroEyebrowCode">MOTION DESIGN</span>
             <span class="eyebrow-divider">·</span>
-            <span data-setting="heroEyebrow">Motion Designer · Product &amp; UI Motion</span>
+            <span data-setting="heroEyebrow">PRODUCT &amp; UI · 2D EXPLAINERS</span>
           </div>
         </div>
 
@@ -179,12 +181,12 @@
             </h1>
 
             <p class="hero-lead" data-setting="heroSubtitle">
-              2D &amp; UI motion for product and learning teams. Turning complex software workflows and educational concepts into crisp, purposeful motion.
+              I create clear, purposeful motion for software products and learning content — from UI walkthroughs and feature explainers to structured 2D educational videos.
             </p>
 
             <div class="hero-cta-group">
               <a href="#work" class="btn btn-primary btn-lg" data-hero-cta>
-                <span data-setting="heroCtaText">See selected work</span>
+                <span data-setting="heroCtaText">View selected work</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true" class="dir-icon">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
@@ -195,16 +197,16 @@
                     <path d="M8 5v14l11-7z"/>
                   </svg>
                 </span>
-                <span data-i18n="heroShowreelBtn">Watch 60s Showreel</span>
+                <span data-i18n="heroShowreelBtn">Watch the reel</span>
               </button>
-              <a href="#contact" class="btn btn-ghost btn-lg" data-i18n="heroCtaSecondary">Send a brief</a>
-              <a data-setting="aboutResumeUrl" href="#" class="btn btn-ghost btn-lg" download hidden>
+              <a href="#contact" class="btn btn-ghost btn-lg" data-i18n="heroCtaSecondary">Discuss a project</a>
+              <a data-setting="aboutResumeUrl" href="/assets/alireza-shabanzadeh-client-onepager.pdf" class="btn btn-ghost btn-lg" download hidden>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="7 10 12 15 17 10"></polyline>
                   <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
-                <span data-resume-label>Client one-pager (PDF)</span>
+                <span data-resume-label="1" data-i18n="resumeLabel">Client one-pager (PDF)</span>
               </a>
             </div>
 
@@ -213,21 +215,21 @@
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
-              <span data-setting="heroPromise">Tell me the goal and deadline; I’ll reply with a clear scope, price and timeline.</span>
+              <span data-setting="heroPromise">Tell me what needs explaining, who it is for, and when you need it. After reviewing the brief, I’ll send a written scope, estimate, and schedule.</span>
             </p>
 
             <div class="hero-stats-bento" id="heroStats" aria-label="Key experience and location metrics">
               <div class="stat-bento-card hero-stat">
-                <span class="stat-bento-value hero-stat-value" data-setting="heroStat1Value">Since 2018</span>
-                <span class="stat-bento-label hero-stat-label" data-setting="heroStat1Label">Motion &amp; learning content</span>
+                <span class="stat-bento-value hero-stat-value" data-setting="heroStat1Value">Motion design</span>
+                <span class="stat-bento-label hero-stat-label" data-setting="heroStat1Label">Product and learning content</span>
               </div>
               <div class="stat-bento-card hero-stat">
-                <span class="stat-bento-value hero-stat-value" data-setting="heroStat2Value">EN · FA</span>
+                <span class="stat-bento-value hero-stat-value" data-setting="heroStat2Value">English · Persian</span>
                 <span class="stat-bento-label hero-stat-label" data-setting="heroStat2Label">Working languages</span>
               </div>
               <div class="stat-bento-card hero-stat">
-                <span class="stat-bento-value hero-stat-value" data-setting="heroStat3Value">Remote · UTC+3:30</span>
-                <span class="stat-bento-label hero-stat-label" data-setting="heroStat3Label">How I work</span>
+                <span class="stat-bento-value hero-stat-value" data-setting="heroStat3Value">Rasht, Iran</span>
+                <span class="stat-bento-label hero-stat-label" data-setting="heroStat3Label">Working remotely</span>
               </div>
             </div>
           </div>
@@ -241,7 +243,7 @@
                 </div>
                 <div class="stage-filename" data-i18n-label="stageFileLabel">
                   <span class="stage-rec-dot"></span>
-                  <span id="stageFileName" data-i18n-label="stageFileNameLabel">showreel_2026_master.aep</span>
+                  <span id="stageFileName" data-i18n-label="stageFileNameLabel">showreel.mp4</span>
                 </div>
                 <div class="stage-fps" data-i18n="stageFps">60 FPS</div>
               </div>
@@ -269,14 +271,14 @@
                     <span class="stage-poster-mark" aria-hidden="true">
                       <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
                     </span>
-                    <span data-i18n="stagePosterLabel">Showreel</span>
+                    <span data-i18n="stagePosterLabel">Motion reel</span>
                   </div>
                 </div>
 
                 <div class="stage-hud-overlay">
                   <div class="hud-badge hud-badge-top">
                     <span class="hud-tag" id="hudTag" data-setting="heroHudTag">UI WALKTHROUGH</span>
-                    <span class="hud-curve" data-i18n="hudCurveText">cubic-bezier(0.16, 1, 0.3, 1)</span>
+                    <span class="hud-curve" data-i18n="hudCurveText" hidden>cubic-bezier(0.16, 1, 0.3, 1)</span>
                   </div>
 
                   <div class="hud-bottom-bar">
@@ -313,7 +315,7 @@
                 </div>
                 <div class="timeline-tracks">
                   <div class="track-row">
-                    <span class="track-name" data-i18n="trackOneName">UI_Comp</span>
+                    <span class="track-name" data-i18n="trackOneName">Product motion</span>
                     <div class="track-bar track-bar-orange">
                       <span class="keyframe-diamond" style="inset-inline-start: 12%"></span>
                       <span class="keyframe-diamond" style="inset-inline-start: 48%"></span>
@@ -321,7 +323,7 @@
                     </div>
                   </div>
                   <div class="track-row">
-                    <span class="track-name" data-i18n="trackTwoName">Camera_Null</span>
+                    <span class="track-name" data-i18n="trackTwoName">Explainer</span>
                     <div class="track-bar track-bar-indigo">
                       <span class="keyframe-diamond" style="inset-inline-start: 24%"></span>
                       <span class="keyframe-diamond" style="inset-inline-start: 68%"></span>
@@ -347,22 +349,22 @@
             <h2 class="section-title" data-setting="workTitle" data-i18n="workTitle">Selected Work</h2>
           </div>
           <p class="section-lead" data-setting="workIntro" data-i18n="workIntro">
-            Selected product motion, 2D explainers and e-learning visual systems. Explore by client brand or filter individual case studies with real outcomes.
+            A selection of product motion, 2D explainers, and learning content. Each case study explains the project goal, my role, and the final deliverables.
           </p>
         </div>
 
         <div class="work-toolbar">
           <div class="filter-pills" id="workFilters" role="tablist" aria-label="Filter portfolio work">
-            <button type="button" class="filter-pill is-active" data-filter="all" role="tab" aria-selected="true" data-i18n="filterAll">All Work</button>
-            <button type="button" class="filter-pill" data-filter="brands" role="tab" aria-selected="false" data-i18n="filterBrands">Client Brands</button>
-            <button type="button" class="filter-pill" data-filter="ui" role="tab" aria-selected="false" data-i18n="filterUi">Motion</button>
-            <button type="button" class="filter-pill" data-filter="explainer" role="tab" aria-selected="false" data-i18n="filterExplainer">Explainers</button>
+            <button type="button" class="filter-pill is-active" data-filter="all" role="tab" aria-selected="true" data-i18n="filterAll">All work</button>
+            <button type="button" class="filter-pill" data-filter="brands" role="tab" aria-selected="false" data-i18n="filterBrands">Brands</button>
+            <button type="button" class="filter-pill" data-filter="ui" role="tab" aria-selected="false" data-i18n="filterUi">Product &amp; UI</button>
+            <button type="button" class="filter-pill" data-filter="explainer" role="tab" aria-selected="false" data-i18n="filterExplainer">Explainers &amp; learning</button>
           </div>
           <div class="work-count-badge" id="workCountBadge"></div>
         </div>
 
         <div class="work-bento-grid has-cms-cards" id="workGrid">
-          <!-- Populated by js/work.js from the CMS -->
+          <p class="grid-loading" data-i18n="workLoading">Loading work…</p>
         </div>
       </div>
     </section>
@@ -378,12 +380,12 @@
             <h2 class="section-title" data-setting="servicesTitle" data-i18n="servicesTitle">Services &amp; Deliverables</h2>
           </div>
           <p class="section-lead" data-setting="servicesIntro" data-i18n="servicesIntro">
-            Product and UI motion first, followed by 2D explainers and structured educational content for university and SaaS teams.
+            I focus on product and UI motion, alongside 2D explainers and visual content for learning. We can shape the format around what the audience needs to understand or do.
           </p>
         </div>
 
         <div class="services-bento" id="servicesGrid">
-          <!-- Populated by js/work.js from the CMS -->
+          <p class="grid-loading" data-i18n="gridLoading">Loading…</p>
         </div>
       </div>
     </section>
@@ -399,12 +401,12 @@
             <h2 class="section-title" data-setting="processTitle" data-i18n="processTitle">How I Work</h2>
           </div>
           <p class="section-lead" data-setting="processIntro" data-i18n="processIntro">
-            Calm, asynchronous, and written-first. No unnecessary meetings—just clear milestones from brief to final render.
+            We start with a clear brief and agree on the scope, review points, and schedule before production. Most coordination can happen in writing, with calls when they are useful.
           </p>
         </div>
 
         <div class="process-grid" id="processGrid">
-          <!-- Populated by js/work.js from the CMS -->
+          <p class="grid-loading" data-i18n="gridLoading">Loading…</p>
         </div>
       </div>
     </section>
@@ -420,7 +422,7 @@
             <h2 class="section-title" data-setting="aboutTitle" data-i18n="aboutTitle">About &amp; Toolkit</h2>
           </div>
           <p class="section-lead" data-setting="aboutIntro" data-i18n="aboutIntro">
-            Combining a Software Engineering background with motion craft and university e-learning production.
+            I work across product motion, UI animation, and visual learning content. My focus is making a feature or concept easier to follow through clear visual storytelling.
           </p>
         </div>
 
@@ -444,19 +446,19 @@
               </div>
               <div class="portrait-caption-badge">
                 <span class="location-pin" aria-hidden="true">●</span>
-                <span data-setting="location">Rasht, Guilan, Iran</span>
+                <span data-setting="location">Rasht, Iran</span>
               </div>
             </div>
           </div>
 
           <div class="about-bio-card">
-            <span class="card-eyebrow" data-i18n="bioEyebrow">THE DESIGNER</span>
+            <span class="card-eyebrow" data-i18n="bioEyebrow">ABOUT</span>
             <div class="about-bio-copy" data-setting="aboutText">
-              <p>I animate the things that have to explain something: a feature nobody understands yet, a course module, an onboarding step.</p>
+              <p>I make motion for things that need to be understood: a product feature, an onboarding step, or a learning concept. I start by clarifying what the audience needs to understand, then build the visuals and pacing around that goal.</p>
             </div>
 
             <div class="toolkit-block">
-              <span class="card-eyebrow" data-i18n="toolsLabel">PRIMARY TOOLKIT &amp; PIPELINE</span>
+              <span class="card-eyebrow" data-i18n="toolsLabel">TOOLS I WORK WITH</span>
               <div class="toolkit-pills" id="toolkitPills">
                 <!-- Rendered from CMS skills -->
               </div>
@@ -524,15 +526,15 @@
         <div class="section-head-split">
           <div>
             <span class="section-kicker" data-i18n="ratesKicker">05 // TRANSPARENT PRICING</span>
-            <h2 class="section-title" data-setting="ratesTitle" data-i18n="ratesTitle">Rates &amp; Availability</h2>
+            <h2 class="section-title" data-setting="ratesTitle" data-i18n="ratesTitle">Project estimates</h2>
           </div>
           <p class="section-lead" data-setting="ratesIntro" data-i18n="ratesIntro">
-            Clear ballpark numbers so you can gauge fit immediately. Every project receives a fixed quote after reviewing your written brief.
+            Pricing and timing depend on the deliverables, design work, and materials you already have. Send a brief for a written estimate and schedule.
           </p>
         </div>
 
         <div class="rates-bento-grid" id="ratesGrid">
-          <!-- Populated by js/work.js from the CMS -->
+          <p class="grid-loading" data-i18n="gridLoading">Loading…</p>
         </div>
       </div>
     </section>
@@ -548,7 +550,7 @@
             <h2 class="section-title" data-setting="contactTitle" data-i18n="contactTitle">Start a Project</h2>
           </div>
           <p class="section-lead" data-setting="contactIntro" data-i18n="contactIntro">
-            Share the goal and deadline in a short written brief. I’ll reply within 24 hours with a scope, price and timeline.
+            Share the goal, audience, and deadline. After reviewing your brief, I’ll follow up with a proposed scope, estimate, and schedule.
           </p>
         </div>
 
@@ -640,7 +642,7 @@
                   <a href="privacy.html" data-i18n="formPrivacyLink">Privacy policy</a>
                 </p>
                 <button type="submit" class="btn btn-primary btn-lg">
-                  <span data-submit-label data-i18n="formSubmitBtn">Send the brief</span>
+                  <span data-submit-label="1" data-i18n="formSubmitBtn">Send the brief</span>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true" class="dir-icon">
                     <path d="M5 12h14M12 5l7 7-7 7"/>
                   </svg>
@@ -648,7 +650,7 @@
               </div>
 
               <p class="form-privacy-note">
-                <a id="briefMailto" href="#" data-i18n="formMailtoLink">Open this brief as an email instead</a>
+                <a id="briefMailto" href="mailto:alirezashabanzadeh01@gmail.com?subject=Project%20brief&body=Goal%20(what%20should%20this%20make%20people%20do)%3A%0AAudience%3A%0ADeadline%3A%0AFormats%20needed%3A%0AWhat%20I%20already%20have%20(script%20%2F%20logo%20%2F%20footage)%3A" data-i18n="formMailtoLink">Open this brief as an email instead</a>
               </p>
 
               <p class="form-status-banner" id="contactStatus" role="status" aria-live="polite" tabindex="-1" hidden></p>
@@ -667,7 +669,7 @@
               <div class="aside-meta-list">
                 <div class="aside-meta-item contact-info-item">
                   <span class="meta-label" data-i18n="locationLabel">Location &amp; Timezone</span>
-                  <strong class="meta-val" data-setting="location">Rasht, Guilan, Iran · UTC+3:30</strong>
+                  <strong class="meta-val" data-setting="location">Rasht, Iran</strong>
                 </div>
                 <div class="aside-meta-item contact-info-item">
                   <span class="meta-label" data-i18n="responseLabel">Typical Response</span>
@@ -695,7 +697,7 @@
                 <span class="card-eyebrow" data-i18n="nextStepsTitle">WHAT HAPPENS NEXT</span>
                 <ol class="contact-steps-list">
                   <li><strong data-i18n="step1Title">You send the brief</strong> <span data-i18n="step1Text">— a rough one is fine.</span></li>
-                  <li><strong data-i18n="step2Title">I reply within one business day</strong> <span data-i18n="step2Text">with questions, a scope and a price.</span></li>
+                  <li><strong data-i18n="step2Title">I review the brief</strong> <span data-i18n="step2Text">and follow up with questions, a scope and an estimate.</span></li>
                   <li><strong data-i18n="step3Title">We fix the price</strong> <span data-i18n="step3Text">, then the storyboard starts.</span></li>
                 </ol>
               </div>
@@ -747,7 +749,7 @@
       <div class="footer-brand">
         <span class="footer-copy" data-setting="footerCopy">&copy; 2026 Alireza Shabanzadeh</span>
         <span class="footer-sep">·</span>
-        <span class="footer-note" data-setting="footerNote">Motion Designer · Rasht, Iran · UTC+3:30</span>
+        <span class="footer-note" data-setting="footerNote">Motion Designer · Rasht, Iran</span>
       </div>
       <nav class="footer-nav" aria-label="Footer navigation">
         <a href="#work" data-i18n="navWork">Work</a>
@@ -863,12 +865,10 @@
   </div>
 
   <!-- Scripts: all served from this domain, no third-party CDN -->
-  <script src="js/vendor/gsap.min.js" defer></script>
-  <script src="js/vendor/ScrollTrigger.min.js" defer></script>
-  <script src="js/consent.js?v=20261109-1" defer></script>
-  <script src="js/tracking.js?v=20261109-1" defer></script>
-  <script src="js/i18n.js?v=20261109-1" defer></script>
-  <script src="js/site.js?v=20261109-1" defer></script>
-  <script src="js/work.js?v=20261109-1" defer></script>
+  <script src="js/consent.js?v=20261111-1" defer></script>
+  <script src="js/tracking.js?v=20261111-1" defer></script>
+  <script src="js/i18n.js?v=20261111-1" defer></script>
+  <script src="js/site.js?v=20261111-1" defer></script>
+  <script src="js/work.js?v=20261111-1" defer></script>
 </body>
 </html>

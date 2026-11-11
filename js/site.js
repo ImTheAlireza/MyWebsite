@@ -679,13 +679,19 @@
       var addressLink = document.querySelector('a[data-setting="email"]');
       var address = addressLink ? addressLink.textContent.trim() : '';
       if (address) {
-        var body = [
+        var body = (PAGE_LANG === 'fa' ? [
+          'هدف (این ویدیو باید چه کاری انجام دهد):',
+          'مخاطب:',
+          'زمان تحویل:',
+          'فرمت‌های موردنیاز:',
+          'چه چیزهایی آماده دارم (متن / لوگو / فوتیج):'
+        ] : [
           'Goal (what should this make people do):',
           'Audience:',
           'Deadline:',
           'Formats needed:',
           'What I already have (script / logo / footage):'
-        ].join('\n');
+        ]).join('\n');
         mailtoLink.setAttribute('href', 'mailto:' + address +
           '?subject=' + encodeURIComponent('Project brief') +
           '&body=' + encodeURIComponent(body));

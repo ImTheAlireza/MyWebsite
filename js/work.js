@@ -823,7 +823,7 @@
       var kicker = PAGE_LANG === 'fa' && hasValue(item.kickerFa) ? item.kickerFa : item.kicker;
       var top = el('div', 'service-card-top');
       top.appendChild(el('span', 'service-index',
-        (index < 9 ? '0' + (index + 1) : String(index + 1)) + ' // ' + (hasValue(kicker) ? kicker : T('navServices').toUpperCase())));
+        hasValue(kicker) ? kicker : T('navServices').toUpperCase()));
       var iconBox = el('div', 'service-icon-box');
       iconBox.innerHTML = icon(item.icon || 'screen');
       top.appendChild(iconBox);
@@ -892,7 +892,7 @@
       if (!hasValue(title) && !hasValue(desc)) return;
       var card = el('article', 'process-step-card');
       var head = el('div', 'process-step-head');
-      head.appendChild(el('span', 'process-step-num', 'STEP ' + faDigits(index < 9 ? '0' + (index + 1) : String(index + 1))));
+      head.appendChild(el('span', 'process-step-num', PAGE_LANG === 'fa' ? 'گام ' + faDigits(index + 1) : 'Step ' + (index + 1)));
       if (hasValue(badge)) head.appendChild(el('span', 'process-step-badge', badge));
       card.appendChild(head);
       if (hasValue(title)) card.appendChild(el('h3', 'process-step-title', title));
@@ -940,7 +940,9 @@
         if (index === 0) card.classList.add('is-current');
         var meta = el('div', 'journey-card-meta');
         if (hasValue(item.date)) meta.appendChild(el('span', 'journey-date', faDigits(item.date)));
-        if (index === 0) meta.appendChild(el('span', 'journey-tag', T('tagCurrent')));
+        // "Current" only describes a job, never a degree — the education
+        // column must not wear a collaboration badge.
+        if (entry.key === 'experience' && index === 0) meta.appendChild(el('span', 'journey-tag', T('tagCurrent')));
         card.appendChild(meta);
         card.appendChild(el('h4', 'journey-role', item.title || ''));
         if (hasValue(item.subtitle)) card.appendChild(el('p', 'journey-org', item.subtitle));

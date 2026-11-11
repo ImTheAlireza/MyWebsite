@@ -477,6 +477,45 @@ html[data-theme="light"] .icon-sun { display: none; }
   background: var(--bg-elevated);
 }
 
+.mobile-lang-link {
+  display: block;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  border: 1px solid var(--border-subtle);
+  text-align: center;
+}
+
+.mobile-lang-link:hover {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+.grid-loading {
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 2rem 0;
+  text-align: center;
+}
+
+@keyframes drawerIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.mobile-drawer:not([hidden]) {
+  animation: drawerIn 0.22s var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-drawer:not([hidden]) { animation: none; }
+}
+
 /* ==========================================================================
    BUTTONS
    ========================================================================== */

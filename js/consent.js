@@ -148,7 +148,7 @@
     var COPY = isFa ? {
       label: 'تنظیمات کوکی و حریم خصوصی',
       title: 'کوکی و حریم خصوصی',
-      text: 'این سایت هیچ کوکی تبلیغاتی یا شخص‌ثالث نمی‌گذارد. می‌خواهم از آمار خودِ سایت (بازدید صفحه، زمان حضور، کلیک‌ها) استفاده کنم تا ببینم کدام کار توجه می‌گیرد، و ویدیوی یوتیوب/ویمئو را فقط وقتی باز کردی بارگذاری کنم.',
+      text: 'در صورت موافقت شما، آمار محدودی از بازدید و تعامل با سایت ثبت می‌شود تا مشخص شود کدام بخش‌ها بیشتر دیده می‌شوند. ویدئوهای بیرونی نیز فقط پس از انتخاب شما بارگذاری می‌شوند. ',
       policy: 'سیاست کوکی',
       privacy: 'سیاست حفظ حریم خصوصی',
       and: ' و ',
@@ -157,7 +157,7 @@
     } : {
       label: 'Cookie and privacy settings',
       title: 'Cookies &amp; privacy',
-      text: 'This site sets no advertising or third-party cookies. I would like to use first-party statistics (pages, time on site, clicks) to see which work gets attention, and to load video from YouTube/Vimeo only when you open a project. ',
+      text: 'If you agree, this site will collect limited usage statistics to help me understand which sections are useful. External video players load only when you choose to view a video. ',
       policy: 'cookie&nbsp;policy',
       privacy: 'privacy&nbsp;policy',
       and: ' and ',
