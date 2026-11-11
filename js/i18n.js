@@ -109,6 +109,9 @@
   function applyLabels(root) {
     var scope = root || document;
     scope.querySelectorAll('[data-i18n]').forEach(function (el) {
+      var settingKey = el.getAttribute('data-setting');
+      var settings = window.SiteSettings;
+      if (settingKey && settings && (settings[settingKey] || (PAGE_LANG === 'fa' && settings[settingKey + 'Fa']))) return;
       var key = el.getAttribute('data-i18n');
       var value = t(key);
       if (value && value !== key) el.textContent = value;
@@ -171,6 +174,9 @@
     .then(function (response) { return response.ok ? response.json() : null; })
     .then(function (data) {
       if (data && data.en && data.fa) dict = data;
+      applyDocumentLanguage();
+      applyLabels();
+      document.dispatchEvent(new CustomEvent('site:labels'));
       return dict;
     })
     .catch(function () { return dict; });

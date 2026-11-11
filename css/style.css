@@ -374,6 +374,12 @@ html[lang="fa"] .brand-logo {
   background: var(--bg-elevated);
 }
 
+.nav-link.is-active,
+.mobile-nav-link.is-active {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
 .header-controls {
   display: flex;
   align-items: center;
@@ -493,6 +499,12 @@ html[data-theme="light"] .icon-sun { display: none; }
 .mobile-lang-link:hover {
   color: var(--text-primary);
   background: var(--bg-elevated);
+}
+
+@media (max-width: 640px) {
+  .hero-cta-group .btn-ghost {
+    display: none;
+  }
 }
 
 .grid-loading {

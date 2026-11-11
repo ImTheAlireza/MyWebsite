@@ -129,6 +129,12 @@
           </svg>
           Contact
         </button>
+        <button class="nav-item" data-view="uistrings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 7V4h16v3M9 20h6M12 4v16"></path>
+          </svg>
+          UI text
+        </button>
 
         <div class="nav-section-label">Analytics</div>
         <button class="nav-item" data-view="statistics">
@@ -223,7 +229,7 @@
               <option value="uncategorized">No brand</option>
             </select>
           </div>
-          <div class="layout-switcher" id="layoutSwitcher">
+          <div class="layout-switcher" id="layoutSwitcher" aria-label="Admin project list layout" title="Changes the admin project list only">
             <button class="layout-btn active" data-layout="2col" title="2 Columns" type="button">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18"></rect><rect x="14" y="3" width="7" height="18"></rect></svg>
             </button>
@@ -307,31 +313,31 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="heroStat1Value">Stat 1 Value</label>
-                <input type="text" id="heroStat1Value" name="heroStat1Value" placeholder="5+">
+                <input type="text" id="heroStat1Value" name="heroStat1Value" placeholder="Motion design">
               </div>
               <div class="form-group">
                 <label for="heroStat1Label">Stat 1 Label</label>
-                <input type="text" id="heroStat1Label" name="heroStat1Label" placeholder="Years Exp.">
+                <input type="text" id="heroStat1Label" name="heroStat1Label" placeholder="Product and learning content">
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="heroStat2Value">Stat 2 Value</label>
-                <input type="text" id="heroStat2Value" name="heroStat2Value" placeholder="50+">
+                <input type="text" id="heroStat2Value" name="heroStat2Value" placeholder="English · Persian">
               </div>
               <div class="form-group">
                 <label for="heroStat2Label">Stat 2 Label</label>
-                <input type="text" id="heroStat2Label" name="heroStat2Label" placeholder="Projects">
+                <input type="text" id="heroStat2Label" name="heroStat2Label" placeholder="Working languages">
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="heroStat3Value">Stat 3 Value</label>
-                <input type="text" id="heroStat3Value" name="heroStat3Value" placeholder="Rasht">
+                <input type="text" id="heroStat3Value" name="heroStat3Value" placeholder="Rasht, Iran">
               </div>
               <div class="form-group">
                 <label for="heroStat3Label">Stat 3 Label</label>
-                <input type="text" id="heroStat3Label" name="heroStat3Label" placeholder="Based in">
+                <input type="text" id="heroStat3Label" name="heroStat3Label" placeholder="Working remotely">
               </div>
             </div>
           </div>
@@ -381,11 +387,11 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="heroStat1ValueFa">آمار ۱ — مقدار</label>
-                  <input type="text" id="heroStat1ValueFa" name="heroStat1ValueFa" dir="rtl" placeholder="از سال ۱۳۹۷">
+                  <input type="text" id="heroStat1ValueFa" name="heroStat1ValueFa" dir="rtl" placeholder="موشن و محتوای آموزشی">
                 </div>
                 <div class="form-group">
                   <label for="heroStat1LabelFa">آمار ۱ — برچسب</label>
-                  <input type="text" id="heroStat1LabelFa" name="heroStat1LabelFa" dir="rtl" placeholder="موشن گرافیک و محتوای آموزشی">
+                  <input type="text" id="heroStat1LabelFa" name="heroStat1LabelFa" dir="rtl" placeholder="محصول و آموزش">
                 </div>
               </div>
               <div class="form-row">
@@ -492,20 +498,6 @@
               <label for="heroPortraitDarkUrl">Or enter image URL</label>
               <input type="url" id="heroPortraitDarkUrl" placeholder="https://...">
             </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="heroPortraitDarkOpacity">Opacity</label>
-                <div class="range-group">
-                  <input type="range" id="heroPortraitDarkOpacity" name="heroPortraitDarkOpacity" min="0" max="1" step="0.01" value="0.18">
-                  <span class="range-value" id="heroPortraitDarkOpacityVal">0.18</span>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="heroPortraitDarkScale">Scale</label>
-                <div class="range-group">
-                  <input type="range" id="heroPortraitDarkScale" name="heroPortraitDarkScale" min="0.5" max="2" step="0.01" value="1">
-                  <span class="range-value" id="heroPortraitDarkScaleVal">1</span>
-                </div>
               </div>
             </div>
           </div>
@@ -543,20 +535,6 @@
               <label for="heroPortraitLightUrl">Or enter image URL</label>
               <input type="url" id="heroPortraitLightUrl" placeholder="https://...">
             </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="heroPortraitLightOpacity">Opacity</label>
-                <div class="range-group">
-                  <input type="range" id="heroPortraitLightOpacity" name="heroPortraitLightOpacity" min="0" max="1" step="0.01" value="0.12">
-                  <span class="range-value" id="heroPortraitLightOpacityVal">0.12</span>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="heroPortraitLightScale">Scale</label>
-                <div class="range-group">
-                  <input type="range" id="heroPortraitLightScale" name="heroPortraitLightScale" min="0.5" max="2" step="0.01" value="1">
-                  <span class="range-value" id="heroPortraitLightScaleVal">1</span>
-                </div>
               </div>
             </div>
           </div>
@@ -911,10 +889,11 @@
                 <textarea id="settingOfferIntroFa2" name="offerIntroFa" rows="2" dir="rtl"></textarea>
               </div>
             </div>
-            <p class="field-hint">Leave any answer empty and its row stays off the site. Empty everything and the whole block disappears &mdash; nothing is invented for you.</p>
+            <p class="field-hint">Answers and scope items are managed here; Persian fields fall back to English when empty.</p>
           </div>
           <div class="settings-section">
             <h3>The answers</h3>
+            <p class="settings-hint">Leave an answer empty in both languages to hide its row. If all answers are empty, the block is hidden. An empty Persian field falls back to English.</p>
             <div class="form-row">
               <div class="form-group"><label for="settingOfferReply2">Reply time (EN)</label><input type="text" id="settingOfferReply2" name="offerReply"></div>
               <div class="form-group"><label for="settingOfferReplyFa2">زمان پاسخ (فارسی)</label><input type="text" id="settingOfferReplyFa2" name="offerReplyFa" dir="rtl"></div>
@@ -1073,6 +1052,19 @@
 
       <!-- Assets View -->
       <!-- Assets View -->
+      <div id="uistringsView" class="view">
+        <div class="view-header">
+          <div>
+            <h2>UI text</h2>
+            <p class="view-subtitle">Form labels, buttons and navigation in both languages (data/ui-strings.json)</p>
+          </div>
+          <button id="saveUiStringsBtn" class="btn btn-primary" disabled>Save UI text</button>
+        </div>
+        <p class="settings-hint">Every key below is one label on the public site. English is the source; Persian falls back to English when left empty. After saving, run <code>python3 tools/build-fa-page.py</code> on the server (or ask your agent) so <code>fa.html</code> picks up the new Persian strings for first paint and SEO.</p>
+        <div id="uiStringsList"></div>
+        <div id="uiStringsSuccess" class="form-success hidden">UI text saved!</div>
+      </div>
+
       <div id="assetsView" class="view">
         <div class="view-header">
           <div>
@@ -1365,52 +1357,6 @@
             </div>
           </div>
           <div class="settings-section">
-            <h3>What you get</h3>
-            <p class="settings-hint">These answers are the ones a client looks for before writing the email. Leave any of them empty and the row (or the whole block) stays off the site — nothing is invented for you.</p>
-            <div class="form-group">
-              <label for="settingOfferTitle">Block title</label>
-              <input type="text" id="settingOfferTitle" name="offerTitle" placeholder="What you get">
-            </div>
-            <div class="form-group">
-              <label for="settingOfferIntro">Intro line (optional)</label>
-              <input type="text" id="settingOfferIntro" name="offerIntro" placeholder="Fixed scope before we start.">
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="settingOfferReply">Reply time</label>
-                <input type="text" id="settingOfferReply" name="offerReply" placeholder="e.g. Within one working day">
-              </div>
-              <div class="form-group">
-                <label for="settingOfferTimeline">Typical timeline</label>
-                <input type="text" id="settingOfferTimeline" name="offerTimeline" placeholder="e.g. 90s explainer: 2-3 weeks">
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="settingOfferFormat">You receive</label>
-              <input type="text" id="settingOfferFormat" name="offerFormat" placeholder="e.g. MP4 (16:9, 1:1, 9:16) + project file">
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="settingOfferRevisions">Revisions</label>
-                <input type="text" id="settingOfferRevisions" name="offerRevisions" placeholder="e.g. Two rounds after the storyboard">
-              </div>
-              <div class="form-group">
-                <label for="settingOfferTerms">Payment</label>
-                <input type="text" id="settingOfferTerms" name="offerTerms" placeholder="e.g. 50% to start, 50% on delivery">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="settingOfferFrom">Starting point</label>
-                <input type="text" id="settingOfferFrom" name="offerFrom" placeholder="e.g. Projects start at €X">
-              </div>
-              <div class="form-group">
-                <label for="settingOfferAvailability">Next opening</label>
-                <input type="text" id="settingOfferAvailability" name="offerAvailability" placeholder="e.g. From 3 November">
-              </div>
-            </div>
-          </div>
-          <div class="settings-section">
             <h3>Contact channels</h3>
             <p class="settings-hint">Telegram and WhatsApp matter more than email for Iranian clients. Leave them empty and the row stays hidden.</p>
             <div class="form-row">
@@ -1421,30 +1367,6 @@
               <div class="form-group">
                 <label for="settingWhatsapp">WhatsApp link</label>
                 <input type="url" id="settingWhatsapp" name="whatsapp" placeholder="https://wa.me/98911...">
-              </div>
-            </div>
-          </div>
-          <div class="settings-section">
-            <h3>Scope guard — what a quote does not include</h3>
-            <p class="settings-hint">One item per line. Saying this up front is what keeps a fixed-price project profitable.</p>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="settingScopeTitle">Heading (EN)</label>
-                <input type="text" id="settingScopeTitle" name="scopeTitle" placeholder="What's not included">
-              </div>
-              <div class="form-group">
-                <label for="settingScopeTitleFa">Heading (FA)</label>
-                <input type="text" id="settingScopeTitleFa" name="scopeTitleFa" dir="rtl" placeholder="چه چیزی شامل نمی‌شود">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="settingScopeItems">Items (EN, one per line)</label>
-                <textarea id="settingScopeItems" name="scopeItems" rows="4" placeholder="Voice-over and sound design&#10;Licensed music&#10;More than two revision rounds"></textarea>
-              </div>
-              <div class="form-group">
-                <label for="settingScopeItemsFa">Items (FA, one per line)</label>
-                <textarea id="settingScopeItemsFa" name="scopeItemsFa" rows="4" dir="rtl" placeholder="گویندگی و صداگذاری&#10;موسیقی لایسنس‌دار&#10;بیش از دو دور اصلاح"></textarea>
               </div>
             </div>
           </div>
@@ -1469,48 +1391,6 @@
             <div class="form-group">
               <label>Hero promise (FA)</label>
               <p class="settings-hint">این فیلد به تب «Hero» منتقل شد.</p>
-            </div>
-            <div class="form-group">
-              <label for="settingOfferTitleFa">"What you get" title (FA)</label>
-              <input type="text" id="settingOfferTitleFa" name="offerTitleFa" dir="rtl">
-            </div>
-            <div class="form-group">
-              <label for="settingOfferIntroFa">"What you get" intro (FA)</label>
-              <input type="text" id="settingOfferIntroFa" name="offerIntroFa" dir="rtl">
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="settingOfferReplyFa">Reply time (FA)</label>
-                <input type="text" id="settingOfferReplyFa" name="offerReplyFa" dir="rtl">
-              </div>
-              <div class="form-group">
-                <label for="settingOfferTimelineFa">Timeline (FA)</label>
-                <input type="text" id="settingOfferTimelineFa" name="offerTimelineFa" dir="rtl">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="settingOfferFormatFa">You receive (FA)</label>
-                <input type="text" id="settingOfferFormatFa" name="offerFormatFa" dir="rtl">
-              </div>
-              <div class="form-group">
-                <label for="settingOfferRevisionsFa">Revisions (FA)</label>
-                <input type="text" id="settingOfferRevisionsFa" name="offerRevisionsFa" dir="rtl">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="settingOfferTermsFa">Payment (FA)</label>
-                <input type="text" id="settingOfferTermsFa" name="offerTermsFa" dir="rtl">
-              </div>
-              <div class="form-group">
-                <label for="settingOfferAvailabilityFa">Next opening (FA)</label>
-                <input type="text" id="settingOfferAvailabilityFa" name="offerAvailabilityFa" dir="rtl">
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="settingOfferFromFa">Starting point (FA)</label>
-              <input type="text" id="settingOfferFromFa" name="offerFromFa" dir="rtl">
             </div>
           </div>
           <div class="settings-section">

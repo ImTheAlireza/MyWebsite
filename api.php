@@ -91,6 +91,16 @@ if ($path === '/settings' && $method === 'PUT') {
     update_settings(); return;
 }
 
+// UI STRINGS (form labels, buttons, nav — data/ui-strings.json)
+if ($path === '/uistrings' && $method === 'GET') {
+    require $base . '/php/handlers/uistrings.php';
+    get_uistrings(); return;
+}
+if ($path === '/uistrings' && $method === 'PUT') {
+    require $base . '/php/handlers/uistrings.php';
+    update_uistrings(); return;
+}
+
 // MESSAGES
 if ($path === '/messages' && $method === 'GET') {
     require $base . '/php/handlers/messages.php';

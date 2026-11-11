@@ -74,6 +74,25 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
       html.includes('js/site.js') && html.includes('js/i18n.js'));
   }
 
+  console.log('\n== navigation and visibility regressions ==');
+  {
+    const w = boot('index.html', { settingsOverride: { ...settings, heroShowreelVisible: false }, projectsOverride: { projects: [], brands: [] } });
+    await wait(400);
+    const d = w.document;
+    check('showreel setting hides stage and button', d.querySelector('.hero-stage-wrap').hidden && d.getElementById('heroShowreelBtn').hidden);
+    check('empty work count is hidden', !!d.getElementById('workCountBadge') && d.getElementById('workCountBadge').hidden);
+    const work = d.getElementById('work');
+    work.getBoundingClientRect = () => ({ top: 100 });
+    ['services', 'process', 'about', 'rates', 'contact'].forEach(id => { const el = d.getElementById(id); if (el) el.getBoundingClientRect = () => ({ top: 1000 }); });
+    w.dispatchEvent(new w.Event('scroll'));
+    check('scrollspy highlights desktop and mobile links', d.querySelector('.main-nav a[href="#work"]').classList.contains('is-active') && d.querySelector('.mobile-nav a[href="#work"]').classList.contains('is-active'));
+    work.getBoundingClientRect = () => ({ top: 1000 });
+    w.dispatchEvent(new w.Event('scroll'));
+    check('scrollspy clears active link above sections', !d.querySelector('.main-nav .is-active'));
+    check('footer work pack link exists', !!d.querySelector('footer a[href="work-pack.html"]'));
+    w.close();
+  }
+
   // ------------------------------------------------------------ hero reel
   console.log('\n== hero reel: inline player + big modal ==');
   {

@@ -284,6 +284,8 @@
       badge.textContent = PAGE_LANG === 'fa'
         ? faDigits(total) + ' ' + noun
         : total + ' ' + noun;
+      // "0 case studies" next to the empty state is noise — hide the badge.
+      badge.hidden = total === 0;
     }
 
     if (!brands.length) {

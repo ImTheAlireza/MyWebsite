@@ -130,6 +130,7 @@
       if (btn.dataset.view === 'timeline') loadTimeline();
       if (btn.dataset.view === 'statistics') loadStatistics();
       if (btn.dataset.view === 'messages') { loadMessages(); updateMessagesBadge(); }
+      if (btn.dataset.view === 'uistrings') { loadUiStrings(); }
       if (['rates', 'offers', 'contact', 'projects-settings'].includes(btn.dataset.view)) loadCopySettings();
     });
   });
@@ -1730,23 +1731,11 @@
       const showreelVisible = $('#heroShowreelVisible');
       if (showreelVisible) showreelVisible.checked = d.heroShowreelVisible !== false;
       if (d.heroPortraitDark) uploads.portraitDark.setImage(d.heroPortraitDark);
-      $('#heroPortraitDarkOpacity').value = d.heroPortraitDarkOpacity ?? 0.18;
-      $('#heroPortraitDarkOpacityVal').textContent = $('#heroPortraitDarkOpacity').value;
-      $('#heroPortraitDarkScale').value = d.heroPortraitDarkScale ?? 1;
-      $('#heroPortraitDarkScaleVal').textContent = $('#heroPortraitDarkScale').value;
-
       if (d.heroPortraitLight) uploads.portraitLight.setImage(d.heroPortraitLight);
-      $('#heroPortraitLightOpacity').value = d.heroPortraitLightOpacity ?? 0.12;
-      $('#heroPortraitLightOpacityVal').textContent = $('#heroPortraitLightOpacity').value;
-      $('#heroPortraitLightScale').value = d.heroPortraitLightScale ?? 1;
-      $('#heroPortraitLightScaleVal').textContent = $('#heroPortraitLightScale').value;
     } catch (e) { console.error(e); }
   }
 
-  ['heroPortraitDarkOpacity','heroPortraitDarkScale','heroPortraitLightOpacity','heroPortraitLightScale'].forEach(id => {
-    const el = $(`#${id}`);
-    if (el) el.addEventListener('input', () => { $(`#${id}Val`).textContent = el.value; });
-  });
+
 
   $('#heroForm').addEventListener('submit', async e => {
     e.preventDefault();
@@ -1783,11 +1772,7 @@
         heroStat3ValueFa: $('#heroStat3ValueFa') ? $('#heroStat3ValueFa').value.trim() : '',
         heroStat3LabelFa: $('#heroStat3LabelFa') ? $('#heroStat3LabelFa').value.trim() : '',
         heroPortraitDark: $('#heroPortraitDark').value || '',
-        heroPortraitDarkOpacity: parseFloat($('#heroPortraitDarkOpacity').value),
-        heroPortraitDarkScale: parseFloat($('#heroPortraitDarkScale').value),
-        heroPortraitLight: $('#heroPortraitLight').value || '',
-        heroPortraitLightOpacity: parseFloat($('#heroPortraitLightOpacity').value),
-        heroPortraitLightScale: parseFloat($('#heroPortraitLightScale').value)
+        heroPortraitLight: $('#heroPortraitLight').value || ''
       };
       await api('settings', { method: 'PUT', body: JSON.stringify(updated) });
       hasUnsavedChanges = false;
@@ -2265,11 +2250,8 @@
     try {
       const d = await api('settings');
       ['siteName','siteTitle','tagline','email','phone','location','linkedin','behance','instagram','footerCopy','footerNote',
-       'offerTitle','offerIntro','offerReply','offerTimeline','offerFormat','offerRevisions','offerTerms',
-       'offerFrom','offerAvailability','offerReplyFa','offerTimelineFa','offerFormatFa','offerRevisionsFa','offerTermsFa',
-       'offerTitleFa','offerIntroFa','offerFromFa','offerAvailabilityFa',
-       'telegram','whatsapp','scopeTitle','scopeTitleFa','scopeItems','scopeItemsFa',
-       'siteNameFa','siteTitleFa','heroSubtitleFa','heroPromiseFa'].forEach(k => {
+       'telegram','whatsapp',
+       'siteNameFa','siteTitleFa','footerCopyFa','footerNoteFa','locationFa'].forEach(k => {
         const el = $(`#setting${k.charAt(0).toUpperCase() + k.slice(1)}`);
         if (el && d[k] != null) el.value = d[k];
       });
@@ -4429,7 +4411,7 @@
   function navigateToWithBreadcrumb(view) {
     originalNavigateTo(view);
     if (breadcrumb) {
-      const labels = { projects: 'Projects', hero: 'Hero', about: 'About', timeline: 'Timeline', statistics: 'Statistics', messages: 'Messages', assets: 'Assets', services: 'Services', 'projects-settings': 'Work section', offers: 'Terms', rates: 'Rates', process: 'Process', contact: 'Contact', settings: 'General' };
+      const labels = { projects: 'Projects', hero: 'Hero', about: 'About', timeline: 'Timeline', statistics: 'Statistics', messages: 'Messages', assets: 'Assets', services: 'Services', 'projects-settings': 'Work section', offers: 'Terms', rates: 'Rates', process: 'Process', contact: 'Contact', uistrings: 'UI text', settings: 'General' };
       breadcrumb.textContent = labels[view] || view;
     }
   }
@@ -4608,4 +4590,54 @@
   // INIT
   // ============================================
   checkAuth();
+
+  // ============================================
+  // UI TEXT (data/ui-strings.json)
+  // ============================================
+  async function loadUiStrings() {
+    const host = $('#uiStringsList');
+    if (!host) return;
+    const save = $('#saveUiStringsBtn');
+    save.disabled = true;
+    host.innerHTML = '<p class="settings-hint">Loading…</p>';
+    let d;
+    try { d = await api('uistrings'); } catch (e) { host.innerHTML = '<p class="settings-hint">Could not load UI text.</p>'; return; }
+    const en = d.en || {}, fa = d.fa || {};
+    const keys = Array.from(new Set([...Object.keys(en), ...Object.keys(fa)])).sort();
+    if (!keys.length) { host.textContent = 'No UI text found; saving is disabled.'; return; }
+    const attr = value => esc(value).replace(/"/g, '&quot;');
+    host.innerHTML = keys.map(k => `
+      <div class="settings-section">
+        <h3>${esc(k)}</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>English</label>
+            <input type="text" data-uistr-en="${attr(k)}" value="${attr(en[k] || '')}">
+          </div>
+          <div class="form-group">
+            <label>فارسی</label>
+            <input type="text" dir="rtl" data-uistr-fa="${attr(k)}" value="${attr(fa[k] || '')}">
+          </div>
+        </div>
+      </div>`).join('');
+    save.disabled = false;
+  }
+
+  const saveUiBtn = $('#saveUiStringsBtn');
+  if (saveUiBtn) saveUiBtn.addEventListener('click', async () => {
+    const en = {}, fa = {};
+    $$('#uiStringsList [data-uistr-en]').forEach(el => { en[el.dataset.uistrEn] = el.value; });
+    $$('#uiStringsList [data-uistr-fa]').forEach(el => { fa[el.dataset.uistrFa] = el.value; });
+    if (!Object.keys(en).length) return;
+    saveUiBtn.disabled = true;
+    try {
+      await api('uistrings', { method: 'PUT', body: JSON.stringify({ en, fa }) });
+      hasUnsavedChanges = false;
+      const ok = $('#uiStringsSuccess');
+      if (ok) { ok.classList.remove('hidden'); setTimeout(() => ok.classList.add('hidden'), 3000); }
+      showToast('UI text saved', 'success');
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+    finally { saveUiBtn.disabled = false; }
+  });
+
 })();

@@ -198,6 +198,26 @@
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
 
+    // Keep both desktop and mobile navigation in sync, including at the top.
+    var spySections = ['work', 'services', 'process', 'about', 'rates', 'contact'];
+    var spyLinks = document.querySelectorAll('.main-nav .nav-link, .mobile-nav .mobile-nav-link');
+    function onSpy() {
+      var current = '';
+      spySections.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el && !el.hidden && el.getBoundingClientRect().top <= 140) current = id;
+      });
+      spyLinks.forEach(function (link) {
+        var active = link.getAttribute('href') === '#' + current && current !== '';
+        link.classList.toggle('is-active', active);
+        if (active) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      });
+    }
+    window.addEventListener('scroll', onSpy, { passive: true });
+    window.addEventListener('resize', onSpy);
+    onSpy();
+
     if (backToTop) {
       backToTop.addEventListener('click', function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -830,7 +850,13 @@
     document.querySelectorAll('[data-setting]').forEach(function (el) {
       var key = el.getAttribute('data-setting');
       var value = pick(key);
-      if (!hasValue(value)) return;
+      if (!hasValue(value)) {
+        if (/^(linkedin|behance|instagram|telegram|whatsapp)$/.test(key)) {
+          el.hidden = true;
+          el.removeAttribute('href');
+        }
+        return;
+      }
 
       if (key === 'email') {
         el.textContent = value;
@@ -850,6 +876,14 @@
           el.removeAttribute('aria-hidden');
           el.setAttribute('target', '_blank');
           el.setAttribute('rel', 'noopener noreferrer');
+          // Meta rows show the handle/number, not the platform name.
+          if (key === 'telegram' && el.classList.contains('meta-val')) {
+            var handle = href.replace(/^https?:\/\/(www\.)?t\.me\//i, '').split(/[/?#]/)[0];
+            if (handle) el.textContent = '@' + handle;
+          } else if (key === 'whatsapp' && el.classList.contains('meta-val')) {
+            var num = href.replace(/^https?:\/\/wa\.me\//i, '').split(/[/?#]/)[0];
+            if (num) el.textContent = '+' + num.replace(/(\d{2})(\d{3})(\d{3})(\d{4})/, '$1 $2 $3 $4');
+          }
         }
       } else if (key === 'aboutResumeUrl') {
         var resume = safeHref(value);
@@ -949,7 +983,7 @@
     if (social) {
       var visible = Array.prototype.slice.call(social.querySelectorAll('[data-setting]'))
         .some(function (link) { return !link.hidden; });
-      social.hidden = !visible;
+      social.hidden = !visible && !social.querySelector('a:not([data-setting])');
     }
 
     // "What you get": a row with no value is not shown; an empty block vanishes.

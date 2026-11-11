@@ -129,11 +129,11 @@ $DEFAULT_SETTINGS = array(
     'phone' => '+98 911 694 7375',
     'location' => 'Rasht, Iran',
     'locationFa' => 'رشت، ایران · همکاری دورکاری',
-    'linkedin' => '',
+    'linkedin' => 'https://www.linkedin.com/in/alirezashabanzadeh',
     'behance' => '',
-    'instagram' => '',
-    'telegram' => '',
-    'whatsapp' => '',
+    'instagram' => 'https://instagram.com/imthealireza',
+    'telegram' => 'https://t.me/i_over',
+    'whatsapp' => 'https://wa.me/989116947375',
 
     // -------------------------------------------------------------------- hero
     'heroEyebrow' => 'PRODUCT & UI · 2D EXPLAINERS',
