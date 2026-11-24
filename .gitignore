@@ -1,0 +1,12 @@
+php-error.log
+.env
+data/admin.json
+uploads/*
+!uploads/.gitkeep
+!uploads/.htaccess
+!uploads/works/
+!uploads/works/.gitkeep
+!uploads/about/
+!uploads/about/.gitkeep
+!uploads/library/
+!uploads/library/.gitkeep
