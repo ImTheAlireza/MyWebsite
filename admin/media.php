@@ -216,111 +216,87 @@ if (isset($_GET['action']) && $_GET['action'] === 'list') {
     exit;
 }
 ?>
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Media Library</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/admin.css">
-</head>
-<body>
-  <div class="admin-shell">
-    <aside class="sidebar">
-      <h2>Admin Panel</h2>
-      <p class="muted small">Media Library</p>
-      <nav>
-        <a href="index.php#site">Site Settings</a>
-        <a href="index.php#works">Projects</a>
-        <a href="index.php#services">Services</a>
-        <a href="index.php#about">About</a>
-        <a href="index.php#contact">Contact</a>
-        <a href="media.php" class="active">Media Library</a>
-        <a href="../index.php" target="_blank">View Site</a>
-        <a href="logout.php" class="danger-link">Log out</a>
-      </nav>
-    </aside>
 
-    <main class="content">
-      <div class="page-head">
-        <h1>Media Library</h1>
-        <p class="muted">Upload images and videos, manage files, and copy or download a direct link for each file.</p>
+$content = load_content();
+$site = isset($content['site']) ? $content['site'] : array();
+$activeTab = 'media';
+$pageTitle = 'Media Library';
+require __DIR__ . '/partials/top.php';
+?>
+    <div class="page-head">
+      <h1>Media Library</h1>
+      <p class="muted">Upload images and videos, manage files, and copy or download a direct link for each file.</p>
+    </div>
+
+    <?php if ($message): ?><div class="alert alert-success"><?= e($message) ?></div><?php endif; ?>
+    <?php if ($error): ?><div class="alert alert-error"><?= e($error) ?></div><?php endif; ?>
+
+    <section class="card">
+      <div class="upload-box">
+        <h3>Upload new files</h3>
+        <form method="post" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+          <input type="hidden" name="action" value="upload">
+          <div class="grid-2">
+            <label>Files (images/videos)
+              <input type="file" name="files[]" multiple accept="image/*,video/mp4,video/webm,video/quicktime,.m4v,.pdf,.svg">
+            </label>
+            <label>Subfolder inside uploads
+              <input type="text" name="subdir" value="library" placeholder="library">
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
       </div>
 
-      <?php if ($message): ?><div class="alert alert-success"><?= e($message) ?></div><?php endif; ?>
-      <?php if ($error): ?><div class="alert alert-error"><?= e($error) ?></div><?php endif; ?>
+      <div class="section-head">
+        <h2>Files</h2>
+        <span class="muted small"><?= count($files) ?> files</span>
+      </div>
 
-      <section class="card">
-        <div class="upload-box">
-          <h3>Upload new files</h3>
-          <form method="post" enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-            <input type="hidden" name="action" value="upload">
-            <div class="grid-2">
-              <label>Files (images/videos)
-                <input type="file" name="files[]" multiple accept="image/*,video/mp4,video/webm,video/quicktime,.m4v,.pdf,.svg">
-              </label>
-              <label>Subfolder inside uploads
-                <input type="text" name="subdir" value="library" placeholder="library">
-              </label>
-            </div>
-            <button type="submit" class="btn btn-primary">Upload</button>
-          </form>
-        </div>
-
-        <div class="section-head">
-          <h2>Files</h2>
-          <span class="muted small"><?= count($files) ?> files</span>
-        </div>
-
-        <?php if (empty($files)): ?>
-          <p class="muted">No files found in <code>uploads/</code> yet.</p>
-        <?php else: ?>
-          <div class="library-grid">
-            <?php foreach ($files as $f): ?>
-              <?php
-                $rel = $f['rel'];
-                $publicPath = 'uploads/' . $rel;
-                $fullUrl = $baseUrl . '/' . $publicPath;
-                $downloadUrl = 'download.php?file=' . rawurlencode($rel);
-                $isImage = in_array($f['ext'], array('jpg','jpeg','png','gif','webp','svg'), true);
-                $isVideo = in_array($f['ext'], array('mp4','webm','mov','m4v'), true);
-              ?>
-              <div class="media-card">
-                <div class="media-thumb">
-                  <?php if ($isImage): ?>
-                    <img src="../<?= e($publicPath) ?>" alt="<?= e($f['name']) ?>" loading="lazy">
-                  <?php elseif ($isVideo): ?>
-                    <video src="../<?= e($publicPath) ?>" muted preload="metadata"></video>
-                  <?php else: ?>
-                    <div class="file-icon"><?= e(strtoupper($f['ext'])) ?><br><small><?= e($f['name']) ?></small></div>
-                  <?php endif; ?>
-                </div>
-                <div class="media-body">
-                  <div class="media-name"><?= e($f['name']) ?></div>
-                  <div class="media-meta"><?= e(format_bytes($f['size'])) ?> · <?= e($rel) ?></div>
-                  <div class="media-actions">
-                    <button type="button" class="btn copy-link" data-url="<?= e($fullUrl) ?>">Copy link</button>
-                    <a class="btn" href="<?= e($downloadUrl) ?>">Download</a>
-                    <button type="button" class="btn rename-file" data-file="<?= e($rel) ?>" data-name="<?= e(pathinfo($f['name'], PATHINFO_FILENAME)) ?>">Rename</button>
-                    <form method="post" style="display:inline" onsubmit="return confirm('Delete this file?');">
-                      <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                      <input type="hidden" name="action" value="delete">
-                      <input type="hidden" name="file" value="<?= e($rel) ?>">
-                      <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                  </div>
+      <?php if (empty($files)): ?>
+        <p class="muted">No files found in <code>uploads/</code> yet.</p>
+      <?php else: ?>
+        <div class="library-grid">
+          <?php foreach ($files as $f): ?>
+            <?php
+              $rel = $f['rel'];
+              $publicPath = 'uploads/' . $rel;
+              $fullUrl = $baseUrl . '/' . $publicPath;
+              $downloadUrl = 'download.php?file=' . rawurlencode($rel);
+              $isImage = in_array($f['ext'], array('jpg','jpeg','png','gif','webp','svg'), true);
+              $isVideo = in_array($f['ext'], array('mp4','webm','mov','m4v'), true);
+            ?>
+            <div class="media-card">
+              <div class="media-thumb">
+                <?php if ($isImage): ?>
+                  <img src="../<?= e($publicPath) ?>" alt="<?= e($f['name']) ?>" loading="lazy">
+                <?php elseif ($isVideo): ?>
+                  <video src="../<?= e($publicPath) ?>" muted preload="metadata"></video>
+                <?php else: ?>
+                  <div class="file-icon"><?= e(strtoupper($f['ext'])) ?><br><small><?= e($f['name']) ?></small></div>
+                <?php endif; ?>
+              </div>
+              <div class="media-body">
+                <div class="media-name"><?= e($f['name']) ?></div>
+                <div class="media-meta"><?= e(format_bytes($f['size'])) ?> · <?= e($rel) ?></div>
+                <div class="media-actions">
+                  <button type="button" class="btn copy-link" data-url="<?= e($fullUrl) ?>">Copy link</button>
+                  <a class="btn" href="<?= e($downloadUrl) ?>">Download</a>
+                  <button type="button" class="btn rename-file" data-file="<?= e($rel) ?>" data-name="<?= e(pathinfo($f['name'], PATHINFO_FILENAME)) ?>">Rename</button>
+                  <form method="post" style="display:inline" onsubmit="return confirm('Delete this file?');">
+                    <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="file" value="<?= e($rel) ?>">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                  </form>
                 </div>
               </div>
-            <?php endforeach; ?>
-          </div>
-        <?php endif; ?>
-      </section>
-    </main>
-  </div>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+    </section>
 
   <form id="rename-form" method="post" style="display:none">
     <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
@@ -353,7 +329,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'list') {
         }
         return;
       }
-
       var renameBtn = e.target.closest('.rename-file');
       if (renameBtn) {
         var current = renameBtn.getAttribute('data-name') || '';
@@ -368,5 +343,4 @@ if (isset($_GET['action']) && $_GET['action'] === 'list') {
       }
     });
   </script>
-</body>
-</html>
+<?php require __DIR__ . '/partials/bottom.php'; ?>
