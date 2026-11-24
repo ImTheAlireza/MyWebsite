@@ -215,7 +215,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'list') {
     echo json_encode(array('files' => $out));
     exit;
 }
-?>
 
 $content = load_content();
 $site = isset($content['site']) ? $content['site'] : array();

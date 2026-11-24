@@ -21,8 +21,10 @@ try {
     require __DIR__ . '/partials/hero.php';
     require __DIR__ . '/partials/work.php';
     require __DIR__ . '/partials/services.php';
-    require __DIR__ . '/partials/about.php';
-    require __DIR__ . '/partials/contact.php';
+require __DIR__ . '/partials/about.php';
+require __DIR__ . '/partials/experience.php';
+require __DIR__ . '/partials/education.php';
+require __DIR__ . '/partials/contact.php';
     ?>
   </main>
 

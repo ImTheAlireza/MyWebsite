@@ -27,6 +27,14 @@
       "href": "#about"
     },
     {
+      "label": "Experience",
+      "href": "#experience"
+    },
+    {
+      "label": "Education",
+      "href": "#education"
+    },
+    {
       "label": "Contact",
       "href": "#contact"
     }

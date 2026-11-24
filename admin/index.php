@@ -37,7 +37,7 @@ function handle_upload($fileKey, $subdir)
     return 'uploads/' . $subdir . '/' . $filename;
 }
 
-$allowedTabs = array('site', 'nav', 'works', 'services', 'about', 'contact', 'password');
+$allowedTabs = array('site', 'nav', 'works', 'services', 'about', 'experience', 'education', 'contact', 'password');
 $activeTab = isset($_GET['tab']) ? $_GET['tab'] : (isset($_POST['tab']) ? $_POST['tab'] : 'site');
 if (!in_array($activeTab, $allowedTabs, true)) $activeTab = 'site';
 
@@ -159,7 +159,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $details[] = array('label' => $label, 'value' => $value);
             }
             $about['details'] = $details;
-
+            $newContent['about'] = $about;
+        } elseif ($tab === 'experience') {
+            $about = isset($newContent['about']) && is_array($newContent['about']) ? $newContent['about'] : array();
             $experience = array();
             $eWhens = post_array('exp_when'); $eRoles = post_array('exp_role'); $eCompanies = post_array('exp_company'); $eDetails = post_array('exp_detail');
             foreach ($eWhens as $i => $when) {
@@ -168,7 +170,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $experience[] = array('when' => $when, 'role' => $role, 'company' => $company, 'detail' => $detail);
             }
             $about['experience'] = $experience;
-
+            $newContent['about'] = $about;
+        } elseif ($tab === 'education') {
+            $about = isset($newContent['about']) && is_array($newContent['about']) ? $newContent['about'] : array();
             $education = array();
             $edWhens = post_array('edu_when'); $edDegrees = post_array('edu_degree'); $edInstitutions = post_array('edu_institution'); $edGpas = post_array('edu_gpa'); $edDetails = post_array('edu_detail');
             foreach ($edWhens as $i => $when) {
@@ -395,8 +399,19 @@ require __DIR__ . '/partials/top.php';
           </div>
           <?php endforeach; ?>
         </div>
+      </section>
+      <div class="save-bar"><button type="submit" class="btn btn-primary">Save changes</button></div>
+    </form>
+    <template id="tpl-paragraph"><div class="repeat-item"><label>Paragraph<textarea name="about_paragraphs[]" rows="3"></textarea></label><button type="button" class="btn btn-danger btn-small remove-row">Remove</button></div></template>
+    <template id="tpl-detail"><div class="repeat-item grid-2"><label>Title<input type="text" name="detail_label[]" value=""></label><label>Value<input type="text" name="detail_value[]" value=""></label><button type="button" class="btn btn-danger btn-small remove-row">Remove</button></div></template>
 
-        <div class="section-head"><h3>Experience</h3><button type="button" class="btn btn-small" data-add="exp">+ Add</button></div>
+<?php elseif ($activeTab === 'experience'): ?>
+    <form method="post" class="panel-form">
+      <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+      <input type="hidden" name="action" value="save_tab">
+      <input type="hidden" name="tab" value="experience">
+      <section class="card">
+        <div class="section-head"><h2>Experience</h2><button type="button" class="btn btn-small" data-add="exp">+ Add</button></div>
         <div id="exp-list" class="repeat-list">
           <?php $experience = isset($about['experience']) && is_array($about['experience']) ? $about['experience'] : array(); ?>
           <?php foreach ($experience as $ex): ?>
@@ -412,8 +427,18 @@ require __DIR__ . '/partials/top.php';
           </div>
           <?php endforeach; ?>
         </div>
+      </section>
+      <div class="save-bar"><button type="submit" class="btn btn-primary">Save changes</button></div>
+    </form>
+    <template id="tpl-exp"><div class="repeat-item"><div class="grid-3"><label>Period<input type="text" name="exp_when[]" value=""></label><label>Role / Title<input type="text" name="exp_role[]" value=""></label><label>Company / Organization<input type="text" name="exp_company[]" value=""></label></div><label>Description<textarea name="exp_detail[]" rows="2"></textarea></label><button type="button" class="btn btn-danger btn-small remove-row">Remove</button></div></template>
 
-        <div class="section-head"><h3>Education</h3><button type="button" class="btn btn-small" data-add="edu">+ Add</button></div>
+<?php elseif ($activeTab === 'education'): ?>
+    <form method="post" class="panel-form">
+      <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+      <input type="hidden" name="action" value="save_tab">
+      <input type="hidden" name="tab" value="education">
+      <section class="card">
+        <div class="section-head"><h2>Education</h2><button type="button" class="btn btn-small" data-add="edu">+ Add</button></div>
         <div id="edu-list" class="repeat-list">
           <?php $education = isset($about['education']) && is_array($about['education']) ? $about['education'] : array(); ?>
           <?php foreach ($education as $ed): ?>
@@ -433,9 +458,6 @@ require __DIR__ . '/partials/top.php';
       </section>
       <div class="save-bar"><button type="submit" class="btn btn-primary">Save changes</button></div>
     </form>
-    <template id="tpl-paragraph"><div class="repeat-item"><label>Paragraph<textarea name="about_paragraphs[]" rows="3"></textarea></label><button type="button" class="btn btn-danger btn-small remove-row">Remove</button></div></template>
-    <template id="tpl-detail"><div class="repeat-item grid-2"><label>Title<input type="text" name="detail_label[]" value=""></label><label>Value<input type="text" name="detail_value[]" value=""></label><button type="button" class="btn btn-danger btn-small remove-row">Remove</button></div></template>
-    <template id="tpl-exp"><div class="repeat-item"><div class="grid-3"><label>Period<input type="text" name="exp_when[]" value=""></label><label>Role / Title<input type="text" name="exp_role[]" value=""></label><label>Company / Organization<input type="text" name="exp_company[]" value=""></label></div><label>Description<textarea name="exp_detail[]" rows="2"></textarea></label><button type="button" class="btn btn-danger btn-small remove-row">Remove</button></div></template>
     <template id="tpl-edu"><div class="repeat-item"><div class="grid-2"><label>Period<input type="text" name="edu_when[]" value=""></label><label>Degree / Program<input type="text" name="edu_degree[]" value=""></label><label>Institution<input type="text" name="edu_institution[]" value=""></label><label>GPA<input type="text" name="edu_gpa[]" value=""></label></div><label>Description (optional)<textarea name="edu_detail[]" rows="2"></textarea></label><button type="button" class="btn btn-danger btn-small remove-row">Remove</button></div></template>
 
 <?php elseif ($activeTab === 'contact'): ?>

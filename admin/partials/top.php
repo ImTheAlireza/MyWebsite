@@ -7,6 +7,8 @@ $tabs = array(
     array('id' => 'works', 'label' => 'Projects', 'href' => 'index.php?tab=works'),
     array('id' => 'services', 'label' => 'Services', 'href' => 'index.php?tab=services'),
     array('id' => 'about', 'label' => 'About', 'href' => 'index.php?tab=about'),
+    array('id' => 'experience', 'label' => 'Experience', 'href' => 'index.php?tab=experience'),
+    array('id' => 'education', 'label' => 'Education', 'href' => 'index.php?tab=education'),
     array('id' => 'contact', 'label' => 'Contact', 'href' => 'index.php?tab=contact'),
     array('id' => 'media', 'label' => 'Media Library', 'href' => 'media.php'),
     array('id' => 'password', 'label' => 'Password', 'href' => 'index.php?tab=password'),
