@@ -64,6 +64,8 @@ $payload = array(
 $url = 'https://api.telegram.org/bot' . $token . '/sendMessage';
 $ok = false;
 $responseBody = '';
+$httpCode = 0;
+$curlErr = '';
 
 if (function_exists('curl_init')) {
     $ch = curl_init($url);
@@ -73,7 +75,7 @@ if (function_exists('curl_init')) {
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
     $responseBody = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlErr = curl_error($ch);
     curl_close($ch);
     if ($responseBody !== false && $httpCode >= 200 && $httpCode < 300) {
@@ -91,9 +93,18 @@ if (function_exists('curl_init')) {
         )
     ));
     $responseBody = @file_get_contents($url, false, $context);
+    if (isset($http_response_header) && is_array($http_response_header)) {
+        foreach ($http_response_header as $h) {
+            if (preg_match('#HTTP/\S+\s+(\d+)#', $h, $m)) {
+                $httpCode = (int) $m[1];
+            }
+        }
+    }
     if ($responseBody !== false) {
         $decoded = json_decode($responseBody, true);
         $ok = is_array($decoded) && !empty($decoded['ok']);
+    } else {
+        $curlErr = 'HTTP request failed';
     }
 }
 
@@ -101,4 +112,18 @@ if ($ok) {
     json_response(true, 'Message sent successfully.', 200);
 }
 
-json_response(false, 'Failed to send message to Telegram.', 502);
+$detail = 'Failed to send message to Telegram.';
+if ($curlErr !== '') {
+    $detail .= ' Curl error: ' . $curlErr;
+}
+if ($httpCode) {
+    $detail .= ' HTTP ' . $httpCode;
+}
+if ($responseBody) {
+    $decoded = json_decode($responseBody, true);
+    if (is_array($decoded) && isset($decoded['description'])) {
+        $detail .= ' - ' . $decoded['description'];
+    }
+}
+error_log('[contact] Telegram send failed: ' . $detail . ' body=' . substr((string) $responseBody, 0, 500));
+json_response(false, $detail, 502);

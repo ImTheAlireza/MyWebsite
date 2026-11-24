@@ -218,9 +218,9 @@
       .frame { transition: border-radius 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.4s, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); will-change: transform; }
       .portrait:hover .frame { border-radius: 28px; background-color: color-mix(in oklab, var(--accent) 12%, var(--tile)); }
       .timeline li, dl div { transition: border-color 0.3s; }
-      .timeline .when, dt { transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s; }
+      .timeline .when, .timeline .timeline-content, dt, dd { transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s; }
       .timeline li:hover, dl div:hover { border-bottom-color: var(--accent); }
-      .timeline li:hover .when, dl div:hover dt { transform: translateX(0.5rem); color: var(--accent); }
+      .timeline li:hover .when, .timeline li:hover .timeline-content, dl div:hover dt, dl div:hover dd { transform: translateX(0.5rem); color: var(--accent); }
       .frame img, .frame video { transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); }
       .work:hover .frame { border-radius: 28px; background-color: color-mix(in oklab, var(--accent) 12%, var(--tile)); }
       .work:hover .frame img, .work:hover .frame video { transform: scale(1.05); }
