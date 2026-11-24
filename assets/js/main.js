@@ -164,17 +164,17 @@
       addEventListener('pointermove', (e) => { tx = e.clientX; ty = e.clientY; cur.classList.add('on'); });
       document.addEventListener('pointerleave', () => cur.classList.remove('on'));
       document.addEventListener('pointerover', (e) => {
-        const t = e.target.closest('a, button, .work, .services li, input, select, textarea');
+        const t = e.target.closest('a, button, .work-card, .services li, input, select, textarea');
         cur.classList.toggle('big', !!t && !t.matches('input, select, textarea'));
         cur.classList.toggle('hide', !!t && t.matches('input, select, textarea'));
       });
 
-      // Work frames tilt toward the pointer.
-      document.querySelectorAll('.work .frame').forEach((f) => {
+      // Work cards tilt toward the pointer.
+      document.querySelectorAll('.work-card .work-thumb').forEach((f) => {
         f.addEventListener('pointermove', (e) => {
           const r = f.getBoundingClientRect();
           const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5;
-          f.style.transform = 'perspective(900px) rotateY(' + (px * 9).toFixed(2) + 'deg) rotateX(' + (-py * 9).toFixed(2) + 'deg) scale(1.015)';
+          f.style.transform = 'perspective(900px) rotateY(' + (px * 7).toFixed(2) + 'deg) rotateX(' + (-py * 7).toFixed(2) + 'deg) scale(1.02)';
         });
         f.addEventListener('pointerleave', () => { f.style.transform = ''; });
       });
@@ -222,45 +222,115 @@
     // Work modal
     (() => {
       const modal = document.getElementById('work-modal');
+      const dialog = modal ? modal.querySelector('.work-modal-dialog') : null;
       const mediaWrap = document.getElementById('work-modal-media');
       const titleEl = document.getElementById('work-modal-title');
       const metaEl = document.getElementById('work-modal-meta');
-      if (!modal || !mediaWrap) return;
+      if (!modal || !mediaWrap || !dialog) return;
+
+      let originRect = null;
+      let closing = false;
+
+      const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const clearDialogStyles = () => {
+        dialog.style.transition = '';
+        dialog.style.transform = '';
+        dialog.style.opacity = '';
+        dialog.style.transformOrigin = '';
+      };
 
       const close = () => {
-        modal.classList.remove('is-open');
-        modal.setAttribute('aria-hidden', 'true');
-        mediaWrap.innerHTML = '';
-        document.body.style.overflow = '';
+        if (!modal.classList.contains('is-open') || closing) return;
+        if (reduceMotion() || !originRect) {
+          modal.classList.remove('is-open');
+          modal.setAttribute('aria-hidden', 'true');
+          mediaWrap.innerHTML = '';
+          document.body.style.overflow = '';
+          clearDialogStyles();
+          return;
+        }
+        closing = true;
+        const end = dialog.getBoundingClientRect();
+        const dx = originRect.left + originRect.width / 2 - (end.left + end.width / 2);
+        const dy = originRect.top + originRect.height / 2 - (end.top + end.height / 2);
+        const sx = originRect.width / Math.max(end.width, 1);
+        const sy = originRect.height / Math.max(end.height, 1);
+        dialog.style.transition = 'transform 0.42s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.32s ease';
+        dialog.style.transformOrigin = 'center center';
+        requestAnimationFrame(() => {
+          dialog.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(' + sx + ',' + sy + ')';
+          dialog.style.opacity = '0.2';
+          modal.style.transition = 'background-color 0.32s ease';
+        });
+        const done = () => {
+          dialog.removeEventListener('transitionend', done);
+          modal.classList.remove('is-open');
+          modal.setAttribute('aria-hidden', 'true');
+          mediaWrap.innerHTML = '';
+          document.body.style.overflow = '';
+          clearDialogStyles();
+          modal.style.transition = '';
+          closing = false;
+        };
+        dialog.addEventListener('transitionend', done);
+        setTimeout(done, 500);
       };
 
       const open = (card) => {
+        if (modal.classList.contains('is-open')) return;
         const type = card.getAttribute('data-type') || '';
         const src = card.getAttribute('data-src') || '';
         const title = card.getAttribute('data-title') || '';
         const meta = card.getAttribute('data-meta') || '';
         const alt = card.getAttribute('data-alt') || title || '';
         if (!src) return;
+        const thumb = card.querySelector('.work-thumb') || card;
+        originRect = thumb.getBoundingClientRect();
+
         mediaWrap.innerHTML = '';
         if (type === 'video') {
           const v = document.createElement('video');
-          v.src = src;
-          v.controls = true;
-          v.autoplay = true;
-          v.playsInline = true;
+          v.src = src; v.controls = true; v.autoplay = true; v.playsInline = true;
           mediaWrap.appendChild(v);
         } else {
           const img = document.createElement('img');
-          img.src = src;
-          img.alt = alt;
+          img.src = src; img.alt = alt;
           mediaWrap.appendChild(img);
         }
         titleEl.textContent = title;
         metaEl.textContent = meta;
         metaEl.style.display = meta ? '' : 'none';
+
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
+
+        if (reduceMotion()) { clearDialogStyles(); return; }
+
+        const end = dialog.getBoundingClientRect();
+        const dx = originRect.left + originRect.width / 2 - (end.left + end.width / 2);
+        const dy = originRect.top + originRect.height / 2 - (end.top + end.height / 2);
+        const sx = originRect.width / Math.max(end.width, 1);
+        const sy = originRect.height / Math.max(end.height, 1);
+
+        dialog.style.transition = 'none';
+        dialog.style.transformOrigin = 'center center';
+        dialog.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(' + sx + ',' + sy + ')';
+        dialog.style.opacity = '0.72';
+        // force reflow
+        dialog.offsetHeight; // eslint-disable-line no-unused-expressions
+        requestAnimationFrame(() => {
+          dialog.style.transition = 'transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.35s ease';
+          dialog.style.transform = '';
+          dialog.style.opacity = '1';
+        });
+        const cleanup = (e) => {
+          if (e.target !== dialog || e.propertyName !== 'transform') return;
+          dialog.removeEventListener('transitionend', cleanup);
+          clearDialogStyles();
+        };
+        dialog.addEventListener('transitionend', cleanup);
       };
 
       document.querySelectorAll('.work-card').forEach((card) => {
