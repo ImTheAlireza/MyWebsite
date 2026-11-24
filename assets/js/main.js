@@ -1,16 +1,40 @@
-    // Opens the visitor's email app with the message filled in.
-    // Replace with a real form endpoint when you have one.
+    // Submits contact form to backend endpoint (Telegram notification).
     const form = document.getElementById('contact-form');
     const formStatus = document.getElementById('form-status');
-    const TO = (window.SITE_CONFIG && window.SITE_CONFIG.email) ? window.SITE_CONFIG.email : 'hello@alirezashabanzadeh.ir';
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const d = new FormData(form);
-      const subject = encodeURIComponent('Project enquiry: ' + d.get('type'));
-      const body = encodeURIComponent(d.get('message') + '\n\n' + d.get('name') + '\n' + d.get('email'));
-      window.location.href = 'mailto:' + TO + '?subject=' + subject + '&body=' + body;
-      formStatus.textContent = 'Your email app should open with the message ready. If it does not, write to ' + TO + '.';
-    });
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = form.querySelector('button[type="submit"]');
+        const originalText = btn ? btn.textContent : '';
+        if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+        formStatus.textContent = '';
+        try {
+          const d = new FormData(form);
+          const payload = {
+            name: d.get('name') || '',
+            email: d.get('email') || '',
+            type: d.get('type') || '',
+            message: d.get('message') || ''
+          };
+          const res = await fetch('api/contact.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.ok) {
+            form.reset();
+            formStatus.textContent = data.message || 'Your message was sent successfully.';
+          } else {
+            formStatus.textContent = data.message || 'Could not send your message. Please try again.';
+          }
+        } catch (err) {
+          formStatus.textContent = 'Network error. Please try again later.';
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = originalText; }
+        }
+      });
+    }
   
     // Hero: a spring-physics dot field and a name whose letters react to the pointer.
     (() => {
