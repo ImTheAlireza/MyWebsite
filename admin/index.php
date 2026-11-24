@@ -295,12 +295,23 @@ require __DIR__ . '/partials/top.php';
               <label>Image alt text<input type="text" name="work_media_alt[]" value="<?= e($media && isset($media['alt']) ? $media['alt'] : '') ?>"></label>
             </div>
             <div class="media-pick-row">
-              <label>Or media URL/path (copy from library)<input type="text" name="work_media_src[]" value="<?= e($media && isset($media['src']) ? $media['src'] : '') ?>" placeholder="uploads/library/... or https://..."></label>
+              <label>Or media URL/path (copy from library)<input type="text" name="work_media_src[]" class="work-media-src-input" value="<?= e($media && isset($media['src']) ? $media['src'] : '') ?>" placeholder="uploads/library/... or https://..."></label>
               <button type="button" class="btn btn-small pick-media" data-target-input="work_media_src[]">Choose from library</button>
             </div>
             <input type="hidden" name="work_media_type[]" value="<?= e($media && isset($media['type']) ? $media['type'] : '') ?>">
-            <?php if ($media && !empty($media['src'])): ?>
-            <div class="media-preview"><span class="muted small">Current file: <?= e($media['src']) ?></span><label class="inline-check"><input type="checkbox" name="work_remove_media[<?= $i ?>]" value="1"> Remove media</label></div>
+            <?php $mediaSrc = ($media && !empty($media['src'])) ? $media['src'] : ''; $mediaType = ($media && !empty($media['type'])) ? $media['type'] : ''; ?>
+            <div class="work-media-preview" data-preview>
+              <?php if ($mediaSrc !== ''): ?>
+                <?php $previewSrc = (strpos($mediaSrc, 'http://') === 0 || strpos($mediaSrc, 'https://') === 0 || strpos($mediaSrc, '/') === 0) ? $mediaSrc : '../' . ltrim($mediaSrc, '/'); ?>
+                <?php if ($mediaType === 'video'): ?>
+                  <video src="<?= e($previewSrc) ?>" muted preload="metadata" controls></video>
+                <?php else: ?>
+                  <img src="<?= e($previewSrc) ?>" alt="Preview" loading="lazy">
+                <?php endif; ?>
+              <?php endif; ?>
+            </div>
+            <?php if ($mediaSrc !== ''): ?>
+            <div class="media-preview"><span class="muted small">Current file: <?= e($mediaSrc) ?></span><label class="inline-check"><input type="checkbox" name="work_remove_media[<?= $i ?>]" value="1"> Remove media</label></div>
             <?php else: ?>
             <input type="hidden" name="work_remove_media[<?= $i ?>]" value="0">
             <?php endif; ?>
@@ -323,10 +334,11 @@ require __DIR__ . '/partials/top.php';
           <label>Image alt text<input type="text" name="work_media_alt[]" value=""></label>
         </div>
         <div class="media-pick-row">
-          <label>Or media URL/path (copy from library)<input type="text" name="work_media_src[]" value="" placeholder="uploads/library/... or https://..."></label>
+          <label>Or media URL/path (copy from library)<input type="text" name="work_media_src[]" class="work-media-src-input" value="" placeholder="uploads/library/... or https://..."></label>
           <button type="button" class="btn btn-small pick-media" data-target-input="work_media_src[]">Choose from library</button>
         </div>
         <input type="hidden" name="work_media_type[]" value="">
+        <div class="work-media-preview" data-preview></div>
         <input type="hidden" name="work_remove_media[__WORK_INDEX__]" value="0">
         <button type="button" class="btn btn-danger btn-small remove-row">Remove project</button>
       </div>
@@ -621,6 +633,55 @@ require __DIR__ . '/partials/top.php';
         if (e.target.closest('[data-close-media]')) closeMediaModal();
       });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && mediaModal && mediaModal.classList.contains('is-open')) closeMediaModal(); });
+    })();
+
+    (function () {
+      function isVideoSrc(src) { return /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(src || ''); }
+      function previewSrc(src) {
+        if (!src) return '';
+        if (/^(https?:\/\/|\/)/i.test(src)) return src;
+        return '../' + src.replace(/^\/+/, '');
+      }
+      function updateWorkPreview(input) {
+        var item = input.closest('.work-item');
+        if (!item) return;
+        var preview = item.querySelector('[data-preview]');
+        if (!preview) return;
+        var src = (input.value || '').trim();
+        preview.innerHTML = '';
+        if (!src) return;
+        var ps = previewSrc(src);
+        if (isVideoSrc(src)) {
+          var v = document.createElement('video');
+          v.src = ps; v.muted = true; v.preload = 'metadata'; v.controls = true;
+          preview.appendChild(v);
+        } else {
+          var img = document.createElement('img');
+          img.src = ps; img.alt = 'Preview'; img.loading = 'lazy';
+          img.onerror = function () { preview.innerHTML = '<span class="muted small">Preview unavailable</span>'; };
+          preview.appendChild(img);
+        }
+      }
+      document.addEventListener('input', function (e) {
+        if (e.target && e.target.classList && e.target.classList.contains('work-media-src-input')) updateWorkPreview(e.target);
+      });
+      document.addEventListener('change', function (e) {
+        if (e.target && e.target.classList && e.target.classList.contains('work-media-src-input')) updateWorkPreview(e.target);
+        if (e.target && e.target.matches && e.target.matches('input[type="file"][name^="work_media_file_"]')) {
+          var item = e.target.closest('.work-item');
+          var preview = item ? item.querySelector('[data-preview]') : null;
+          if (!preview) return;
+          var file = e.target.files && e.target.files[0];
+          if (!file) return;
+          var url = URL.createObjectURL(file);
+          preview.innerHTML = '';
+          if (/^video\//i.test(file.type)) {
+            var v = document.createElement('video'); v.src = url; v.muted = true; v.preload = 'metadata'; v.controls = true; preview.appendChild(v);
+          } else {
+            var img = document.createElement('img'); img.src = url; img.alt = 'Preview'; preview.appendChild(img);
+          }
+        }
+      });
     })();
   </script>
 <?php require __DIR__ . '/partials/bottom.php'; ?>

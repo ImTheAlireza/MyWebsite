@@ -71,6 +71,8 @@ function media_usage_map()
     $content = load_content();
     $json = json_encode($content);
     if ($json === false) $json = '';
+    // PHP json_encode escapes slashes by default; normalize for matching.
+    $jsonNorm = str_replace('\\/', '/', $json);
     $map = array();
     $base = uploads_base_dir();
     if (!is_dir($base)) return $map;
@@ -83,7 +85,12 @@ function media_usage_map()
         $rel = safe_rel_path($rel);
         if ($rel === null) continue;
         $publicPath = 'uploads/' . $rel;
-        $map[$rel] = (strpos($json, $publicPath) !== false);
+        $used = (strpos($jsonNorm, $publicPath) !== false);
+        if (!$used) {
+            // Also check URL-encoded or raw filename references
+            $used = (strpos($jsonNorm, rawurlencode($publicPath)) !== false);
+        }
+        $map[$rel] = $used;
     }
     return $map;
 }
