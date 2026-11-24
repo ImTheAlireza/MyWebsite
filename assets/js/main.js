@@ -281,6 +281,7 @@
         if (modal.classList.contains('is-open')) return;
         const type = card.getAttribute('data-type') || '';
         const src = card.getAttribute('data-src') || '';
+        const poster = card.getAttribute('data-poster') || '';
         const title = card.getAttribute('data-title') || '';
         const meta = card.getAttribute('data-meta') || '';
         const alt = card.getAttribute('data-alt') || title || '';
@@ -292,6 +293,7 @@
         if (type === 'video') {
           const v = document.createElement('video');
           v.src = src; v.controls = true; v.autoplay = true; v.playsInline = true;
+          if (poster) v.poster = poster;
           mediaWrap.appendChild(v);
         } else {
           const img = document.createElement('img');

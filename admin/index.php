@@ -104,6 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $wMediaSrcs = post_array('work_media_src');
             $wMediaAlts = post_array('work_media_alt');
             $wMediaTypes = post_array('work_media_type');
+            $wMediaPosters = post_array('work_media_poster');
             $wRemoveMedia = post_array('work_remove_media');
             foreach ($wTitles as $i => $title) {
                 $title = clean_text($title);
@@ -115,15 +116,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $existingSrc = isset($wMediaSrcs[$i]) ? clean_text($wMediaSrcs[$i]) : '';
                 $existingAlt = isset($wMediaAlts[$i]) ? clean_text($wMediaAlts[$i]) : '';
                 $existingType = isset($wMediaTypes[$i]) ? clean_text($wMediaTypes[$i]) : '';
+                $existingPoster = isset($wMediaPosters[$i]) ? clean_text($wMediaPosters[$i]) : '';
                 $uploaded = handle_upload('work_media_file_' . $i, 'works');
                 if ($uploaded !== '') {
                     $ext = strtolower(pathinfo($uploaded, PATHINFO_EXTENSION));
-                    $media = array('type' => ($ext === 'mp4' || $ext === 'webm') ? 'video' : 'image', 'src' => $uploaded, 'alt' => $existingAlt);
+                    $mediaType = ($ext === 'mp4' || $ext === 'webm') ? 'video' : 'image';
+                    $media = array('type' => $mediaType, 'src' => $uploaded, 'alt' => $existingAlt);
+                    if ($mediaType === 'video' && $existingPoster !== '') $media['poster'] = $existingPoster;
                 } elseif (!$removeMedia && $existingSrc !== '') {
                     $ext = strtolower(pathinfo(parse_url($existingSrc, PHP_URL_PATH), PATHINFO_EXTENSION));
                     $type = in_array($ext, array('mp4','webm','mov','m4v'), true) ? 'video' : 'image';
                     if (($existingType === 'video' || $existingType === 'image') && $ext === '') $type = $existingType;
                     $media = array('type' => $type, 'src' => $existingSrc, 'alt' => $existingAlt);
+                    if ($type === 'video' && $existingPoster !== '') $media['poster'] = $existingPoster;
                 }
                 $works[] = array('title' => $title, 'meta' => $meta, 'media' => $media, 'placeholder' => $placeholder !== '' ? $placeholder : 'Add image or video');
             }
@@ -299,7 +304,17 @@ require __DIR__ . '/partials/top.php';
               <button type="button" class="btn btn-small pick-media" data-target-input="work_media_src[]">Choose from library</button>
             </div>
             <input type="hidden" name="work_media_type[]" value="<?= e($media && isset($media['type']) ? $media['type'] : '') ?>">
-            <?php $mediaSrc = ($media && !empty($media['src'])) ? $media['src'] : ''; $mediaType = ($media && !empty($media['type'])) ? $media['type'] : ''; ?>
+            <?php $mediaSrc = ($media && !empty($media['src'])) ? $media['src'] : ''; $mediaType = ($media && !empty($media['type'])) ? $media['type'] : ''; $mediaPoster = ($media && !empty($media['poster'])) ? $media['poster'] : ''; ?>
+            <div class="media-pick-row">
+              <label>Video thumbnail (optional)<input type="text" name="work_media_poster[]" class="work-poster-src-input" value="<?= e($mediaPoster) ?>" placeholder="uploads/library/... or https://..."></label>
+              <button type="button" class="btn btn-small pick-media" data-target-input="work_media_poster[]">Choose from library</button>
+            </div>
+            <div class="work-media-preview" data-poster-preview>
+              <?php if ($mediaPoster !== ''): ?>
+                <?php $posterPreviewSrc = (strpos($mediaPoster, 'http://') === 0 || strpos($mediaPoster, 'https://') === 0 || strpos($mediaPoster, '/') === 0) ? $mediaPoster : '../' . ltrim($mediaPoster, '/'); ?>
+                <img src="<?= e($posterPreviewSrc) ?>" alt="Thumbnail preview" loading="lazy">
+              <?php endif; ?>
+            </div>
             <div class="work-media-preview" data-preview>
               <?php if ($mediaSrc !== ''): ?>
                 <?php $previewSrc = (strpos($mediaSrc, 'http://') === 0 || strpos($mediaSrc, 'https://') === 0 || strpos($mediaSrc, '/') === 0) ? $mediaSrc : '../' . ltrim($mediaSrc, '/'); ?>
@@ -338,6 +353,11 @@ require __DIR__ . '/partials/top.php';
           <button type="button" class="btn btn-small pick-media" data-target-input="work_media_src[]">Choose from library</button>
         </div>
         <input type="hidden" name="work_media_type[]" value="">
+        <div class="media-pick-row">
+          <label>Video thumbnail (optional)<input type="text" name="work_media_poster[]" class="work-poster-src-input" value="" placeholder="uploads/library/... or https://..."></label>
+          <button type="button" class="btn btn-small pick-media" data-target-input="work_media_poster[]">Choose from library</button>
+        </div>
+        <div class="work-media-preview" data-poster-preview></div>
         <div class="work-media-preview" data-preview></div>
         <input type="hidden" name="work_remove_media[__WORK_INDEX__]" value="0">
         <button type="button" class="btn btn-danger btn-small remove-row">Remove project</button>
@@ -639,47 +659,48 @@ require __DIR__ . '/partials/top.php';
       function isVideoSrc(src) { return /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(src || ''); }
       function previewSrc(src) {
         if (!src) return '';
-        if (/^(https?:\/\/|\/)/i.test(src)) return src;
+        if (/^(https?:\/\/|\/|blob:|data:)/i.test(src)) return src;
         return '../' + src.replace(/^\/+/, '');
+      }
+      function setPreview(el, src, isVideo) {
+        if (!el) return;
+        el.innerHTML = '';
+        if (!src) return;
+        var ps = previewSrc(src);
+        if (isVideo) {
+          var v = document.createElement('video'); v.src = ps; v.muted = true; v.preload = 'metadata'; v.controls = true; el.appendChild(v);
+        } else {
+          var img = document.createElement('img'); img.src = ps; img.alt = 'Preview'; img.loading = 'lazy';
+          img.onerror = function () { el.innerHTML = '<span class="muted small">Preview unavailable</span>'; };
+          el.appendChild(img);
+        }
       }
       function updateWorkPreview(input) {
         var item = input.closest('.work-item');
         if (!item) return;
-        var preview = item.querySelector('[data-preview]');
-        if (!preview) return;
-        var src = (input.value || '').trim();
-        preview.innerHTML = '';
-        if (!src) return;
-        var ps = previewSrc(src);
-        if (isVideoSrc(src)) {
-          var v = document.createElement('video');
-          v.src = ps; v.muted = true; v.preload = 'metadata'; v.controls = true;
-          preview.appendChild(v);
-        } else {
-          var img = document.createElement('img');
-          img.src = ps; img.alt = 'Preview'; img.loading = 'lazy';
-          img.onerror = function () { preview.innerHTML = '<span class="muted small">Preview unavailable</span>'; };
-          preview.appendChild(img);
-        }
+        setPreview(item.querySelector('[data-preview]'), (input.value || '').trim(), isVideoSrc(input.value || ''));
+      }
+      function updatePosterPreview(input) {
+        var item = input.closest('.work-item');
+        if (!item) return;
+        setPreview(item.querySelector('[data-poster-preview]'), (input.value || '').trim(), false);
       }
       document.addEventListener('input', function (e) {
-        if (e.target && e.target.classList && e.target.classList.contains('work-media-src-input')) updateWorkPreview(e.target);
+        if (!e.target || !e.target.classList) return;
+        if (e.target.classList.contains('work-media-src-input')) updateWorkPreview(e.target);
+        if (e.target.classList.contains('work-poster-src-input')) updatePosterPreview(e.target);
       });
       document.addEventListener('change', function (e) {
-        if (e.target && e.target.classList && e.target.classList.contains('work-media-src-input')) updateWorkPreview(e.target);
-        if (e.target && e.target.matches && e.target.matches('input[type="file"][name^="work_media_file_"]')) {
+        if (!e.target) return;
+        if (e.target.classList && e.target.classList.contains('work-media-src-input')) updateWorkPreview(e.target);
+        if (e.target.classList && e.target.classList.contains('work-poster-src-input')) updatePosterPreview(e.target);
+        if (e.target.matches && e.target.matches('input[type="file"][name^="work_media_file_"]')) {
           var item = e.target.closest('.work-item');
           var preview = item ? item.querySelector('[data-preview]') : null;
-          if (!preview) return;
           var file = e.target.files && e.target.files[0];
-          if (!file) return;
+          if (!preview || !file) return;
           var url = URL.createObjectURL(file);
-          preview.innerHTML = '';
-          if (/^video\//i.test(file.type)) {
-            var v = document.createElement('video'); v.src = url; v.muted = true; v.preload = 'metadata'; v.controls = true; preview.appendChild(v);
-          } else {
-            var img = document.createElement('img'); img.src = url; img.alt = 'Preview'; preview.appendChild(img);
-          }
+          setPreview(preview, url, /^video\//i.test(file.type));
         }
       });
     })();

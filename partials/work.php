@@ -17,13 +17,19 @@
   $type = $media && isset($media['type']) ? $media['type'] : '';
   $src = $media && isset($media['src']) ? $media['src'] : '';
   $alt = $media && isset($media['alt']) ? $media['alt'] : (isset($work['title']) ? $work['title'] : '');
+  $poster = $media && isset($media['poster']) ? $media['poster'] : '';
   $title = isset($work['title']) ? $work['title'] : '';
   $meta = isset($work['meta']) ? $work['meta'] : '';
 ?>
-          <article class="work-card" data-work-index="<?= $i ?>" data-type="<?= e($type) ?>" data-src="<?= e($src) ?>" data-title="<?= e($title) ?>" data-meta="<?= e($meta) ?>" data-alt="<?= e($alt) ?>" tabindex="0" role="button" aria-label="Open <?= e($title) ?>">
+          <article class="work-card" data-work-index="<?= $i ?>" data-type="<?= e($type) ?>" data-src="<?= e($src) ?>" data-poster="<?= e($poster) ?>" data-title="<?= e($title) ?>" data-meta="<?= e($meta) ?>" data-alt="<?= e($alt) ?>" tabindex="0" role="button" aria-label="Open <?= e($title) ?>">
             <div class="work-thumb">
               <?php if ($media && $type === 'video'): ?>
-                <video src="<?= e($src) ?>" muted loop playsinline preload="metadata"></video>
+                <?php if ($poster !== ''): ?>
+                  <img src="<?= e($poster) ?>" alt="<?= e($alt) ?>" loading="lazy">
+                <?php else: ?>
+                  <video src="<?= e($src) ?>" muted loop playsinline preload="metadata"></video>
+                <?php endif; ?>
+                <span class="work-play-badge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="7,5 19,12 7,19"></polygon></svg></span>
               <?php elseif ($media && $src !== ''): ?>
                 <img src="<?= e($src) ?>" alt="<?= e($alt) ?>" loading="lazy">
               <?php else: ?>
