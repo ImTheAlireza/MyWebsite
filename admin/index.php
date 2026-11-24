@@ -364,7 +364,10 @@ $contact = isset($content['contact']) ? $content['contact'] : array();
                 <label>Media file (image/video)<input type="file" name="work_media_file_<?= $i ?>" accept="image/*,video/mp4,video/webm"></label>
                 <label>Image alt text<input type="text" name="work_media_alt[]" value="<?= e($media && isset($media['alt']) ? $media['alt'] : '') ?>"></label>
               </div>
-              <input type="hidden" name="work_media_src[]" value="<?= e($media && isset($media['src']) ? $media['src'] : '') ?>">
+              <div class="media-pick-row">
+                <label>Or media URL/path (copy from library)<input type="text" name="work_media_src[]" value="<?= e($media && isset($media['src']) ? $media['src'] : '') ?>" placeholder="uploads/library/... or https://..."></label>
+                <button type="button" class="btn btn-small pick-media" data-target-input="work_media_src[]">Choose from library</button>
+              </div>
               <input type="hidden" name="work_media_type[]" value="<?= e($media && isset($media['type']) ? $media['type'] : '') ?>">
               <?php if ($media && !empty($media['src'])): ?>
               <div class="media-preview">
@@ -412,7 +415,10 @@ $contact = isset($content['contact']) ? $content['contact'] : array();
           <h3>Portrait / workspace image</h3>
           <label>Portrait placeholder text<input type="text" name="about_portrait_placeholder" value="<?= e(isset($about['portrait_placeholder']) ? $about['portrait_placeholder'] : '') ?>"></label>
           <label>Upload portrait image<input type="file" name="about_portrait_file" accept="image/*"></label>
-          <input type="hidden" name="about_portrait_image" value="<?= e(isset($about['portrait_image']) ? $about['portrait_image'] : '') ?>">
+          <div class="media-pick-row">
+            <label>Or portrait image URL/path (copy from library)<input type="text" name="about_portrait_image" value="<?= e(isset($about['portrait_image']) ? $about['portrait_image'] : '') ?>" placeholder="uploads/library/... or https://..."></label>
+            <button type="button" class="btn btn-small pick-media" data-target-input="about_portrait_image">Choose from library</button>
+          </div>
           <?php if (!empty($about['portrait_image'])): ?>
             <div class="media-preview"><span class="muted small">Current file: <?= e($about['portrait_image']) ?></span>
             <label class="inline-check"><input type="checkbox" name="about_remove_portrait" value="1"> Remove image</label></div>
@@ -524,7 +530,10 @@ $contact = isset($content['contact']) ? $content['contact'] : array();
         <label>Media file (image/video)<input type="file" name="__WORK_MEDIA_FILE__" accept="image/*,video/mp4,video/webm"></label>
         <label>Image alt text<input type="text" name="work_media_alt[]" value=""></label>
       </div>
-      <label>Or media URL/path (copy from library)<input type="text" name="work_media_src[]" value="" placeholder="uploads/library/... or https://..."></label>
+      <div class="media-pick-row">
+        <label>Or media URL/path (copy from library)<input type="text" name="work_media_src[]" value="" placeholder="uploads/library/... or https://..."></label>
+        <button type="button" class="btn btn-small pick-media" data-target-input="work_media_src[]">Choose from library</button>
+      </div>
       <input type="hidden" name="work_media_type[]" value="">
       <input type="hidden" name="work_remove_media[__WORK_INDEX__]" value="0">
       <button type="button" class="btn btn-danger btn-small remove-row">Remove project</button>
@@ -580,6 +589,20 @@ $contact = isset($content['contact']) ? $content['contact'] : array();
     </div>
   </template>
 
+  <div class="media-modal" id="media-modal" aria-hidden="true">
+    <div class="media-modal-backdrop" data-close-media></div>
+    <div class="media-modal-dialog" role="dialog" aria-modal="true" aria-label="Media library">
+      <div class="media-modal-head">
+        <h3>Select media</h3>
+        <button type="button" class="btn btn-small" data-close-media>Close</button>
+      </div>
+      <div class="media-modal-body">
+        <p class="muted small" id="media-modal-status">Loading...</p>
+        <div class="library-grid" id="media-modal-grid"></div>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       var workIndex = document.querySelectorAll('#works-list .work-item').length;
@@ -631,6 +654,94 @@ $contact = isset($content['contact']) ? $content['contact'] : array();
           });
         });
       }
+
+      // Media library picker
+      var mediaModal = document.getElementById('media-modal');
+      var mediaGrid = document.getElementById('media-modal-grid');
+      var mediaStatus = document.getElementById('media-modal-status');
+      var currentMediaInput = null;
+
+      function openMediaModal(input) {
+        currentMediaInput = input;
+        if (!mediaModal) return;
+        mediaModal.classList.add('is-open');
+        mediaModal.setAttribute('aria-hidden', 'false');
+        loadMediaLibrary();
+      }
+      function closeMediaModal() {
+        if (!mediaModal) return;
+        mediaModal.classList.remove('is-open');
+        mediaModal.setAttribute('aria-hidden', 'true');
+        currentMediaInput = null;
+      }
+      function loadMediaLibrary() {
+        if (!mediaGrid || !mediaStatus) return;
+        mediaStatus.textContent = 'Loading...';
+        mediaGrid.innerHTML = '';
+        fetch('media.php?action=list', { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var files = (data && data.files) ? data.files : [];
+            if (!files.length) {
+              mediaStatus.textContent = 'No media files found. Upload files in Media Library first.';
+              return;
+            }
+            mediaStatus.textContent = files.length + ' file(s)';
+            files.forEach(function (f) {
+              var card = document.createElement('div');
+              card.className = 'media-card media-card-select';
+              var thumb = '';
+              if (f.isImage) {
+                thumb = '<img src="../' + escapeHtml(f.path) + '" alt="' + escapeHtml(f.name) + '" loading="lazy">';
+              } else if (f.isVideo) {
+                thumb = '<video src="../' + escapeHtml(f.path) + '" muted preload="metadata"></video>';
+              } else {
+                thumb = '<div class="file-icon">' + escapeHtml((f.ext || '').toUpperCase()) + '</div>';
+              }
+              card.innerHTML =
+                '<div class="media-thumb">' + thumb + '</div>' +
+                '<div class="media-body">' +
+                  '<div class="media-name">' + escapeHtml(f.name) + '</div>' +
+                  '<div class="media-meta">' + escapeHtml(f.size) + '</div>' +
+                  '<div class="media-actions"><button type="button" class="btn select-media-file">Select</button></div>' +
+                '</div>';
+              card.querySelector('.select-media-file').addEventListener('click', function () {
+                if (currentMediaInput) {
+                  currentMediaInput.value = f.path;
+                  currentMediaInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                closeMediaModal();
+              });
+              mediaGrid.appendChild(card);
+            });
+          })
+          .catch(function () {
+            mediaStatus.textContent = 'Failed to load media library.';
+          });
+      }
+      function escapeHtml(str) {
+        return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      document.addEventListener('click', function (e) {
+        var pick = e.target.closest('.pick-media');
+        if (pick) {
+          var targetName = pick.getAttribute('data-target-input');
+          var scope = pick.closest('.repeat-item') || pick.closest('.media-pick-row') || pick.parentElement;
+          var input = null;
+          if (targetName) {
+            input = scope ? scope.querySelector('input[name="' + targetName + '"]') : null;
+            if (!input) input = document.querySelector('input[name="' + targetName + '"]');
+          }
+          if (input) openMediaModal(input);
+        }
+        if (e.target.closest('[data-close-media]')) {
+          closeMediaModal();
+        }
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && mediaModal && mediaModal.classList.contains('is-open')) closeMediaModal();
+      });
     })();
   </script>
 </body>

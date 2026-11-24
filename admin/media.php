@@ -139,6 +139,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $files = list_upload_files();
 $baseUrl = site_base_url();
+
+if (isset($_GET['action']) && $_GET['action'] === 'list') {
+    header('Content-Type: application/json; charset=UTF-8');
+    $out = array();
+    foreach ($files as $f) {
+        $rel = $f['rel'];
+        $publicPath = 'uploads/' . $rel;
+        $out[] = array(
+            'rel' => $rel,
+            'name' => $f['name'],
+            'ext' => $f['ext'],
+            'size' => format_bytes($f['size']),
+            'url' => $baseUrl . '/' . $publicPath,
+            'path' => $publicPath,
+            'isImage' => in_array($f['ext'], array('jpg','jpeg','png','gif','webp','svg'), true),
+            'isVideo' => in_array($f['ext'], array('mp4','webm','mov','m4v'), true),
+        );
+    }
+    echo json_encode(array('files' => $out));
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
