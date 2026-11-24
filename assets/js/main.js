@@ -218,3 +218,62 @@
         if (window.innerWidth > 860) close();
       });
     })();
+
+    // Work modal
+    (() => {
+      const modal = document.getElementById('work-modal');
+      const mediaWrap = document.getElementById('work-modal-media');
+      const titleEl = document.getElementById('work-modal-title');
+      const metaEl = document.getElementById('work-modal-meta');
+      if (!modal || !mediaWrap) return;
+
+      const close = () => {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        mediaWrap.innerHTML = '';
+        document.body.style.overflow = '';
+      };
+
+      const open = (card) => {
+        const type = card.getAttribute('data-type') || '';
+        const src = card.getAttribute('data-src') || '';
+        const title = card.getAttribute('data-title') || '';
+        const meta = card.getAttribute('data-meta') || '';
+        const alt = card.getAttribute('data-alt') || title || '';
+        if (!src) return;
+        mediaWrap.innerHTML = '';
+        if (type === 'video') {
+          const v = document.createElement('video');
+          v.src = src;
+          v.controls = true;
+          v.autoplay = true;
+          v.playsInline = true;
+          mediaWrap.appendChild(v);
+        } else {
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = alt;
+          mediaWrap.appendChild(img);
+        }
+        titleEl.textContent = title;
+        metaEl.textContent = meta;
+        metaEl.style.display = meta ? '' : 'none';
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      };
+
+      document.querySelectorAll('.work-card').forEach((card) => {
+        card.addEventListener('click', () => open(card));
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(card); }
+        });
+      });
+
+      modal.addEventListener('click', (e) => {
+        if (e.target.closest('[data-close-work]')) close();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
+      });
+    })();

@@ -8,16 +8,48 @@
         </div>
         <!--
           TODO: replace each .frame content with your own <img> or <video muted loop playsinline>.
-          Example: <div class="frame"><img src="work/project-name.jpg" alt="Describe what the piece shows" loading="lazy"></div>
           Keep 4 to 6 pieces. Lead with the strongest motion piece.
         -->
         <div class="work-grid">
-<?php foreach ($works as $work): ?>
-          <figure class="work">
-            <div class="frame"><?php if (!empty($work['media'])): ?><?php if ($work['media']['type'] === 'video'): ?><video src="<?= e($work['media']['src']) ?>" muted loop playsinline></video><?php else: ?><img src="<?= e($work['media']['src']) ?>" alt="<?= e(isset($work['media']['alt']) ? $work['media']['alt'] : '') ?>" loading="lazy"><?php endif; ?><?php else: ?><?= e(isset($work['placeholder']) ? $work['placeholder'] : 'Add image or video') ?><?php endif; ?></div>
-            <figcaption><span class="title"><?= e($work['title']) ?></span><span class="meta"><?= e($work['meta']) ?></span></figcaption>
-          </figure>
+<?php foreach ($works as $i => $work): ?>
+<?php
+  $media = !empty($work['media']) && is_array($work['media']) ? $work['media'] : null;
+  $type = $media && isset($media['type']) ? $media['type'] : '';
+  $src = $media && isset($media['src']) ? $media['src'] : '';
+  $alt = $media && isset($media['alt']) ? $media['alt'] : (isset($work['title']) ? $work['title'] : '');
+  $title = isset($work['title']) ? $work['title'] : '';
+  $meta = isset($work['meta']) ? $work['meta'] : '';
+?>
+          <article class="work-card" data-work-index="<?= $i ?>" data-type="<?= e($type) ?>" data-src="<?= e($src) ?>" data-title="<?= e($title) ?>" data-meta="<?= e($meta) ?>" data-alt="<?= e($alt) ?>" tabindex="0" role="button" aria-label="Open <?= e($title) ?>">
+            <div class="work-thumb">
+              <?php if ($media && $type === 'video'): ?>
+                <video src="<?= e($src) ?>" muted loop playsinline preload="metadata"></video>
+              <?php elseif ($media && $src !== ''): ?>
+                <img src="<?= e($src) ?>" alt="<?= e($alt) ?>" loading="lazy">
+              <?php else: ?>
+                <div class="work-placeholder"><?= e(isset($work['placeholder']) ? $work['placeholder'] : 'Add image or video') ?></div>
+              <?php endif; ?>
+              <div class="work-overlay">
+                <div class="work-overlay-content">
+                  <h3 class="work-overlay-title"><?= e($title) ?></h3>
+                  <?php if ($meta !== ''): ?><p class="work-overlay-meta"><?= e($meta) ?></p><?php endif; ?>
+                </div>
+              </div>
+            </div>
+          </article>
 <?php endforeach; ?>
+        </div>
+      </div>
+
+      <div class="work-modal" id="work-modal" aria-hidden="true">
+        <div class="work-modal-backdrop" data-close-work></div>
+        <div class="work-modal-dialog" role="dialog" aria-modal="true" aria-label="Project preview">
+          <button type="button" class="work-modal-close" data-close-work aria-label="Close">&times;</button>
+          <div class="work-modal-media" id="work-modal-media"></div>
+          <div class="work-modal-info">
+            <h3 id="work-modal-title"></h3>
+            <p id="work-modal-meta"></p>
+          </div>
         </div>
       </div>
     </section>
