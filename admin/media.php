@@ -66,6 +66,28 @@ function format_bytes($bytes)
     return (int) $bytes . ' B';
 }
 
+function media_usage_map()
+{
+    $content = load_content();
+    $json = json_encode($content);
+    if ($json === false) $json = '';
+    $map = array();
+    $base = uploads_base_dir();
+    if (!is_dir($base)) return $map;
+    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($base, RecursiveDirectoryIterator::SKIP_DOTS));
+    foreach ($it as $file) {
+        if (!$file->isFile()) continue;
+        $ext = strtolower($file->getExtension());
+        if (!is_allowed_media_ext($ext)) continue;
+        $rel = str_replace('\\', '/', substr($file->getPathname(), strlen($base) + 1));
+        $rel = safe_rel_path($rel);
+        if ($rel === null) continue;
+        $publicPath = 'uploads/' . $rel;
+        $map[$rel] = (strpos($json, $publicPath) !== false);
+    }
+    return $map;
+}
+
 function site_base_url()
 {
     $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
@@ -189,10 +211,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         }
+    } elseif ($action === 'delete_unused') {
+        $usedMap = media_usage_map();
+        $deleted = 0;
+        $base = uploads_base_dir();
+        foreach ($usedMap as $rel => $isUsed) {
+            if ($isUsed) continue;
+            $full = $base . '/' . $rel;
+            $realBase = realpath($base);
+            $realFull = realpath($full);
+            if ($realBase && $realFull && strpos($realFull, $realBase) === 0 && is_file($realFull)) {
+                if (unlink($realFull)) $deleted++;
+            }
+        }
+        if ($deleted > 0) $message = $deleted . ' unused file(s) deleted.';
+        else $error = 'No unused files to delete.';
     }
 }
 
 $files = list_upload_files();
+$usedMap = media_usage_map();
 $baseUrl = site_base_url();
 
 if (isset($_GET['action']) && $_GET['action'] === 'list') {
@@ -231,26 +269,47 @@ require __DIR__ . '/partials/top.php';
     <?php if ($error): ?><div class="alert alert-error"><?= e($error) ?></div><?php endif; ?>
 
     <section class="card">
-      <div class="upload-box">
+      <div class="upload-box" id="upload-box">
         <h3>Upload new files</h3>
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="upload-form">
           <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
           <input type="hidden" name="action" value="upload">
-          <div class="grid-2">
-            <label>Files (images/videos)
-              <input type="file" name="files[]" multiple accept="image/*,video/mp4,video/webm,video/quicktime,.m4v,.pdf,.svg">
-            </label>
-            <label>Subfolder inside uploads
-              <input type="text" name="subdir" value="library" placeholder="library">
-            </label>
+          <div class="drop-zone" id="drop-zone">
+            <p class="drop-zone-title">Drag & drop files here</p>
+            <p class="muted small">or click to choose files</p>
+            <input type="file" name="files[]" id="file-input" multiple accept="image/*,video/mp4,video/webm,video/quicktime,.m4v,.pdf,.svg">
           </div>
-          <button type="submit" class="btn btn-primary">Upload</button>
+          <div class="grid-2" style="margin-top:1rem">
+            <label>Subfolder inside uploads
+              <input type="text" name="subdir" id="upload-subdir" value="library" placeholder="library">
+            </label>
+            <div style="display:flex;align-items:flex-end"><button type="submit" class="btn btn-primary">Upload</button></div>
+          </div>
         </form>
       </div>
 
+      <?php
+        $unusedCount = 0;
+        foreach ($files as $ff) { if (empty($usedMap[$ff['rel']])) $unusedCount++; }
+      ?>
       <div class="section-head">
         <h2>Files</h2>
-        <span class="muted small"><?= count($files) ?> files</span>
+        <div class="media-head-actions">
+          <span class="muted small"><?= count($files) ?> files · <?= $unusedCount ?> unused</span>
+          <div class="media-filters">
+            <button type="button" class="btn btn-small filter-btn active" data-filter="all">All</button>
+            <button type="button" class="btn btn-small filter-btn" data-filter="image">Images</button>
+            <button type="button" class="btn btn-small filter-btn" data-filter="video">Videos</button>
+            <button type="button" class="btn btn-small filter-btn" data-filter="unused">Unused</button>
+          </div>
+          <?php if ($unusedCount > 0): ?>
+          <form method="post" style="display:inline" onsubmit="return confirm('Delete all unused files? This cannot be undone.');">
+            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+            <input type="hidden" name="action" value="delete_unused">
+            <button type="submit" class="btn btn-small btn-danger">Delete unused</button>
+          </form>
+          <?php endif; ?>
+        </div>
       </div>
 
       <?php if (empty($files)): ?>
@@ -266,7 +325,12 @@ require __DIR__ . '/partials/top.php';
               $isImage = in_array($f['ext'], array('jpg','jpeg','png','gif','webp','svg'), true);
               $isVideo = in_array($f['ext'], array('mp4','webm','mov','m4v'), true);
             ?>
-            <div class="media-card">
+            <?php
+              $isUnused = empty($usedMap[$rel]);
+              $typeLabel = $isVideo ? 'VIDEO' : ($isImage ? 'IMAGE' : strtoupper($f['ext']));
+              $filterType = $isVideo ? 'video' : ($isImage ? 'image' : 'file');
+            ?>
+            <div class="media-card" data-type="<?= e($filterType) ?>" data-unused="<?= $isUnused ? '1' : '0' ?>">
               <div class="media-thumb">
                 <?php if ($isImage): ?>
                   <img src="../<?= e($publicPath) ?>" alt="<?= e($f['name']) ?>" loading="lazy">
@@ -275,6 +339,8 @@ require __DIR__ . '/partials/top.php';
                 <?php else: ?>
                   <div class="file-icon"><?= e(strtoupper($f['ext'])) ?><br><small><?= e($f['name']) ?></small></div>
                 <?php endif; ?>
+                <span class="media-badge media-badge-type"><?= e($typeLabel) ?></span>
+                <?php if ($isUnused): ?><span class="media-badge media-badge-unused">UNUSED</span><?php endif; ?>
               </div>
               <div class="media-body">
                 <div class="media-name"><?= e($f['name']) ?></div>
@@ -311,20 +377,11 @@ require __DIR__ . '/partials/top.php';
         var url = copyBtn.getAttribute('data-url') || '';
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(url).then(function () {
-            var old = copyBtn.textContent;
-            copyBtn.textContent = 'Copied';
-            setTimeout(function () { copyBtn.textContent = old; }, 1500);
+            var old = copyBtn.textContent; copyBtn.textContent = 'Copied'; setTimeout(function () { copyBtn.textContent = old; }, 1500);
           });
         } else {
-          var tmp = document.createElement('input');
-          tmp.value = url;
-          document.body.appendChild(tmp);
-          tmp.select();
-          document.execCommand('copy');
-          document.body.removeChild(tmp);
-          var old2 = copyBtn.textContent;
-          copyBtn.textContent = 'Copied';
-          setTimeout(function () { copyBtn.textContent = old2; }, 1500);
+          var tmp = document.createElement('input'); tmp.value = url; document.body.appendChild(tmp); tmp.select(); document.execCommand('copy'); document.body.removeChild(tmp);
+          var old2 = copyBtn.textContent; copyBtn.textContent = 'Copied'; setTimeout(function () { copyBtn.textContent = old2; }, 1500);
         }
         return;
       }
@@ -339,7 +396,47 @@ require __DIR__ . '/partials/top.php';
         document.getElementById('rename-file').value = file;
         document.getElementById('rename-new-name').value = next;
         document.getElementById('rename-form').submit();
+        return;
+      }
+      var filterBtn = e.target.closest('.filter-btn');
+      if (filterBtn) {
+        document.querySelectorAll('.filter-btn').forEach(function (b) { b.classList.remove('active'); });
+        filterBtn.classList.add('active');
+        var filter = filterBtn.getAttribute('data-filter');
+        document.querySelectorAll('.media-card[data-type]').forEach(function (card) {
+          var type = card.getAttribute('data-type');
+          var unused = card.getAttribute('data-unused') === '1';
+          var show = filter === 'all' || (filter === 'unused' && unused) || (filter === type);
+          card.style.display = show ? '' : 'none';
+        });
       }
     });
+
+    (function () {
+      var dropZone = document.getElementById('drop-zone');
+      var fileInput = document.getElementById('file-input');
+      var form = document.getElementById('upload-form');
+      if (!dropZone || !fileInput || !form) return;
+      ['dragenter','dragover'].forEach(function (evt) {
+        dropZone.addEventListener(evt, function (e) { e.preventDefault(); dropZone.classList.add('is-dragover'); });
+      });
+      ['dragleave','dragend','drop'].forEach(function (evt) {
+        dropZone.addEventListener(evt, function (e) { e.preventDefault(); dropZone.classList.remove('is-dragover'); });
+      });
+      dropZone.addEventListener('drop', function (e) {
+        var files = e.dataTransfer && e.dataTransfer.files;
+        if (!files || !files.length) return;
+        try {
+          var dt = new DataTransfer();
+          for (var i = 0; i < files.length; i++) dt.items.add(files[i]);
+          fileInput.files = dt.files;
+        } catch (err) {}
+        form.submit();
+      });
+      dropZone.addEventListener('click', function (e) {
+        if (e.target === fileInput) return;
+        fileInput.click();
+      });
+    })();
   </script>
 <?php require __DIR__ . '/partials/bottom.php'; ?>
