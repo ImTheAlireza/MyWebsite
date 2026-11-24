@@ -140,8 +140,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'alt' => $existingAlt,
                 );
             } elseif (!$removeMedia && $existingSrc !== '') {
+                $ext = strtolower(pathinfo(parse_url($existingSrc, PHP_URL_PATH), PATHINFO_EXTENSION));
+                $type = in_array($ext, array('mp4', 'webm', 'mov', 'm4v'), true) ? 'video' : 'image';
+                if ($existingType === 'video' || $existingType === 'image') {
+                    // keep explicit type if extension is ambiguous
+                    if ($ext === '' ) $type = $existingType;
+                }
                 $media = array(
-                    'type' => ($existingType === 'video') ? 'video' : 'image',
+                    'type' => $type,
                     'src' => $existingSrc,
                     'alt' => $existingAlt,
                 );
@@ -263,6 +269,9 @@ $contact = isset($content['contact']) ? $content['contact'] : array();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>پنل مدیریت سایت</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/admin.css">
 </head>
 <body>
@@ -278,6 +287,7 @@ $contact = isset($content['contact']) ? $content['contact'] : array();
         <a href="#about">درباره</a>
         <a href="#contact">تماس</a>
         <a href="#password">رمز عبور</a>
+        <a href="media.php">کتابخانه رسانه</a>
         <a href="../index.php" target="_blank">مشاهده سایت</a>
         <a href="logout.php" class="danger-link">خروج</a>
       </nav>
@@ -499,7 +509,7 @@ $contact = isset($content['contact']) ? $content['contact'] : array();
         <label>فایل رسانه (تصویر/ویدیو)<input type="file" name="__WORK_MEDIA_FILE__" accept="image/*,video/mp4,video/webm"></label>
         <label>Alt متن تصویر<input type="text" name="work_media_alt[]" value=""></label>
       </div>
-      <input type="hidden" name="work_media_src[]" value="">
+      <label>یا لینک/مسیر رسانه (از کتابخانه کپی کنید)<input type="text" name="work_media_src[]" value="" placeholder="uploads/library/... یا https://..."></label>
       <input type="hidden" name="work_media_type[]" value="">
       <input type="hidden" name="work_remove_media[__WORK_INDEX__]" value="0">
       <button type="button" class="btn btn-danger btn-small remove-row">حذف پروژه</button>
