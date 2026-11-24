@@ -12,7 +12,7 @@
 <?php endforeach; ?>
             </div>
             <!-- TODO: replace with a workspace photo, your hands at work, or an illustrated portrait. -->
-            <figure class="portrait"><div class="frame"><?= e($about['portrait_placeholder']) ?></div></figure>
+            <figure class="portrait"><div class="frame"><?php if (!empty($about['portrait_image'])): ?><img src="<?= e($about['portrait_image']) ?>" alt="<?= e(isset($site['name']) ? $site['name'] : 'Portrait') ?>" loading="lazy"><?php else: ?><?= e(isset($about['portrait_placeholder']) ? $about['portrait_placeholder'] : 'Add a portrait or workspace photo') ?><?php endif; ?></div></figure>
           </div>
 
           <dl>
