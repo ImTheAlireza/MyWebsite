@@ -100,7 +100,7 @@
     .work-play-badge { position: absolute; right: 0.85rem; bottom: 0.85rem; width: 42px; height: 42px; border-radius: 50%; background: rgba(0,0,0,0.45); color: #fff; display: grid; place-items: center; backdrop-filter: blur(2px); transition: opacity 0.25s ease, transform 0.25s ease; pointer-events: none; }
     .work-play-badge svg { width: 18px; height: 18px; margin-left: 2px; }
     .work-card:hover .work-play-badge, .work-card:focus-visible .work-play-badge { opacity: 0; transform: scale(0.92); }
-    .work-overlay { position: absolute; inset: 0; display: flex; align-items: flex-end; padding: 1.25rem; background: linear-gradient(to top, color-mix(in srgb, var(--accent) 65%, rgb(0 0 0 / 0.96)) 0%, color-mix(in srgb, var(--accent) 45%, transparent) 38%, transparent 65%); opacity: 0; transition: opacity 0.35s ease; }
+    .work-overlay { position: absolute; inset: 0; display: flex; align-items: flex-end; padding: 1.25rem; background: linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.45) 38%, rgba(0, 0, 0, 0) 65%); opacity: 0; transition: opacity 0.35s ease; }
     .work-overlay-content { transform: translateY(18px); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
     .work-overlay-title { margin: 0; color: #fff; font-size: 1.2rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
     .work-overlay-meta { margin: 0.35rem 0 0; color: rgba(255,255,255,0.78); font-size: 0.9rem; }
