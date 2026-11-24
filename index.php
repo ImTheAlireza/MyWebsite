@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 // Temporary debug settings to diagnose production issues.
 // TODO: disable/remove after the site is loading correctly.
@@ -29,7 +28,7 @@ try {
 
 <?php
     require __DIR__ . '/partials/footer.php';
-} catch (Throwable $e) {
+} catch (Exception $e) {
     $msg = '[' . date('c') . '] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
     error_log($msg);
     http_response_code(500);

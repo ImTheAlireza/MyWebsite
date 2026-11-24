@@ -14,7 +14,7 @@
         <div class="work-grid">
 <?php foreach ($works as $work): ?>
           <figure class="work">
-            <div class="frame"><?php if (!empty($work['media'])): ?><?php if ($work['media']['type'] === 'video'): ?><video src="<?= e($work['media']['src']) ?>" muted loop playsinline></video><?php else: ?><img src="<?= e($work['media']['src']) ?>" alt="<?= e($work['media']['alt'] ?? '') ?>" loading="lazy"><?php endif; ?><?php else: ?><?= e($work['placeholder'] ?? 'Add image or video') ?><?php endif; ?></div>
+            <div class="frame"><?php if (!empty($work['media'])): ?><?php if ($work['media']['type'] === 'video'): ?><video src="<?= e($work['media']['src']) ?>" muted loop playsinline></video><?php else: ?><img src="<?= e($work['media']['src']) ?>" alt="<?= e(isset($work['media']['alt']) ? $work['media']['alt'] : '') ?>" loading="lazy"><?php endif; ?><?php else: ?><?= e(isset($work['placeholder']) ? $work['placeholder'] : 'Add image or video') ?><?php endif; ?></div>
             <figcaption><span class="title"><?= e($work['title']) ?></span><span class="meta"><?= e($work['meta']) ?></span></figcaption>
           </figure>
 <?php endforeach; ?>
