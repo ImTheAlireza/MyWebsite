@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'change_password') {
         if (admin_using_env()) {
-            $error = 'رمز عبور از طریق فایل .env مدیریت می‌شود. مقدار ADMIN_PASSWORD را در .env تغییر دهید.';
+            $error = 'Password is managed via the .env file. Update ADMIN_PASSWORD in .env.';
         } else {
             $current = post_str('current_password');
             $new = post_str('new_password');
@@ -68,19 +68,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $salt = isset($admin['salt']) ? $admin['salt'] : '';
             $hash = isset($admin['password_hash']) ? $admin['password_hash'] : '';
             if (!hash_equals($hash, admin_hash_password($current, $salt))) {
-                $error = 'رمز عبور فعلی درست نیست.';
+                $error = 'Current password is incorrect.';
             } elseif (strlen($new) < 8) {
-                $error = 'رمز عبور جدید باید حداقل ۸ کاراکتر باشد.';
+                $error = 'New password must be at least 8 characters.';
             } elseif ($new !== $confirm) {
-                $error = 'تکرار رمز عبور جدید یکسان نیست.';
+                $error = 'New password confirmation does not match.';
             } else {
                 $newSalt = function_exists('random_bytes') ? bin2hex(random_bytes(16)) : md5(uniqid(mt_rand(), true));
                 $admin['salt'] = $newSalt;
                 $admin['password_hash'] = admin_hash_password($new, $newSalt);
                 if (admin_save($admin)) {
-                    $message = 'رمز عبور با موفقیت تغییر کرد.';
+                    $message = 'Password updated successfully.';
                 } else {
-                    $error = 'ذخیره رمز عبور ناموفق بود.';
+                    $error = 'Failed to save password.';
                 }
             }
         }
@@ -204,27 +204,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $experience = array();
         $eWhens = post_array('exp_when');
-        $eWhats = post_array('exp_what');
+        $eRoles = post_array('exp_role');
+        $eCompanies = post_array('exp_company');
         $eDetails = post_array('exp_detail');
         foreach ($eWhens as $i => $when) {
             $when = clean_text($when);
-            $what = isset($eWhats[$i]) ? clean_text($eWhats[$i]) : '';
+            $role = isset($eRoles[$i]) ? clean_text($eRoles[$i]) : '';
+            $company = isset($eCompanies[$i]) ? clean_text($eCompanies[$i]) : '';
             $detail = isset($eDetails[$i]) ? clean_text($eDetails[$i]) : '';
-            if ($when === '' && $what === '' && $detail === '') continue;
-            $experience[] = array('when' => $when, 'what' => $what, 'detail' => $detail);
+            if ($when === '' && $role === '' && $company === '' && $detail === '') continue;
+            $experience[] = array('when' => $when, 'role' => $role, 'company' => $company, 'detail' => $detail);
         }
         $about['experience'] = $experience;
 
         $education = array();
         $edWhens = post_array('edu_when');
-        $edWhats = post_array('edu_what');
+        $edDegrees = post_array('edu_degree');
+        $edInstitutions = post_array('edu_institution');
+        $edGpas = post_array('edu_gpa');
         $edDetails = post_array('edu_detail');
         foreach ($edWhens as $i => $when) {
             $when = clean_text($when);
-            $what = isset($edWhats[$i]) ? clean_text($edWhats[$i]) : '';
+            $degree = isset($edDegrees[$i]) ? clean_text($edDegrees[$i]) : '';
+            $institution = isset($edInstitutions[$i]) ? clean_text($edInstitutions[$i]) : '';
+            $gpa = isset($edGpas[$i]) ? clean_text($edGpas[$i]) : '';
             $detail = isset($edDetails[$i]) ? clean_text($edDetails[$i]) : '';
-            if ($when === '' && $what === '' && $detail === '') continue;
-            $education[] = array('when' => $when, 'what' => $what, 'detail' => $detail);
+            if ($when === '' && $degree === '' && $institution === '' && $gpa === '' && $detail === '') continue;
+            $education[] = array('when' => $when, 'degree' => $degree, 'institution' => $institution, 'gpa' => $gpa, 'detail' => $detail);
         }
         $about['education'] = $education;
 
@@ -248,10 +254,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         if (save_content($newContent)) {
-            $message = 'تغییرات با موفقیت ذخیره شد.';
+            $message = 'Changes saved successfully.';
             $content = load_content();
         } else {
-            $error = 'ذخیره فایل محتوا ناموفق بود. دسترسی نوشتن پوشه data را بررسی کنید.';
+            $error = 'Failed to save content file. Check write permissions for the data directory.';
         }
     }
 }
@@ -264,11 +270,11 @@ $about = isset($content['about']) ? $content['about'] : array();
 $contact = isset($content['contact']) ? $content['contact'] : array();
 ?>
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>پنل مدیریت سایت</title>
+  <title>Site Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&display=swap" rel="stylesheet">
@@ -277,26 +283,26 @@ $contact = isset($content['contact']) ? $content['contact'] : array();
 <body>
   <div class="admin-shell">
     <aside class="sidebar">
-      <h2>پنل مدیریت</h2>
+      <h2>Admin Panel</h2>
       <p class="muted small"><?= e(isset($site['name']) ? $site['name'] : 'Site') ?></p>
       <nav>
-        <a href="#site">تنظیمات سایت</a>
-        <a href="#nav">منو</a>
-        <a href="#works">پروژه‌ها</a>
-        <a href="#services">سرویس‌ها</a>
-        <a href="#about">درباره</a>
-        <a href="#contact">تماس</a>
-        <a href="#password">رمز عبور</a>
-        <a href="media.php">کتابخانه رسانه</a>
-        <a href="../index.php" target="_blank">مشاهده سایت</a>
-        <a href="logout.php" class="danger-link">خروج</a>
+        <a href="#site">Site Settings</a>
+        <a href="#nav">Navigation</a>
+        <a href="#works">Projects</a>
+        <a href="#services">Services</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+        <a href="#password">Password</a>
+        <a href="media.php">Media Library</a>
+        <a href="../index.php" target="_blank">View Site</a>
+        <a href="logout.php" class="danger-link">Log out</a>
       </nav>
     </aside>
 
     <main class="content">
       <div class="page-head">
-        <h1>مدیریت محتوا</h1>
-        <p class="muted">اطلاعات سایت، پروژه‌ها و بخش‌های مختلف را از اینجا ویرایش کنید.</p>
+        <h1>Content Manager</h1>
+        <p class="muted">Edit your site information, projects, and all other sections from here.</p>
       </div>
 
       <?php if ($message): ?><div class="alert alert-success"><?= e($message) ?></div><?php endif; ?>
@@ -307,34 +313,34 @@ $contact = isset($content['contact']) ? $content['contact'] : array();
         <input type="hidden" name="action" value="save_content">
 
         <section id="site" class="card">
-          <h2>تنظیمات سایت</h2>
+          <h2>Site Settings</h2>
           <div class="grid-2">
-            <label>نام سایت<input type="text" name="site[name]" value="<?= e(isset($site['name']) ? $site['name'] : '') ?>"></label>
-            <label>عنوان صفحه (Title)<input type="text" name="site[title]" value="<?= e(isset($site['title']) ? $site['title'] : '') ?>"></label>
-            <label>نام<input type="text" name="site[first_name]" value="<?= e(isset($site['first_name']) ? $site['first_name'] : '') ?>"></label>
-            <label>نام خانوادگی<input type="text" name="site[last_name]" value="<?= e(isset($site['last_name']) ? $site['last_name'] : '') ?>"></label>
-            <label>ایمیل<input type="email" name="site[email]" value="<?= e(isset($site['email']) ? $site['email'] : '') ?>"></label>
-            <label>لینک LinkedIn<input type="text" name="site[linkedin_url]" value="<?= e(isset($site['linkedin_url']) ? $site['linkedin_url'] : '') ?>"></label>
-            <label>زبان (lang)<input type="text" name="site[lang]" value="<?= e(isset($site['lang']) ? $site['lang'] : 'en') ?>"></label>
-            <label>سال کپی‌رایت<input type="text" name="site[copyright_year]" value="<?= e(isset($site['copyright_year']) ? $site['copyright_year'] : '') ?>"></label>
+            <label>Site name<input type="text" name="site[name]" value="<?= e(isset($site['name']) ? $site['name'] : '') ?>"></label>
+            <label>Page title<input type="text" name="site[title]" value="<?= e(isset($site['title']) ? $site['title'] : '') ?>"></label>
+            <label>First name<input type="text" name="site[first_name]" value="<?= e(isset($site['first_name']) ? $site['first_name'] : '') ?>"></label>
+            <label>Last name<input type="text" name="site[last_name]" value="<?= e(isset($site['last_name']) ? $site['last_name'] : '') ?>"></label>
+            <label>Email<input type="email" name="site[email]" value="<?= e(isset($site['email']) ? $site['email'] : '') ?>"></label>
+            <label>LinkedIn URL<input type="text" name="site[linkedin_url]" value="<?= e(isset($site['linkedin_url']) ? $site['linkedin_url'] : '') ?>"></label>
+            <label>Language (lang)<input type="text" name="site[lang]" value="<?= e(isset($site['lang']) ? $site['lang'] : 'en') ?>"></label>
+            <label>Copyright year<input type="text" name="site[copyright_year]" value="<?= e(isset($site['copyright_year']) ? $site['copyright_year'] : '') ?>"></label>
           </div>
-          <label>توضیحات متا (Description)<textarea name="site[description]" rows="2"><?= e(isset($site['description']) ? $site['description'] : '') ?></textarea></label>
-          <label>نقش/عنوان کوتاه (Hero role)<input type="text" name="site[role]" value="<?= e(isset($site['role']) ? $site['role'] : '') ?>"></label>
-          <label>معرفی کوتاه (Hero intro)<textarea name="site[intro]" rows="3"><?= e(isset($site['intro']) ? $site['intro'] : '') ?></textarea></label>
-          <label>متن فوتر<input type="text" name="site[footer_tagline]" value="<?= e(isset($site['footer_tagline']) ? $site['footer_tagline'] : '') ?>"></label>
+          <label>Meta description<textarea name="site[description]" rows="2"><?= e(isset($site['description']) ? $site['description'] : '') ?></textarea></label>
+          <label>Hero role<input type="text" name="site[role]" value="<?= e(isset($site['role']) ? $site['role'] : '') ?>"></label>
+          <label>Hero intro<textarea name="site[intro]" rows="3"><?= e(isset($site['intro']) ? $site['intro'] : '') ?></textarea></label>
+          <label>Footer tagline<input type="text" name="site[footer_tagline]" value="<?= e(isset($site['footer_tagline']) ? $site['footer_tagline'] : '') ?>"></label>
         </section>
 
         <section id="nav" class="card">
           <div class="section-head">
-            <h2>منو</h2>
-            <button type="button" class="btn btn-small" data-add="nav">+ افزودن آیتم</button>
+            <h2>Navigation</h2>
+            <button type="button" class="btn btn-small" data-add="nav">+ Add item</button>
           </div>
           <div id="nav-list" class="repeat-list">
             <?php foreach ($nav as $item): ?>
             <div class="repeat-item grid-2">
-              <label>عنوان<input type="text" name="nav_label[]" value="<?= e(isset($item['label']) ? $item['label'] : '') ?>"></label>
-              <label>لینک<input type="text" name="nav_href[]" value="<?= e(isset($item['href']) ? $item['href'] : '') ?>"></label>
-              <button type="button" class="btn btn-danger btn-small remove-row">حذف</button>
+              <label>Title<input type="text" name="nav_label[]" value="<?= e(isset($item['label']) ? $item['label'] : '') ?>"></label>
+              <label>URL<input type="text" name="nav_href[]" value="<?= e(isset($item['href']) ? $item['href'] : '') ?>"></label>
+              <button type="button" class="btn btn-danger btn-small remove-row">Remove</button>
             </div>
             <?php endforeach; ?>
           </div>
@@ -342,33 +348,33 @@ $contact = isset($content['contact']) ? $content['contact'] : array();
 
         <section id="works" class="card">
           <div class="section-head">
-            <h2>پروژه‌ها (Selected Work)</h2>
-            <button type="button" class="btn btn-small" data-add="work">+ افزودن پروژه</button>
+            <h2>Projects (Selected Work)</h2>
+            <button type="button" class="btn btn-small" data-add="work">+ Add project</button>
           </div>
           <div id="works-list" class="repeat-list">
             <?php foreach ($works as $i => $work): ?>
             <?php $media = isset($work['media']) && is_array($work['media']) ? $work['media'] : null; ?>
             <div class="repeat-item work-item">
               <div class="grid-2">
-                <label>عنوان پروژه<input type="text" name="work_title[]" value="<?= e(isset($work['title']) ? $work['title'] : '') ?>"></label>
-                <label>متا (مثلاً Motion · Client)<input type="text" name="work_meta[]" value="<?= e(isset($work['meta']) ? $work['meta'] : '') ?>"></label>
+                <label>Project title<input type="text" name="work_title[]" value="<?= e(isset($work['title']) ? $work['title'] : '') ?>"></label>
+                <label>Meta (e.g. Motion · Client)<input type="text" name="work_meta[]" value="<?= e(isset($work['meta']) ? $work['meta'] : '') ?>"></label>
               </div>
-              <label>متن جایگزین (وقتی رسانه ندارد)<input type="text" name="work_placeholder[]" value="<?= e(isset($work['placeholder']) ? $work['placeholder'] : '') ?>"></label>
+              <label>Placeholder text (when no media)<input type="text" name="work_placeholder[]" value="<?= e(isset($work['placeholder']) ? $work['placeholder'] : '') ?>"></label>
               <div class="grid-2">
-                <label>فایل رسانه (تصویر/ویدیو)<input type="file" name="work_media_file_<?= $i ?>" accept="image/*,video/mp4,video/webm"></label>
-                <label>Alt متن تصویر<input type="text" name="work_media_alt[]" value="<?= e($media && isset($media['alt']) ? $media['alt'] : '') ?>"></label>
+                <label>Media file (image/video)<input type="file" name="work_media_file_<?= $i ?>" accept="image/*,video/mp4,video/webm"></label>
+                <label>Image alt text<input type="text" name="work_media_alt[]" value="<?= e($media && isset($media['alt']) ? $media['alt'] : '') ?>"></label>
               </div>
               <input type="hidden" name="work_media_src[]" value="<?= e($media && isset($media['src']) ? $media['src'] : '') ?>">
               <input type="hidden" name="work_media_type[]" value="<?= e($media && isset($media['type']) ? $media['type'] : '') ?>">
               <?php if ($media && !empty($media['src'])): ?>
               <div class="media-preview">
-                <span class="muted small">فایل فعلی: <?= e($media['src']) ?></span>
-                <label class="inline-check"><input type="checkbox" name="work_remove_media[<?= $i ?>]" value="1"> حذف رسانه</label>
+                <span class="muted small">Current file: <?= e($media['src']) ?></span>
+                <label class="inline-check"><input type="checkbox" name="work_remove_media[<?= $i ?>]" value="1"> Remove media</label>
               </div>
               <?php else: ?>
               <input type="hidden" name="work_remove_media[<?= $i ?>]" value="0">
               <?php endif; ?>
-              <button type="button" class="btn btn-danger btn-small remove-row">حذف پروژه</button>
+              <button type="button" class="btn btn-danger btn-small remove-row">Remove project</button>
             </div>
             <?php endforeach; ?>
           </div>
@@ -376,115 +382,124 @@ $contact = isset($content['contact']) ? $content['contact'] : array();
 
         <section id="services" class="card">
           <div class="section-head">
-            <h2>سرویس‌ها</h2>
-            <button type="button" class="btn btn-small" data-add="service">+ افزودن سرویس</button>
+            <h2>Services</h2>
+            <button type="button" class="btn btn-small" data-add="service">+ Add service</button>
           </div>
           <div id="services-list" class="repeat-list">
             <?php foreach ($services as $svc): ?>
             <div class="repeat-item grid-2">
-              <label>عنوان<input type="text" name="service_title[]" value="<?= e(isset($svc['title']) ? $svc['title'] : '') ?>"></label>
-              <label>توضیح<input type="text" name="service_desc[]" value="<?= e(isset($svc['description']) ? $svc['description'] : '') ?>"></label>
-              <button type="button" class="btn btn-danger btn-small remove-row">حذف</button>
+              <label>Title<input type="text" name="service_title[]" value="<?= e(isset($svc['title']) ? $svc['title'] : '') ?>"></label>
+              <label>Description<input type="text" name="service_desc[]" value="<?= e(isset($svc['description']) ? $svc['description'] : '') ?>"></label>
+              <button type="button" class="btn btn-danger btn-small remove-row">Remove</button>
             </div>
             <?php endforeach; ?>
           </div>
         </section>
 
         <section id="about" class="card">
-          <h2>درباره</h2>
-          <div class="section-head"><h3>پاراگراف‌ها</h3><button type="button" class="btn btn-small" data-add="paragraph">+ افزودن پاراگراف</button></div>
+          <h2>About</h2>
+          <div class="section-head"><h3>Paragraphs</h3><button type="button" class="btn btn-small" data-add="paragraph">+ Add paragraph</button></div>
           <div id="paragraphs-list" class="repeat-list">
             <?php $paragraphs = isset($about['paragraphs']) && is_array($about['paragraphs']) ? $about['paragraphs'] : array(); ?>
             <?php foreach ($paragraphs as $p): ?>
             <div class="repeat-item">
-              <label>پاراگراف<textarea name="about_paragraphs[]" rows="3"><?= e($p) ?></textarea></label>
-              <button type="button" class="btn btn-danger btn-small remove-row">حذف</button>
+              <label>Paragraph<textarea name="about_paragraphs[]" rows="3"><?= e($p) ?></textarea></label>
+              <button type="button" class="btn btn-danger btn-small remove-row">Remove</button>
             </div>
             <?php endforeach; ?>
           </div>
 
-          <h3>تصویر پرتره/فضای کار</h3>
-          <label>متن جایگزین پرتره<input type="text" name="about_portrait_placeholder" value="<?= e(isset($about['portrait_placeholder']) ? $about['portrait_placeholder'] : '') ?>"></label>
-          <label>آپلود تصویر پرتره<input type="file" name="about_portrait_file" accept="image/*"></label>
+          <h3>Portrait / workspace image</h3>
+          <label>Portrait placeholder text<input type="text" name="about_portrait_placeholder" value="<?= e(isset($about['portrait_placeholder']) ? $about['portrait_placeholder'] : '') ?>"></label>
+          <label>Upload portrait image<input type="file" name="about_portrait_file" accept="image/*"></label>
           <input type="hidden" name="about_portrait_image" value="<?= e(isset($about['portrait_image']) ? $about['portrait_image'] : '') ?>">
           <?php if (!empty($about['portrait_image'])): ?>
-            <div class="media-preview"><span class="muted small">فایل فعلی: <?= e($about['portrait_image']) ?></span>
-            <label class="inline-check"><input type="checkbox" name="about_remove_portrait" value="1"> حذف تصویر</label></div>
+            <div class="media-preview"><span class="muted small">Current file: <?= e($about['portrait_image']) ?></span>
+            <label class="inline-check"><input type="checkbox" name="about_remove_portrait" value="1"> Remove image</label></div>
           <?php endif; ?>
 
-          <div class="section-head"><h3>جزئیات (Focus/Tools/...)</h3><button type="button" class="btn btn-small" data-add="detail">+ افزودن</button></div>
+          <div class="section-head"><h3>Details (Focus/Tools/...)</h3><button type="button" class="btn btn-small" data-add="detail">+ Add</button></div>
           <div id="details-list" class="repeat-list">
             <?php $details = isset($about['details']) && is_array($about['details']) ? $about['details'] : array(); ?>
             <?php foreach ($details as $d): ?>
             <div class="repeat-item grid-2">
-              <label>عنوان<input type="text" name="detail_label[]" value="<?= e(isset($d['label']) ? $d['label'] : '') ?>"></label>
-              <label>مقدار<input type="text" name="detail_value[]" value="<?= e(isset($d['value']) ? $d['value'] : '') ?>"></label>
-              <button type="button" class="btn btn-danger btn-small remove-row">حذف</button>
+              <label>Title<input type="text" name="detail_label[]" value="<?= e(isset($d['label']) ? $d['label'] : '') ?>"></label>
+              <label>Value<input type="text" name="detail_value[]" value="<?= e(isset($d['value']) ? $d['value'] : '') ?>"></label>
+              <button type="button" class="btn btn-danger btn-small remove-row">Remove</button>
             </div>
             <?php endforeach; ?>
           </div>
 
-          <div class="section-head"><h3>تجربه (Experience)</h3><button type="button" class="btn btn-small" data-add="exp">+ افزودن</button></div>
+          <div class="section-head"><h3>Experience</h3><button type="button" class="btn btn-small" data-add="exp">+ Add</button></div>
           <div id="exp-list" class="repeat-list">
             <?php $experience = isset($about['experience']) && is_array($about['experience']) ? $about['experience'] : array(); ?>
             <?php foreach ($experience as $ex): ?>
-            <div class="repeat-item grid-3">
-              <label>بازه زمانی<input type="text" name="exp_when[]" value="<?= e(isset($ex['when']) ? $ex['when'] : '') ?>"></label>
-              <label>عنوان/شرکت<input type="text" name="exp_what[]" value="<?= e(isset($ex['what']) ? $ex['what'] : '') ?>"></label>
-              <label>توضیح<input type="text" name="exp_detail[]" value="<?= e(isset($ex['detail']) ? $ex['detail'] : '') ?>"></label>
-              <button type="button" class="btn btn-danger btn-small remove-row">حذف</button>
+            <?php $exRole = isset($ex['role']) ? $ex['role'] : (isset($ex['what']) ? $ex['what'] : ''); $exCompany = isset($ex['company']) ? $ex['company'] : ''; ?>
+            <div class="repeat-item">
+              <div class="grid-3">
+                <label>Period<input type="text" name="exp_when[]" value="<?= e(isset($ex['when']) ? $ex['when'] : '') ?>" placeholder="e.g. Jun 2023 – Present"></label>
+                <label>Role / Title<input type="text" name="exp_role[]" value="<?= e($exRole) ?>" placeholder="e.g. Motion Designer"></label>
+                <label>Company / Organization<input type="text" name="exp_company[]" value="<?= e($exCompany) ?>" placeholder="e.g. IDmelon"></label>
+              </div>
+              <label>Description<textarea name="exp_detail[]" rows="2" placeholder="One line on what you did there."><?= e(isset($ex['detail']) ? $ex['detail'] : '') ?></textarea></label>
+              <button type="button" class="btn btn-danger btn-small remove-row">Remove</button>
             </div>
             <?php endforeach; ?>
           </div>
 
-          <div class="section-head"><h3>تحصیلات (Education)</h3><button type="button" class="btn btn-small" data-add="edu">+ افزودن</button></div>
+          <div class="section-head"><h3>Education</h3><button type="button" class="btn btn-small" data-add="edu">+ Add</button></div>
           <div id="edu-list" class="repeat-list">
             <?php $education = isset($about['education']) && is_array($about['education']) ? $about['education'] : array(); ?>
             <?php foreach ($education as $ed): ?>
-            <div class="repeat-item grid-3">
-              <label>بازه زمانی<input type="text" name="edu_when[]" value="<?= e(isset($ed['when']) ? $ed['when'] : '') ?>"></label>
-              <label>مدرک/موسسه<input type="text" name="edu_what[]" value="<?= e(isset($ed['what']) ? $ed['what'] : '') ?>"></label>
-              <label>توضیح<input type="text" name="edu_detail[]" value="<?= e(isset($ed['detail']) ? $ed['detail'] : '') ?>"></label>
-              <button type="button" class="btn btn-danger btn-small remove-row">حذف</button>
+            <?php $edDegree = isset($ed['degree']) ? $ed['degree'] : (isset($ed['what']) ? $ed['what'] : ''); $edInst = isset($ed['institution']) ? $ed['institution'] : ''; $edGpa = isset($ed['gpa']) ? $ed['gpa'] : ''; ?>
+            <div class="repeat-item">
+              <div class="grid-2">
+                <label>Period<input type="text" name="edu_when[]" value="<?= e(isset($ed['when']) ? $ed['when'] : '') ?>" placeholder="e.g. 2020 – 2024"></label>
+                <label>Degree / Program<input type="text" name="edu_degree[]" value="<?= e($edDegree) ?>" placeholder="e.g. B.A. Graphic Design"></label>
+                <label>Institution<input type="text" name="edu_institution[]" value="<?= e($edInst) ?>" placeholder="e.g. University name"></label>
+                <label>GPA<input type="text" name="edu_gpa[]" value="<?= e($edGpa) ?>" placeholder="e.g. 3.8 / 4.0"></label>
+              </div>
+              <label>Description (optional)<textarea name="edu_detail[]" rows="2" placeholder="Optional note"><?= e(isset($ed['detail']) ? $ed['detail'] : '') ?></textarea></label>
+              <button type="button" class="btn btn-danger btn-small remove-row">Remove</button>
             </div>
             <?php endforeach; ?>
           </div>
         </section>
 
         <section id="contact" class="card">
-          <h2>تماس</h2>
-          <label>متن معرفی تماس<textarea name="contact_intro" rows="2"><?= e(isset($contact['intro']) ? $contact['intro'] : '') ?></textarea></label>
-          <div class="section-head"><h3>گزینه‌های فرم تماس</h3><button type="button" class="btn btn-small" data-add="ctype">+ افزودن گزینه</button></div>
+          <h2>Contact</h2>
+          <label>Contact intro text<textarea name="contact_intro" rows="2"><?= e(isset($contact['intro']) ? $contact['intro'] : '') ?></textarea></label>
+          <div class="section-head"><h3>Contact form options</h3><button type="button" class="btn btn-small" data-add="ctype">+ Add Option</button></div>
           <div id="ctype-list" class="repeat-list">
             <?php $formTypes = isset($contact['form_types']) && is_array($contact['form_types']) ? $contact['form_types'] : array(); ?>
             <?php foreach ($formTypes as $t): ?>
             <div class="repeat-item grid-2">
-              <label>گزینه<input type="text" name="contact_form_types[]" value="<?= e($t) ?>"></label>
-              <button type="button" class="btn btn-danger btn-small remove-row">حذف</button>
+              <label>Option<input type="text" name="contact_form_types[]" value="<?= e($t) ?>"></label>
+              <button type="button" class="btn btn-danger btn-small remove-row">Remove</button>
             </div>
             <?php endforeach; ?>
           </div>
         </section>
 
         <div class="save-bar">
-          <button type="submit" class="btn btn-primary">ذخیره همه تغییرات</button>
+          <button type="submit" class="btn btn-primary">Save all changes</button>
         </div>
       </form>
 
       <section id="password" class="card">
-        <h2>تغییر رمز عبور</h2>
+        <h2>Change password</h2>
         <?php if (admin_using_env()): ?>
-          <p class="muted">احراز هویت ادمین از طریق فایل <code>.env</code> انجام می‌شود. برای تغییر رمز، مقدارهای <code>ADMIN_USERNAME</code> و <code>ADMIN_PASSWORD</code> را در فایل <code>.env</code> ویرایش کنید.</p>
+          <p class="muted">Admin authentication is managed through the <code>.env</code> file. To change credentials, update <code>ADMIN_USERNAME</code> and <code>ADMIN_PASSWORD</code> in <code>.env</code>.</p>
         <?php else: ?>
           <form method="post" class="password-form">
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
             <input type="hidden" name="action" value="change_password">
             <div class="grid-3">
-              <label>رمز فعلی<input type="password" name="current_password" required></label>
-              <label>رمز جدید<input type="password" name="new_password" required minlength="8"></label>
-              <label>تکرار رمز جدید<input type="password" name="confirm_password" required minlength="8"></label>
+              <label>Current password<input type="password" name="current_password" required></label>
+              <label>New password<input type="password" name="new_password" required minlength="8"></label>
+              <label>Confirm new password<input type="password" name="confirm_password" required minlength="8"></label>
             </div>
-            <button type="submit" class="btn btn-primary">تغییر رمز</button>
+            <button type="submit" class="btn btn-primary">Update password</button>
           </form>
         <?php endif; ?>
       </section>
@@ -493,68 +508,75 @@ $contact = isset($content['contact']) ? $content['contact'] : array();
 
   <template id="tpl-nav">
     <div class="repeat-item grid-2">
-      <label>عنوان<input type="text" name="nav_label[]" value=""></label>
-      <label>لینک<input type="text" name="nav_href[]" value=""></label>
-      <button type="button" class="btn btn-danger btn-small remove-row">حذف</button>
+      <label>Title<input type="text" name="nav_label[]" value=""></label>
+      <label>URL<input type="text" name="nav_href[]" value=""></label>
+      <button type="button" class="btn btn-danger btn-small remove-row">Remove</button>
     </div>
   </template>
   <template id="tpl-work">
     <div class="repeat-item work-item">
       <div class="grid-2">
-        <label>عنوان پروژه<input type="text" name="work_title[]" value=""></label>
-        <label>متا (مثلاً Motion · Client)<input type="text" name="work_meta[]" value=""></label>
+        <label>Project title<input type="text" name="work_title[]" value=""></label>
+        <label>Meta (e.g. Motion · Client)<input type="text" name="work_meta[]" value=""></label>
       </div>
-      <label>متن جایگزین (وقتی رسانه ندارد)<input type="text" name="work_placeholder[]" value="Add image or video"></label>
+      <label>Placeholder text (when no media)<input type="text" name="work_placeholder[]" value="Add image or video"></label>
       <div class="grid-2">
-        <label>فایل رسانه (تصویر/ویدیو)<input type="file" name="__WORK_MEDIA_FILE__" accept="image/*,video/mp4,video/webm"></label>
-        <label>Alt متن تصویر<input type="text" name="work_media_alt[]" value=""></label>
+        <label>Media file (image/video)<input type="file" name="__WORK_MEDIA_FILE__" accept="image/*,video/mp4,video/webm"></label>
+        <label>Image alt text<input type="text" name="work_media_alt[]" value=""></label>
       </div>
-      <label>یا لینک/مسیر رسانه (از کتابخانه کپی کنید)<input type="text" name="work_media_src[]" value="" placeholder="uploads/library/... یا https://..."></label>
+      <label>Or media URL/path (copy from library)<input type="text" name="work_media_src[]" value="" placeholder="uploads/library/... or https://..."></label>
       <input type="hidden" name="work_media_type[]" value="">
       <input type="hidden" name="work_remove_media[__WORK_INDEX__]" value="0">
-      <button type="button" class="btn btn-danger btn-small remove-row">حذف پروژه</button>
+      <button type="button" class="btn btn-danger btn-small remove-row">Remove project</button>
     </div>
   </template>
   <template id="tpl-service">
     <div class="repeat-item grid-2">
-      <label>عنوان<input type="text" name="service_title[]" value=""></label>
-      <label>توضیح<input type="text" name="service_desc[]" value=""></label>
-      <button type="button" class="btn btn-danger btn-small remove-row">حذف</button>
+      <label>Title<input type="text" name="service_title[]" value=""></label>
+      <label>Description<input type="text" name="service_desc[]" value=""></label>
+      <button type="button" class="btn btn-danger btn-small remove-row">Remove</button>
     </div>
   </template>
   <template id="tpl-paragraph">
     <div class="repeat-item">
-      <label>پاراگراف<textarea name="about_paragraphs[]" rows="3"></textarea></label>
-      <button type="button" class="btn btn-danger btn-small remove-row">حذف</button>
+      <label>Paragraph<textarea name="about_paragraphs[]" rows="3"></textarea></label>
+      <button type="button" class="btn btn-danger btn-small remove-row">Remove</button>
     </div>
   </template>
   <template id="tpl-detail">
     <div class="repeat-item grid-2">
-      <label>عنوان<input type="text" name="detail_label[]" value=""></label>
-      <label>مقدار<input type="text" name="detail_value[]" value=""></label>
-      <button type="button" class="btn btn-danger btn-small remove-row">حذف</button>
+      <label>Title<input type="text" name="detail_label[]" value=""></label>
+      <label>Value<input type="text" name="detail_value[]" value=""></label>
+      <button type="button" class="btn btn-danger btn-small remove-row">Remove</button>
     </div>
   </template>
   <template id="tpl-exp">
-    <div class="repeat-item grid-3">
-      <label>بازه زمانی<input type="text" name="exp_when[]" value=""></label>
-      <label>عنوان/شرکت<input type="text" name="exp_what[]" value=""></label>
-      <label>توضیح<input type="text" name="exp_detail[]" value=""></label>
-      <button type="button" class="btn btn-danger btn-small remove-row">حذف</button>
+    <div class="repeat-item">
+      <div class="grid-3">
+        <label>Period<input type="text" name="exp_when[]" value="" placeholder="e.g. Jun 2023 – Present"></label>
+        <label>Role / Title<input type="text" name="exp_role[]" value="" placeholder="e.g. Motion Designer"></label>
+        <label>Company / Organization<input type="text" name="exp_company[]" value="" placeholder="e.g. IDmelon"></label>
+      </div>
+      <label>Description<textarea name="exp_detail[]" rows="2" placeholder="One line on what you did there."></textarea></label>
+      <button type="button" class="btn btn-danger btn-small remove-row">Remove</button>
     </div>
   </template>
   <template id="tpl-edu">
-    <div class="repeat-item grid-3">
-      <label>بازه زمانی<input type="text" name="edu_when[]" value=""></label>
-      <label>مدرک/موسسه<input type="text" name="edu_what[]" value=""></label>
-      <label>توضیح<input type="text" name="edu_detail[]" value=""></label>
-      <button type="button" class="btn btn-danger btn-small remove-row">حذف</button>
+    <div class="repeat-item">
+      <div class="grid-2">
+        <label>Period<input type="text" name="edu_when[]" value="" placeholder="e.g. 2020 – 2024"></label>
+        <label>Degree / Program<input type="text" name="edu_degree[]" value="" placeholder="e.g. B.A. Graphic Design"></label>
+        <label>Institution<input type="text" name="edu_institution[]" value="" placeholder="e.g. University name"></label>
+        <label>GPA<input type="text" name="edu_gpa[]" value="" placeholder="e.g. 3.8 / 4.0"></label>
+      </div>
+      <label>Description (optional)<textarea name="edu_detail[]" rows="2" placeholder="Optional note"></textarea></label>
+      <button type="button" class="btn btn-danger btn-small remove-row">Remove</button>
     </div>
   </template>
   <template id="tpl-ctype">
     <div class="repeat-item grid-2">
-      <label>گزینه<input type="text" name="contact_form_types[]" value=""></label>
-      <button type="button" class="btn btn-danger btn-small remove-row">حذف</button>
+      <label>Option<input type="text" name="contact_form_types[]" value=""></label>
+      <button type="button" class="btn btn-danger btn-small remove-row">Remove</button>
     </div>
   </template>
 

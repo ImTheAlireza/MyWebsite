@@ -112,26 +112,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         if ($uploadedCount > 0) {
-            $message = $uploadedCount . ' فایل با موفقیت آپلود شد.';
+            $message = $uploadedCount . ' file(s) uploaded successfully.';
         } else {
-            $error = 'فایلی آپلود نشد. فرمت یا اندازه فایل را بررسی کنید.';
+            $error = 'No files were uploaded. Check file format or size.';
         }
     } elseif ($action === 'delete') {
         $rel = isset($_POST['file']) ? safe_rel_path($_POST['file']) : null;
         if ($rel === null) {
-            $error = 'مسیر فایل نامعتبر است.';
+            $error = 'Invalid file path.';
         } else {
             $full = uploads_base_dir() . '/' . $rel;
             $realBase = realpath(uploads_base_dir());
             $realFull = realpath($full);
             if ($realBase && $realFull && strpos($realFull, $realBase) === 0 && is_file($realFull)) {
                 if (unlink($realFull)) {
-                    $message = 'فایل حذف شد.';
+                    $message = 'File deleted.';
                 } else {
-                    $error = 'حذف فایل ناموفق بود.';
+                    $error = 'Failed to delete file.';
                 }
             } else {
-                $error = 'فایل پیدا نشد.';
+                $error = 'File not found.';
             }
         }
     }
@@ -141,11 +141,11 @@ $files = list_upload_files();
 $baseUrl = site_base_url();
 ?>
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>کتابخانه رسانه</title>
+  <title>Media Library</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&display=swap" rel="stylesheet">
@@ -154,24 +154,24 @@ $baseUrl = site_base_url();
 <body>
   <div class="admin-shell">
     <aside class="sidebar">
-      <h2>پنل مدیریت</h2>
-      <p class="muted small">کتابخانه رسانه</p>
+      <h2>Admin Panel</h2>
+      <p class="muted small">Media Library</p>
       <nav>
-        <a href="index.php#site">تنظیمات سایت</a>
-        <a href="index.php#works">پروژه‌ها</a>
-        <a href="index.php#services">سرویس‌ها</a>
-        <a href="index.php#about">درباره</a>
-        <a href="index.php#contact">تماس</a>
-        <a href="media.php" class="active">کتابخانه رسانه</a>
-        <a href="../index.php" target="_blank">مشاهده سایت</a>
-        <a href="logout.php" class="danger-link">خروج</a>
+        <a href="index.php#site">Site Settings</a>
+        <a href="index.php#works">Projects</a>
+        <a href="index.php#services">Services</a>
+        <a href="index.php#about">About</a>
+        <a href="index.php#contact">Contact</a>
+        <a href="media.php" class="active">Media Library</a>
+        <a href="../index.php" target="_blank">View Site</a>
+        <a href="logout.php" class="danger-link">Log out</a>
       </nav>
     </aside>
 
     <main class="content">
       <div class="page-head">
-        <h1>کتابخانه رسانه</h1>
-        <p class="muted">تصاویر و ویدیوها را آپلود کنید، فایل‌ها را مدیریت کنید و لینک مستقیم هر فایل را کپی یا دانلود کنید.</p>
+        <h1>Media Library</h1>
+        <p class="muted">Upload images and videos, manage files, and copy or download a direct link for each file.</p>
       </div>
 
       <?php if ($message): ?><div class="alert alert-success"><?= e($message) ?></div><?php endif; ?>
@@ -179,29 +179,29 @@ $baseUrl = site_base_url();
 
       <section class="card">
         <div class="upload-box">
-          <h3>آپلود فایل جدید</h3>
+          <h3>Upload new files</h3>
           <form method="post" enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
             <input type="hidden" name="action" value="upload">
             <div class="grid-2">
-              <label>فایل‌ها (تصویر/ویدیو)
+              <label>Files (images/videos)
                 <input type="file" name="files[]" multiple accept="image/*,video/mp4,video/webm,video/quicktime,.m4v,.pdf,.svg">
               </label>
-              <label>پوشه داخل uploads
+              <label>Subfolder inside uploads
                 <input type="text" name="subdir" value="library" placeholder="library">
               </label>
             </div>
-            <button type="submit" class="btn btn-primary">آپلود</button>
+            <button type="submit" class="btn btn-primary">Upload</button>
           </form>
         </div>
 
         <div class="section-head">
-          <h2>فایل‌ها</h2>
-          <span class="muted small"><?= count($files) ?> فایل</span>
+          <h2>Files</h2>
+          <span class="muted small"><?= count($files) ?> files</span>
         </div>
 
         <?php if (empty($files)): ?>
-          <p class="muted">هنوز فایلی در پوشه <code>uploads/</code> وجود ندارد.</p>
+          <p class="muted">No files found in <code>uploads/</code> yet.</p>
         <?php else: ?>
           <div class="library-grid">
             <?php foreach ($files as $f): ?>
@@ -227,13 +227,13 @@ $baseUrl = site_base_url();
                   <div class="media-name"><?= e($f['name']) ?></div>
                   <div class="media-meta"><?= e(format_bytes($f['size'])) ?> · <?= e($rel) ?></div>
                   <div class="media-actions">
-                    <button type="button" class="btn copy-link" data-url="<?= e($fullUrl) ?>">کپی لینک</button>
-                    <a class="btn" href="<?= e($downloadUrl) ?>">دانلود</a>
-                    <form method="post" style="display:inline" onsubmit="return confirm('این فایل حذف شود؟');">
+                    <button type="button" class="btn copy-link" data-url="<?= e($fullUrl) ?>">Copy link</button>
+                    <a class="btn" href="<?= e($downloadUrl) ?>">Download</a>
+                    <form method="post" style="display:inline" onsubmit="return confirm('Delete this file?');">
                       <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                       <input type="hidden" name="action" value="delete">
                       <input type="hidden" name="file" value="<?= e($rel) ?>">
-                      <button type="submit" class="btn btn-danger">حذف</button>
+                      <button type="submit" class="btn btn-danger">Remove</button>
                     </form>
                   </div>
                 </div>
@@ -253,7 +253,7 @@ $baseUrl = site_base_url();
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(function () {
           var old = btn.textContent;
-          btn.textContent = 'کپی شد';
+          btn.textContent = 'Copied';
           setTimeout(function () { btn.textContent = old; }, 1500);
         });
       } else {
@@ -264,7 +264,7 @@ $baseUrl = site_base_url();
         document.execCommand('copy');
         document.body.removeChild(tmp);
         var old2 = btn.textContent;
-        btn.textContent = 'کپی شد';
+        btn.textContent = 'Copied';
         setTimeout(function () { btn.textContent = old2; }, 1500);
       }
     });

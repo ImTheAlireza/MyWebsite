@@ -16,16 +16,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['admin_username'] = $username;
         admin_redirect('index.php');
     } else {
-        $error = 'نام کاربری یا رمز عبور اشتباه است.';
+        $error = 'Incorrect username or password.';
     }
 }
 ?>
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ورود به پنل مدیریت</title>
+  <title>Admin Login</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&display=swap" rel="stylesheet">
@@ -33,18 +33,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="login-page">
   <div class="login-card">
-    <h1>پنل مدیریت</h1>
-    <p class="muted">برای ویرایش محتوای سایت وارد شوید.</p>
+    <h1>Admin Panel</h1>
+    <p class="muted">Sign in to edit your website content.</p>
     <?php if ($error): ?><div class="alert alert-error"><?= e($error) ?></div><?php endif; ?>
     <form method="post">
       <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-      <label>نام کاربری
+      <label>Username
         <input type="text" name="username" required autocomplete="username">
       </label>
-      <label>رمز عبور
+      <label>Password
         <input type="password" name="password" required autocomplete="current-password">
       </label>
-      <button type="submit" class="btn btn-primary">ورود</button>
+      <button type="submit" class="btn btn-primary">Sign in</button>
     </form>
   </div>
 </body>

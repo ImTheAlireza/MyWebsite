@@ -99,19 +99,23 @@
     "experience": [
       {
         "when": "Years",
-        "what": "Role, company",
+        "role": "Role",
+        "company": "company",
         "detail": "One line on what you did there."
       },
       {
         "when": "Years",
-        "what": "Role, company",
+        "role": "Role",
+        "company": "company",
         "detail": "One line on what you did there."
       }
     ],
     "education": [
       {
         "when": "Years",
-        "what": "Degree or course, institution",
+        "degree": "Degree or course, institution",
+        "institution": "",
+        "gpa": "",
         "detail": ""
       }
     ]
