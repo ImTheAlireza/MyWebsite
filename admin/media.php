@@ -134,6 +134,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = 'File not found.';
             }
         }
+    } elseif ($action === 'rename') {
+        $rel = isset($_POST['file']) ? safe_rel_path($_POST['file']) : null;
+        $newName = isset($_POST['new_name']) ? trim((string) $_POST['new_name']) : '';
+        if ($rel === null || $newName === '') {
+            $error = 'Invalid file name.';
+        } else {
+            $full = uploads_base_dir() . '/' . $rel;
+            $realBase = realpath(uploads_base_dir());
+            $realFull = realpath($full);
+            if (!$realBase || !$realFull || strpos($realFull, $realBase) !== 0 || !is_file($realFull)) {
+                $error = 'File not found.';
+            } else {
+                $oldExt = strtolower(pathinfo($realFull, PATHINFO_EXTENSION));
+                $newBase = pathinfo($newName, PATHINFO_FILENAME);
+                $newExt = strtolower(pathinfo($newName, PATHINFO_EXTENSION));
+                $newBase = preg_replace('/[^a-zA-Z0-9._-]+/', '-', $newBase);
+                $newBase = trim($newBase, '-_.');
+                if ($newBase === '') {
+                    $error = 'Invalid file name.';
+                } else {
+                    // keep original extension unless explicitly same type
+                    if ($newExt === '' || $newExt !== $oldExt) {
+                        $newExt = $oldExt;
+                    }
+                    $dir = dirname($realFull);
+                    $newFilename = $newBase . '.' . $newExt;
+                    $newFull = $dir . '/' . $newFilename;
+                    $newRealDir = realpath($dir);
+                    if (!$newRealDir || strpos($newRealDir, $realBase) !== 0) {
+                        $error = 'Invalid target path.';
+                    } elseif (file_exists($newFull) && realpath($newFull) !== $realFull) {
+                        $error = 'A file with this name already exists.';
+                    } elseif (rename($realFull, $newFull)) {
+                        $oldPublic = 'uploads/' . $rel;
+                        $newRel = safe_rel_path(substr($newFull, strlen(realpath(uploads_base_dir())) + 1));
+                        $newPublic = 'uploads/' . $newRel;
+                        // Update references in content.json
+                        $content = load_content();
+                        $changed = false;
+                        $contentJson = json_encode($content);
+                        if ($contentJson !== false && strpos($contentJson, $oldPublic) !== false) {
+                            $contentJson = str_replace(json_encode($oldPublic), json_encode($newPublic), $contentJson);
+                            $updated = json_decode($contentJson, true);
+                            if (is_array($updated)) {
+                                save_content($updated);
+                                $changed = true;
+                            }
+                        }
+                        $message = 'File renamed successfully.' . ($changed ? ' References in site content were updated.' : '');
+                    } else {
+                        $error = 'Failed to rename file.';
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -250,11 +305,12 @@ if (isset($_GET['action']) && $_GET['action'] === 'list') {
                   <div class="media-actions">
                     <button type="button" class="btn copy-link" data-url="<?= e($fullUrl) ?>">Copy link</button>
                     <a class="btn" href="<?= e($downloadUrl) ?>">Download</a>
+                    <button type="button" class="btn rename-file" data-file="<?= e($rel) ?>" data-name="<?= e(pathinfo($f['name'], PATHINFO_FILENAME)) ?>">Rename</button>
                     <form method="post" style="display:inline" onsubmit="return confirm('Delete this file?');">
                       <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                       <input type="hidden" name="action" value="delete">
                       <input type="hidden" name="file" value="<?= e($rel) ?>">
-                      <button type="submit" class="btn btn-danger">Remove</button>
+                      <button type="submit" class="btn btn-danger">Delete</button>
                     </form>
                   </div>
                 </div>
@@ -266,27 +322,49 @@ if (isset($_GET['action']) && $_GET['action'] === 'list') {
     </main>
   </div>
 
+  <form id="rename-form" method="post" style="display:none">
+    <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+    <input type="hidden" name="action" value="rename">
+    <input type="hidden" name="file" id="rename-file">
+    <input type="hidden" name="new_name" id="rename-new-name">
+  </form>
+
   <script>
     document.addEventListener('click', function (e) {
-      var btn = e.target.closest('.copy-link');
-      if (!btn) return;
-      var url = btn.getAttribute('data-url') || '';
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(function () {
-          var old = btn.textContent;
-          btn.textContent = 'Copied';
-          setTimeout(function () { btn.textContent = old; }, 1500);
-        });
-      } else {
-        var tmp = document.createElement('input');
-        tmp.value = url;
-        document.body.appendChild(tmp);
-        tmp.select();
-        document.execCommand('copy');
-        document.body.removeChild(tmp);
-        var old2 = btn.textContent;
-        btn.textContent = 'Copied';
-        setTimeout(function () { btn.textContent = old2; }, 1500);
+      var copyBtn = e.target.closest('.copy-link');
+      if (copyBtn) {
+        var url = copyBtn.getAttribute('data-url') || '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(function () {
+            var old = copyBtn.textContent;
+            copyBtn.textContent = 'Copied';
+            setTimeout(function () { copyBtn.textContent = old; }, 1500);
+          });
+        } else {
+          var tmp = document.createElement('input');
+          tmp.value = url;
+          document.body.appendChild(tmp);
+          tmp.select();
+          document.execCommand('copy');
+          document.body.removeChild(tmp);
+          var old2 = copyBtn.textContent;
+          copyBtn.textContent = 'Copied';
+          setTimeout(function () { copyBtn.textContent = old2; }, 1500);
+        }
+        return;
+      }
+
+      var renameBtn = e.target.closest('.rename-file');
+      if (renameBtn) {
+        var current = renameBtn.getAttribute('data-name') || '';
+        var file = renameBtn.getAttribute('data-file') || '';
+        var next = window.prompt('New file name (without extension):', current);
+        if (next === null) return;
+        next = String(next).trim();
+        if (!next || next === current) return;
+        document.getElementById('rename-file').value = file;
+        document.getElementById('rename-new-name').value = next;
+        document.getElementById('rename-form').submit();
       }
     });
   </script>
