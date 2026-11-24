@@ -58,26 +58,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = post_str('action', 'save_content');
 
     if ($action === 'change_password') {
-        $current = post_str('current_password');
-        $new = post_str('new_password');
-        $confirm = post_str('confirm_password');
-        $admin = admin_load();
-        $salt = isset($admin['salt']) ? $admin['salt'] : '';
-        $hash = isset($admin['password_hash']) ? $admin['password_hash'] : '';
-        if (!hash_equals($hash, admin_hash_password($current, $salt))) {
-            $error = 'رمز عبور فعلی درست نیست.';
-        } elseif (strlen($new) < 8) {
-            $error = 'رمز عبور جدید باید حداقل ۸ کاراکتر باشد.';
-        } elseif ($new !== $confirm) {
-            $error = 'تکرار رمز عبور جدید یکسان نیست.';
+        if (admin_using_env()) {
+            $error = 'رمز عبور از طریق فایل .env مدیریت می‌شود. مقدار ADMIN_PASSWORD را در .env تغییر دهید.';
         } else {
-            $newSalt = function_exists('random_bytes') ? bin2hex(random_bytes(16)) : md5(uniqid(mt_rand(), true));
-            $admin['salt'] = $newSalt;
-            $admin['password_hash'] = admin_hash_password($new, $newSalt);
-            if (admin_save($admin)) {
-                $message = 'رمز عبور با موفقیت تغییر کرد.';
+            $current = post_str('current_password');
+            $new = post_str('new_password');
+            $confirm = post_str('confirm_password');
+            $admin = admin_load();
+            $salt = isset($admin['salt']) ? $admin['salt'] : '';
+            $hash = isset($admin['password_hash']) ? $admin['password_hash'] : '';
+            if (!hash_equals($hash, admin_hash_password($current, $salt))) {
+                $error = 'رمز عبور فعلی درست نیست.';
+            } elseif (strlen($new) < 8) {
+                $error = 'رمز عبور جدید باید حداقل ۸ کاراکتر باشد.';
+            } elseif ($new !== $confirm) {
+                $error = 'تکرار رمز عبور جدید یکسان نیست.';
             } else {
-                $error = 'ذخیره رمز عبور ناموفق بود.';
+                $newSalt = function_exists('random_bytes') ? bin2hex(random_bytes(16)) : md5(uniqid(mt_rand(), true));
+                $admin['salt'] = $newSalt;
+                $admin['password_hash'] = admin_hash_password($new, $newSalt);
+                if (admin_save($admin)) {
+                    $message = 'رمز عبور با موفقیت تغییر کرد.';
+                } else {
+                    $error = 'ذخیره رمز عبور ناموفق بود.';
+                }
             }
         }
     } else {
@@ -459,16 +463,20 @@ $contact = isset($content['contact']) ? $content['contact'] : array();
 
       <section id="password" class="card">
         <h2>تغییر رمز عبور</h2>
-        <form method="post" class="password-form">
-          <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-          <input type="hidden" name="action" value="change_password">
-          <div class="grid-3">
-            <label>رمز فعلی<input type="password" name="current_password" required></label>
-            <label>رمز جدید<input type="password" name="new_password" required minlength="8"></label>
-            <label>تکرار رمز جدید<input type="password" name="confirm_password" required minlength="8"></label>
-          </div>
-          <button type="submit" class="btn btn-primary">تغییر رمز</button>
-        </form>
+        <?php if (admin_using_env()): ?>
+          <p class="muted">احراز هویت ادمین از طریق فایل <code>.env</code> انجام می‌شود. برای تغییر رمز، مقدارهای <code>ADMIN_USERNAME</code> و <code>ADMIN_PASSWORD</code> را در فایل <code>.env</code> ویرایش کنید.</p>
+        <?php else: ?>
+          <form method="post" class="password-form">
+            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+            <input type="hidden" name="action" value="change_password">
+            <div class="grid-3">
+              <label>رمز فعلی<input type="password" name="current_password" required></label>
+              <label>رمز جدید<input type="password" name="new_password" required minlength="8"></label>
+              <label>تکرار رمز جدید<input type="password" name="confirm_password" required minlength="8"></label>
+            </div>
+            <button type="submit" class="btn btn-primary">تغییر رمز</button>
+          </form>
+        <?php endif; ?>
       </section>
     </main>
   </div>

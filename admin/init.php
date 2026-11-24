@@ -3,7 +3,10 @@
 session_start();
 
 require_once dirname(__DIR__) . '/includes/functions.php';
+require_once dirname(__DIR__) . '/includes/env.php';
 require_once dirname(__DIR__) . '/includes/content.php';
+
+load_env(dirname(__DIR__) . '/.env');
 
 function admin_data_path($file)
 {
@@ -50,8 +53,29 @@ function admin_hash_password($password, $salt)
     return hash('sha256', $salt . (string) $password);
 }
 
+function admin_env_credentials()
+{
+    $user = env_get('ADMIN_USERNAME', null);
+    $pass = env_get('ADMIN_PASSWORD', null);
+    if ($user === null || $pass === null || $pass === '') {
+        return null;
+    }
+    return array('username' => (string) $user, 'password' => (string) $pass);
+}
+
+function admin_using_env()
+{
+    return admin_env_credentials() !== null;
+}
+
 function admin_verify($username, $password)
 {
+    $env = admin_env_credentials();
+    if ($env !== null) {
+        return hash_equals((string) $env['username'], (string) $username)
+            && hash_equals((string) $env['password'], (string) $password);
+    }
+
     $admin = admin_load();
     if (!isset($admin['username']) || $admin['username'] !== $username) {
         return false;
