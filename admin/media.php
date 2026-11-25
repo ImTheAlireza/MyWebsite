@@ -308,6 +308,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if ($deleted > 0) $message = $deleted . ' unused file(s) deleted.';
         else $error = 'No unused files to delete.';
+    } elseif ($action === 'generate_variants') {
+        $base = uploads_base_dir();
+        $generatedCount = 0;
+        $processed = 0;
+        if (is_dir($base)) {
+            $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($base, RecursiveDirectoryIterator::SKIP_DOTS));
+            foreach ($it as $file) {
+                if (!$file->isFile()) continue;
+                $ext = strtolower($file->getExtension());
+                if (!in_array($ext, array('jpg', 'jpeg', 'png', 'webp'), true)) continue;
+                $full = $file->getPathname();
+                $rel = str_replace('\\', '/', substr($full, strlen($base) + 1));
+                $rel = safe_rel_path($rel);
+                if ($rel === null) continue;
+                if (is_generated_variant_rel($rel)) continue;
+                $processed++;
+                $before = 0;
+                foreach (image_variant_widths() as $vw) { if (is_file(image_variant_path($full, $vw))) $before++; }
+                if (function_exists('generate_image_variants')) {
+                    generate_image_variants($full);
+                }
+                $after = 0;
+                foreach (image_variant_widths() as $vw) { if (is_file(image_variant_path($full, $vw))) $after++; }
+                $generatedCount += max(0, $after - $before);
+            }
+        }
+        if ($processed === 0) {
+            $error = 'No supported images found to process.';
+        } elseif ($generatedCount > 0) {
+            $message = 'Generated ' . $generatedCount . ' responsive variant(s) for ' . $processed . ' image(s).';
+        } else {
+            $message = 'Responsive variants are already up to date for ' . $processed . ' image(s).';
+        }
     }
 }
 
@@ -384,6 +417,11 @@ require __DIR__ . '/partials/top.php';
             <button type="button" class="btn btn-small filter-btn" data-filter="video">Videos</button>
             <button type="button" class="btn btn-small filter-btn" data-filter="unused">Unused</button>
           </div>
+          <form method="post" style="display:inline" onsubmit="return confirm('Generate responsive image variants for all uploaded images?');">
+            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+            <input type="hidden" name="action" value="generate_variants">
+            <button type="submit" class="btn btn-small">Generate variants</button>
+          </form>
           <?php if ($unusedCount > 0): ?>
           <form method="post" style="display:inline" onsubmit="return confirm('Delete all unused files? This cannot be undone.');">
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
