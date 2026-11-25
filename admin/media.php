@@ -12,7 +12,7 @@ function uploads_base_dir()
 
 function is_allowed_media_ext($ext)
 {
-    $allowed = array('jpg','jpeg','png','gif','webp','svg','mp4','webm','mov','m4v','pdf');
+    $allowed = array('jpg','jpeg','png','gif','webp','mp4','webm','mov','m4v','pdf');
     return in_array(strtolower($ext), $allowed, true);
 }
 
@@ -29,6 +29,21 @@ function safe_rel_path($path)
     return implode('/', $parts);
 }
 
+function is_poster_rel($rel)
+{
+    $rel = str_replace('\\', '/', (string) $rel);
+    return strpos($rel, 'posters/') === 0;
+}
+
+function is_generated_variant_rel($rel)
+{
+    $rel = str_replace('\\', '/', (string) $rel);
+    if (!preg_match('/-w(480|768|1200|1600)\.(jpe?g|png|webp)$/i', $rel)) return false;
+    $base = preg_replace('/-w(480|768|1200|1600)\.(jpe?g|png|webp)$/i', '.$2', $rel);
+    $baseAbs = uploads_base_dir() . '/' . $base;
+    return is_file($baseAbs);
+}
+
 function list_upload_files()
 {
     $base = uploads_base_dir();
@@ -43,6 +58,8 @@ function list_upload_files()
         $rel = str_replace('\\', '/', substr($full, strlen($base) + 1));
         $rel = safe_rel_path($rel);
         if ($rel === null) continue;
+        if (is_poster_rel($rel)) continue; // Generated video thumbnails are not part of the media library.
+        if (is_generated_variant_rel($rel)) continue; // Responsive variants are internal files.
         $files[] = array(
             'rel' => $rel,
             'name' => basename($rel),
@@ -84,6 +101,8 @@ function media_usage_map()
         $rel = str_replace('\\', '/', substr($file->getPathname(), strlen($base) + 1));
         $rel = safe_rel_path($rel);
         if ($rel === null) continue;
+        if (is_poster_rel($rel)) continue; // Keep generated poster thumbnails out of the media library.
+        if (is_generated_variant_rel($rel)) continue;
         $publicPath = 'uploads/' . $rel;
         $used = (strpos($jsonNorm, $publicPath) !== false);
         if (!$used) {
@@ -110,6 +129,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $action = isset($_POST['action']) ? trim($_POST['action']) : '';
 
+    if ($action === 'upload_poster_frame') {
+        header('Content-Type: application/json; charset=UTF-8');
+        $dataUrl = isset($_POST['poster_data']) ? (string) $_POST['poster_data'] : '';
+        if ($dataUrl === '' || !preg_match('/^data:image\/(png|jpeg|webp);base64,/', $dataUrl, $m)) {
+            http_response_code(400);
+            echo json_encode(array('ok' => false, 'error' => 'Invalid image data.'));
+            exit;
+        }
+        $ext = $m[1] === 'jpeg' ? 'jpg' : $m[1];
+        $raw = base64_decode(substr($dataUrl, strpos($dataUrl, ',') + 1), true);
+        if ($raw === false || $raw === '') {
+            http_response_code(400);
+            echo json_encode(array('ok' => false, 'error' => 'Could not decode image.'));
+            exit;
+        }
+        if (strlen($raw) > 5 * 1024 * 1024 || !($info = @getimagesizefromstring($raw)) || $info[0] * $info[1] > 24000000 || $info['mime'] !== 'image/' . ($ext === 'jpg' ? 'jpeg' : $ext)) {
+            http_response_code(400);
+            echo json_encode(array('ok' => false, 'error' => 'Image is too large.'));
+            exit;
+        }
+        $targetDir = uploads_base_dir() . '/posters';
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
+        $baseName = isset($_POST['poster_name']) ? preg_replace('/[^a-zA-Z0-9._-]+/', '-', pathinfo((string) $_POST['poster_name'], PATHINFO_FILENAME)) : 'poster';
+        $baseName = trim((string) $baseName, '-_.');
+        if ($baseName === '') $baseName = 'poster';
+        $filename = $baseName . '-' . uniqid('', true) . '.' . $ext;
+        $dest = $targetDir . '/' . $filename;
+        if (file_put_contents($dest, $raw, LOCK_EX) === false) {
+            http_response_code(500);
+            echo json_encode(array('ok' => false, 'error' => 'Failed to save poster.'));
+            exit;
+        }
+        echo json_encode(array('ok' => true, 'path' => 'uploads/posters/' . $filename));
+        exit;
+    }
+
     if ($action === 'upload') {
         $subdir = isset($_POST['subdir']) ? trim($_POST['subdir']) : 'library';
         $subdir = safe_rel_path($subdir);
@@ -128,7 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $name = $_FILES['files']['name'][$i];
                 $tmp = $_FILES['files']['tmp_name'][$i];
                 $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-                if (!is_allowed_media_ext($ext)) continue;
+                if (!is_allowed_media_ext($ext) || !is_uploaded_file($tmp) || !valid_media_upload($tmp, $ext)) continue;
                 $baseName = pathinfo($name, PATHINFO_FILENAME);
                 $baseName = preg_replace('/[^a-zA-Z0-9._-]+/', '-', $baseName);
                 $baseName = trim($baseName, '-_.');
@@ -136,6 +193,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $filename = $baseName . '-' . uniqid() . '.' . $ext;
                 $dest = $targetDir . '/' . $filename;
                 if (move_uploaded_file($tmp, $dest)) {
+                    if (function_exists('generate_image_variants')) {
+                        generate_image_variants($dest);
+                    }
                     $uploadedCount++;
                 }
             }
@@ -153,8 +213,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $full = uploads_base_dir() . '/' . $rel;
             $realBase = realpath(uploads_base_dir());
             $realFull = realpath($full);
-            if ($realBase && $realFull && strpos($realFull, $realBase) === 0 && is_file($realFull)) {
+            if ($realBase && $realFull && strpos($realFull, $realBase . DIRECTORY_SEPARATOR) === 0 && is_file($realFull)) {
                 if (unlink($realFull)) {
+                    foreach (image_variant_widths() as $vw) {
+                        $vAbs = image_variant_path($realFull, $vw);
+                        if (is_file($vAbs)) @unlink($vAbs);
+                    }
                     $message = 'File deleted.';
                 } else {
                     $error = 'Failed to delete file.';
@@ -172,7 +236,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $full = uploads_base_dir() . '/' . $rel;
             $realBase = realpath(uploads_base_dir());
             $realFull = realpath($full);
-            if (!$realBase || !$realFull || strpos($realFull, $realBase) !== 0 || !is_file($realFull)) {
+            if (!$realBase || !$realFull || strpos($realFull, $realBase . DIRECTORY_SEPARATOR) !== 0 || !is_file($realFull)) {
                 $error = 'File not found.';
             } else {
                 $oldExt = strtolower(pathinfo($realFull, PATHINFO_EXTENSION));
@@ -191,11 +255,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $newFilename = $newBase . '.' . $newExt;
                     $newFull = $dir . '/' . $newFilename;
                     $newRealDir = realpath($dir);
-                    if (!$newRealDir || strpos($newRealDir, $realBase) !== 0) {
+                    if (!$newRealDir || $newRealDir !== $realBase && strpos($newRealDir, $realBase . DIRECTORY_SEPARATOR) !== 0) {
                         $error = 'Invalid target path.';
                     } elseif (file_exists($newFull) && realpath($newFull) !== $realFull) {
                         $error = 'A file with this name already exists.';
                     } elseif (rename($realFull, $newFull)) {
+                        foreach (image_variant_widths() as $vw) {
+                            $oldV = image_variant_path($realFull, $vw);
+                            $newV = image_variant_path($newFull, $vw);
+                            if (is_file($oldV)) @rename($oldV, $newV);
+                        }
                         $oldPublic = 'uploads/' . $rel;
                         $newRel = safe_rel_path(substr($newFull, strlen(realpath(uploads_base_dir())) + 1));
                         $newPublic = 'uploads/' . $newRel;
@@ -227,12 +296,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $full = $base . '/' . $rel;
             $realBase = realpath($base);
             $realFull = realpath($full);
-            if ($realBase && $realFull && strpos($realFull, $realBase) === 0 && is_file($realFull)) {
-                if (unlink($realFull)) $deleted++;
+            if ($realBase && $realFull && strpos($realFull, $realBase . DIRECTORY_SEPARATOR) === 0 && is_file($realFull)) {
+                if (unlink($realFull)) {
+                    foreach (image_variant_widths() as $vw) {
+                        $vAbs = image_variant_path($realFull, $vw);
+                        if (is_file($vAbs)) @unlink($vAbs);
+                    }
+                    $deleted++;
+                }
             }
         }
         if ($deleted > 0) $message = $deleted . ' unused file(s) deleted.';
         else $error = 'No unused files to delete.';
+    } elseif ($action === 'generate_variants') {
+        $base = uploads_base_dir();
+        $generatedCount = 0;
+        $processed = 0;
+        if (is_dir($base)) {
+            $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($base, RecursiveDirectoryIterator::SKIP_DOTS));
+            foreach ($it as $file) {
+                if (!$file->isFile()) continue;
+                $ext = strtolower($file->getExtension());
+                if (!in_array($ext, array('jpg', 'jpeg', 'png', 'webp'), true)) continue;
+                $full = $file->getPathname();
+                $rel = str_replace('\\', '/', substr($full, strlen($base) + 1));
+                $rel = safe_rel_path($rel);
+                if ($rel === null) continue;
+                if (is_generated_variant_rel($rel)) continue;
+                $processed++;
+                $before = 0;
+                foreach (image_variant_widths() as $vw) { if (is_file(image_variant_path($full, $vw))) $before++; }
+                if (function_exists('generate_image_variants')) {
+                    generate_image_variants($full);
+                }
+                $after = 0;
+                foreach (image_variant_widths() as $vw) { if (is_file(image_variant_path($full, $vw))) $after++; }
+                $generatedCount += max(0, $after - $before);
+            }
+        }
+        if ($processed === 0) {
+            $error = 'No supported images found to process.';
+        } elseif ($generatedCount > 0) {
+            $message = 'Generated ' . $generatedCount . ' responsive variant(s) for ' . $processed . ' image(s).';
+        } else {
+            $message = 'Responsive variants are already up to date for ' . $processed . ' image(s).';
+        }
     }
 }
 
@@ -309,6 +417,11 @@ require __DIR__ . '/partials/top.php';
             <button type="button" class="btn btn-small filter-btn" data-filter="video">Videos</button>
             <button type="button" class="btn btn-small filter-btn" data-filter="unused">Unused</button>
           </div>
+          <form method="post" style="display:inline" onsubmit="return confirm('Generate responsive image variants for all uploaded images?');">
+            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+            <input type="hidden" name="action" value="generate_variants">
+            <button type="submit" class="btn btn-small">Generate variants</button>
+          </form>
           <?php if ($unusedCount > 0): ?>
           <form method="post" style="display:inline" onsubmit="return confirm('Delete all unused files? This cannot be undone.');">
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">

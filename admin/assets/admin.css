@@ -100,8 +100,8 @@ input[type="file"] { padding: 0.5rem 0; border: 0; font: inherit; color: var(--m
 .media-actions .btn-danger { color: var(--danger); }
 
 /* Media picker */
-.media-pick-row { display: grid; grid-template-columns: 1fr auto; gap: 0.75rem; align-items: end; margin-bottom: 1rem; }
-.media-pick-row label { margin-bottom: 0; }
+.media-pick-row { display: flex; gap: 0.75rem; align-items: flex-end; margin-bottom: 1rem; flex-wrap: wrap; }
+.media-pick-row label { margin-bottom: 0; flex: 1 1 260px; }
 .media-pick-row .btn { margin-bottom: 0; white-space: nowrap; }
 .media-modal { display: none; position: fixed; inset: 0; z-index: 1000; }
 .media-modal.is-open { display: block; }
@@ -120,7 +120,8 @@ input[type="file"] { padding: 0.5rem 0; border: 0; font: inherit; color: var(--m
   .admin-tab { padding: 0.7rem 0.75rem; font-size: 0.9rem; }
 }
 @media (max-width: 700px) {
-  .media-pick-row { grid-template-columns: 1fr; }
+  .media-pick-row { flex-direction: column; align-items: stretch; }
+  .media-pick-row .btn { width: 100%; justify-content: center; }
 }
 
 /* Media library enhancements */
@@ -143,3 +144,13 @@ input[type="file"] { padding: 0.5rem 0; border: 0; font: inherit; color: var(--m
 .work-media-preview:empty { display: none; }
 .work-media-preview img,
 .work-media-preview video { display: block; max-width: 100%; max-height: 260px; width: auto; height: auto; object-fit: contain; background: var(--tile, #111); border: 1px solid var(--line); }
+
+/* Video frame picker */
+.frame-picker { display: flex; flex-direction: column; gap: 1rem; }
+.frame-picker video { width: 100%; max-height: 56vh; background: #000; display: block; }
+.frame-picker-controls { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+.frame-picker-seek { flex: 1 1 220px; margin: 0; font-size: 0.9rem; font-weight: 600; }
+.frame-picker-seek input[type="range"] { width: 100%; margin-top: 0.35rem; }
+#frame-picker-time { min-width: 3.5rem; text-align: right; }
+.frame-picker-preview-wrap { border-top: 1px solid var(--line); padding-top: 1rem; }
+.frame-picker-preview-wrap .work-media-preview { margin-top: 0.5rem; margin-bottom: 0; }

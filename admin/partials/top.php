@@ -34,7 +34,7 @@ $tabs = array(
       </div>
       <div class="admin-topbar-actions">
         <a href="../index.php" target="_blank" class="btn btn-small">View Site</a>
-        <a href="logout.php" class="btn btn-small btn-danger">Log out</a>
+        <form method="post" action="logout.php"><input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>"><button class="btn btn-small btn-danger" type="submit">Log out</button></form>
       </div>
     </div>
     <nav class="admin-tabs" aria-label="Admin sections">
