@@ -20,18 +20,24 @@
   $poster = $media && isset($media['poster']) ? $media['poster'] : '';
   $title = isset($work['title']) ? $work['title'] : '';
   $meta = isset($work['meta']) ? $work['meta'] : '';
+  $isLcp = ($i === 0);
+  $imgLoading = $isLcp ? 'eager' : 'lazy';
+  $imgFetchPriority = $isLcp ? ' fetchpriority="high"' : '';
+  $imgDecoding = $isLcp ? 'async' : 'async';
 ?>
-          <article class="work-card" data-work-index="<?= $i ?>" data-type="<?= e($type) ?>" data-src="<?= e($src) ?>" data-poster="<?= e($poster) ?>" data-title="<?= e($title) ?>" data-meta="<?= e($meta) ?>" data-alt="<?= e($alt) ?>" tabindex="0" role="button" aria-label="Open <?= e($title) ?>">
+          <div class="work-card" data-work-index="<?= $i ?>" data-type="<?= e($type) ?>" data-src="<?= e($src) ?>" data-poster="<?= e($poster) ?>" data-title="<?= e($title) ?>" data-meta="<?= e($meta) ?>" data-alt="<?= e($alt) ?>" tabindex="0" role="button" aria-label="Open <?= e($title) ?>">
             <div class="work-thumb">
               <?php if ($media && $type === 'video'): ?>
                 <?php if ($poster !== ''): ?>
-                  <img src="<?= e($poster) ?>" alt="<?= e($alt) ?>" loading="lazy">
+                  <img <?= responsive_img_attrs($poster, '(max-width: 860px) 100vw, 33vw') ?> alt="<?= e($alt) ?>" loading="<?= e($imgLoading) ?>" decoding="<?= e($imgDecoding) ?>"<?= $imgFetchPriority ?>>
                 <?php else: ?>
-                  <video src="<?= e($src) ?>" muted loop playsinline preload="metadata"></video>
+                  <video src="<?= e($src) ?>" muted loop playsinline preload="none" aria-label="<?= e($alt !== '' ? $alt : $title) ?>">
+                    <track kind="captions" src="assets/empty.vtt" srclang="en" label="Captions">
+                  </video>
                 <?php endif; ?>
                 <span class="work-play-badge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="7,5 19,12 7,19"></polygon></svg></span>
               <?php elseif ($media && $src !== ''): ?>
-                <img src="<?= e($src) ?>" alt="<?= e($alt) ?>" loading="lazy">
+                <img <?= responsive_img_attrs($src, '(max-width: 860px) 100vw, 33vw') ?> alt="<?= e($alt) ?>" loading="<?= e($imgLoading) ?>" decoding="<?= e($imgDecoding) ?>"<?= $imgFetchPriority ?>>
               <?php else: ?>
                 <div class="work-placeholder"><?= e(isset($work['placeholder']) ? $work['placeholder'] : 'Add image or video') ?></div>
               <?php endif; ?>
@@ -42,7 +48,7 @@
                 </div>
               </div>
             </div>
-          </article>
+          </div>
 <?php endforeach; ?>
         </div>
       </div>

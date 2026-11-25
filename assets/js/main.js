@@ -292,8 +292,15 @@
         mediaWrap.innerHTML = '';
         if (type === 'video') {
           const v = document.createElement('video');
-          v.src = src; v.controls = true; v.autoplay = true; v.playsInline = true;
+          v.src = src; v.controls = true; v.autoplay = true; v.playsInline = true; v.preload = 'metadata';
           if (poster) v.poster = poster;
+          v.setAttribute('aria-label', title || 'Project video');
+          const track = document.createElement('track');
+          track.kind = 'captions';
+          track.label = 'Captions';
+          track.src = 'assets/empty.vtt';
+          track.default = true;
+          v.appendChild(track);
           mediaWrap.appendChild(v);
         } else {
           const img = document.createElement('img');

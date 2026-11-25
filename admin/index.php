@@ -34,6 +34,9 @@ function handle_upload($fileKey, $subdir)
     $filename = uniqid('file_', true) . '.' . $ext;
     $dest = $baseDir . '/' . $filename;
     if (!move_uploaded_file($tmp, $dest)) return '';
+    if (function_exists('generate_image_variants')) {
+        generate_image_variants($dest);
+    }
     return 'uploads/' . $subdir . '/' . $filename;
 }
 
@@ -308,6 +311,7 @@ require __DIR__ . '/partials/top.php';
             <div class="media-pick-row">
               <label>Video thumbnail (optional)<input type="text" name="work_media_poster[]" class="work-poster-src-input" value="<?= e($mediaPoster) ?>" placeholder="uploads/library/... or https://..."></label>
               <button type="button" class="btn btn-small pick-media" data-target-input="work_media_poster[]">Choose from library</button>
+              <button type="button" class="btn btn-small pick-video-frame">Pick frame from video</button>
             </div>
             <div class="work-media-preview" data-poster-preview>
               <?php if ($mediaPoster !== ''): ?>
@@ -356,6 +360,7 @@ require __DIR__ . '/partials/top.php';
         <div class="media-pick-row">
           <label>Video thumbnail (optional)<input type="text" name="work_media_poster[]" class="work-poster-src-input" value="" placeholder="uploads/library/... or https://..."></label>
           <button type="button" class="btn btn-small pick-media" data-target-input="work_media_poster[]">Choose from library</button>
+          <button type="button" class="btn btn-small pick-video-frame">Pick frame from video</button>
         </div>
         <div class="work-media-preview" data-poster-preview></div>
         <div class="work-media-preview" data-preview></div>
@@ -550,6 +555,33 @@ require __DIR__ . '/partials/top.php';
     </div>
   </div>
 
+  <div class="media-modal" id="frame-modal" aria-hidden="true">
+    <div class="media-modal-backdrop" data-close-frame></div>
+    <div class="media-modal-dialog" role="dialog" aria-modal="true" aria-label="Pick video frame">
+      <div class="media-modal-head">
+        <h3>Pick a frame from video</h3>
+        <button type="button" class="btn btn-small" data-close-frame>Close</button>
+      </div>
+      <div class="media-modal-body">
+        <p class="muted small" id="frame-modal-status">Load a video, scrub to the desired frame, then capture it as thumbnail.</p>
+        <div class="frame-picker">
+          <video id="frame-picker-video" controls playsinline preload="metadata"></video>
+          <div class="frame-picker-controls">
+            <label class="frame-picker-seek">Time
+              <input type="range" id="frame-picker-seek" min="0" max="0" step="0.01" value="0">
+            </label>
+            <span class="muted small" id="frame-picker-time">0:00</span>
+            <button type="button" class="btn btn-primary btn-small" id="frame-picker-capture">Use this frame</button>
+          </div>
+          <div class="frame-picker-preview-wrap">
+            <span class="muted small">Captured preview</span>
+            <div class="work-media-preview" id="frame-picker-preview"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       var workIndex = document.querySelectorAll('#works-list .work-item').length;
@@ -702,6 +734,175 @@ require __DIR__ . '/partials/top.php';
           var url = URL.createObjectURL(file);
           setPreview(preview, url, /^video\//i.test(file.type));
         }
+      });
+    })();
+
+    (function () {
+      var modal = document.getElementById('frame-modal');
+      var video = document.getElementById('frame-picker-video');
+      var seek = document.getElementById('frame-picker-seek');
+      var timeLabel = document.getElementById('frame-picker-time');
+      var captureBtn = document.getElementById('frame-picker-capture');
+      var preview = document.getElementById('frame-picker-preview');
+      var status = document.getElementById('frame-modal-status');
+      if (!modal || !video || !seek || !captureBtn) return;
+
+      var currentPosterInput = null;
+      var currentItem = null;
+      var objectUrl = null;
+
+      function fmtTime(sec) {
+        if (!isFinite(sec) || sec < 0) sec = 0;
+        var m = Math.floor(sec / 60);
+        var s = Math.floor(sec % 60);
+        return m + ':' + (s < 10 ? '0' : '') + s;
+      }
+      function getCsrf() {
+        var el = document.querySelector('input[name="csrf_token"]');
+        return el ? el.value : '';
+      }
+      function resolveSrc(src) {
+        if (!src) return '';
+        if (/^(https?:\/\/|\/|blob:|data:)/i.test(src)) return src;
+        return '../' + src.replace(/^\/+/, '');
+      }
+      function setStatus(msg, isErr) {
+        if (!status) return;
+        status.textContent = msg;
+        status.style.color = isErr ? '#b3261e' : '';
+      }
+      function cleanupObjectUrl() {
+        if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; }
+      }
+      function closeModal() {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+        seek.value = 0; seek.max = 0;
+        timeLabel.textContent = '0:00';
+        preview.innerHTML = '';
+        setStatus('Load a video, scrub to the desired frame, then capture it as thumbnail.', false);
+        cleanupObjectUrl();
+        currentPosterInput = null;
+        currentItem = null;
+      }
+      function openModal(item) {
+        currentItem = item;
+        currentPosterInput = item ? item.querySelector('.work-poster-src-input') : null;
+        var srcInput = item ? item.querySelector('.work-media-src-input') : null;
+        var fileInput = item ? item.querySelector('input[type="file"][name^="work_media_file_"]') : null;
+        var src = srcInput ? (srcInput.value || '').trim() : '';
+        var file = fileInput && fileInput.files ? fileInput.files[0] : null;
+
+        cleanupObjectUrl();
+        preview.innerHTML = '';
+        seek.value = 0; seek.max = 0; timeLabel.textContent = '0:00';
+
+        var videoSrc = '';
+        if (file && /^video\//i.test(file.type)) {
+          objectUrl = URL.createObjectURL(file);
+          videoSrc = objectUrl;
+        } else if (src && /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(src)) {
+          videoSrc = resolveSrc(src);
+        }
+
+        if (!videoSrc) {
+          setStatus('No video source found for this project. Add a video file or URL first.', true);
+          modal.classList.add('is-open');
+          modal.setAttribute('aria-hidden', 'false');
+          return;
+        }
+
+        setStatus('Loading video...', false);
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        video.crossOrigin = 'anonymous';
+        video.src = videoSrc;
+        video.load();
+      }
+
+      video.addEventListener('loadedmetadata', function () {
+        seek.max = String(video.duration || 0);
+        seek.value = 0;
+        timeLabel.textContent = fmtTime(0);
+        setStatus('Scrub to the frame you want, then click "Use this frame".', false);
+      });
+      video.addEventListener('error', function () {
+        setStatus('Could not load this video. If it is on another domain, download and upload it to the media library first.', true);
+      });
+      video.addEventListener('timeupdate', function () {
+        if (!seek.matches(':active')) seek.value = String(video.currentTime || 0);
+        timeLabel.textContent = fmtTime(video.currentTime || 0);
+      });
+      seek.addEventListener('input', function () {
+        var t = parseFloat(seek.value || '0');
+        if (isFinite(t)) video.currentTime = t;
+        timeLabel.textContent = fmtTime(t);
+      });
+
+      captureBtn.addEventListener('click', function () {
+        if (!currentPosterInput) return;
+        if (!video.videoWidth || !video.videoHeight) {
+          setStatus('Video is not ready yet.', true);
+          return;
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        var ctx = canvas.getContext('2d');
+        try {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        } catch (e) {
+          setStatus('Could not capture this frame (cross-origin video). Use a video hosted on this site.', true);
+          return;
+        }
+        var dataUrl;
+        try {
+          dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+        } catch (e) {
+          setStatus('Could not export frame image.', true);
+          return;
+        }
+        preview.innerHTML = '<img src="' + dataUrl + '" alt="Captured frame preview">';
+        captureBtn.disabled = true;
+        setStatus('Saving thumbnail...', false);
+
+        var form = new FormData();
+        form.append('csrf_token', getCsrf());
+        form.append('action', 'upload_poster_frame');
+        form.append('poster_data', dataUrl);
+        form.append('poster_name', 'video-poster');
+
+        fetch('media.php', { method: 'POST', body: form, credentials: 'same-origin' })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+          .then(function (res) {
+            if (!res.ok || !res.data || !res.data.ok) {
+              throw new Error((res.data && res.data.error) ? res.data.error : 'Upload failed');
+            }
+            currentPosterInput.value = res.data.path;
+            currentPosterInput.dispatchEvent(new Event('input', { bubbles: true }));
+            currentPosterInput.dispatchEvent(new Event('change', { bubbles: true }));
+            setStatus('Thumbnail saved and set for this project. It will be used as the video poster.', false);
+          })
+          .catch(function (err) {
+            setStatus(err && err.message ? err.message : 'Failed to save thumbnail.', true);
+          })
+          .then(function () { captureBtn.disabled = false; });
+      });
+
+      document.addEventListener('click', function (e) {
+        var pickBtn = e.target.closest('.pick-video-frame');
+        if (pickBtn) {
+          var item = pickBtn.closest('.work-item');
+          if (item) openModal(item);
+          return;
+        }
+        if (e.target.closest('[data-close-frame]')) closeModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
       });
     })();
   </script>
