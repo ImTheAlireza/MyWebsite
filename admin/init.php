@@ -1,5 +1,18 @@
 <?php
 
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443);
+if (PHP_VERSION_ID >= 70300) {
+    session_set_cookie_params(array(
+        'lifetime' => 0,
+        'path' => '/',
+        'secure' => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ));
+} else {
+    session_set_cookie_params(0, '/; samesite=Lax', '', $isHttps, true);
+}
 session_start();
 
 require_once dirname(__DIR__) . '/includes/functions.php';

@@ -8,6 +8,10 @@ if (admin_logged_in()) {
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown';
+    if (!rate_limit_check('admin_login:' . $ip, 10, 900)) {
+        $error = 'Too many login attempts. Please try again later.';
+    } else {
     $username = isset($_POST['username']) ? trim($_POST['username']) : '';
     $password = isset($_POST['password']) ? (string) $_POST['password'] : '';
     if (admin_verify($username, $password)) {
@@ -17,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         admin_redirect('index.php');
     } else {
         $error = 'Incorrect username or password.';
+    }
     }
 }
 ?>

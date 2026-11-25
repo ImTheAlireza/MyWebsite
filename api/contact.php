@@ -8,6 +8,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+$ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown';
+if (!rate_limit_check('contact:' . $ip, 5, 600)) {
+    http_response_code(429);
+    echo json_encode(array('ok' => false, 'message' => 'Too many requests. Please try again later.'));
+    exit;
+}
+
+require_once dirname(__DIR__) . '/includes/functions.php';
 require_once dirname(__DIR__) . '/includes/env.php';
 load_env(dirname(__DIR__) . '/.env');
 
@@ -126,4 +134,4 @@ if ($responseBody) {
     }
 }
 error_log('[contact] Telegram send failed: ' . $detail . ' body=' . substr((string) $responseBody, 0, 500));
-json_response(false, $detail, 502);
+json_response(false, 'Could not send your message right now. Please try again later.', 502);

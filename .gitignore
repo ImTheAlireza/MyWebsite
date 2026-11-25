@@ -1,6 +1,7 @@
 php-error.log
 .env
 data/admin.json
+data/ratelimit-*.json
 uploads/*
 !uploads/.gitkeep
 !uploads/.htaccess

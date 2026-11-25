@@ -164,3 +164,26 @@ function responsive_img_attrs($src, $sizes)
     }
     return $attr;
 }
+
+function rate_limit_check($key, $maxAttempts, $windowSeconds)
+{
+    $dir = dirname(__DIR__) . '/data';
+    if (!is_dir($dir)) return true;
+    $file = $dir . '/ratelimit-' . sha1($key) . '.json';
+    $now = time();
+    $state = array('count' => 0, 'start' => $now);
+    if (is_file($file)) {
+        $raw = @file_get_contents($file);
+        $decoded = json_decode((string) $raw, true);
+        if (is_array($decoded) && isset($decoded['count'], $decoded['start'])) {
+            $state['count'] = (int) $decoded['count'];
+            $state['start'] = (int) $decoded['start'];
+        }
+    }
+    if (($now - $state['start']) >= $windowSeconds) {
+        $state = array('count' => 0, 'start' => $now);
+    }
+    $state['count']++;
+    @file_put_contents($file, json_encode($state), LOCK_EX);
+    return $state['count'] <= $maxAttempts;
+}
