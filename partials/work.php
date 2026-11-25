@@ -59,6 +59,11 @@
         <div class="work-modal-backdrop" data-close-work></div>
         <div class="work-modal-dialog" role="dialog" aria-modal="true" aria-label="Project preview">
           <button type="button" class="work-modal-close" data-close-work aria-label="Close">&times;</button>
+          <div class="work-modal-navigation" aria-label="Project navigation">
+            <button type="button" class="work-modal-prev" data-work-step="-1" aria-label="Previous project">&#8592;</button>
+            <span id="work-modal-count" role="status" aria-live="polite"></span>
+            <button type="button" class="work-modal-next" data-work-step="1" aria-label="Next project">&#8594;</button>
+          </div>
           <div class="work-modal-media" id="work-modal-media"></div>
           <div class="work-modal-info">
             <h3 id="work-modal-title"></h3>

@@ -5,6 +5,9 @@
     <div class="wrap">
       <span>© <?= e($site['copyright_year']) ?> <?= e($site['name']) ?></span>
       <span><?= e($site['footer_tagline']) ?></span>
+      <?php if (!empty($site['linkedin_url'])): ?>
+      <a href="<?= e($site['linkedin_url']) ?>" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <?php endif; ?>
     </div>
   </footer>
 

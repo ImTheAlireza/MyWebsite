@@ -229,6 +229,9 @@
       const metaEl = document.getElementById('work-modal-meta');
       if (!modal || !mediaWrap || !dialog) return;
 
+      const cards = Array.from(document.querySelectorAll('.work-card')).filter(card => card.getAttribute('data-src'));
+      const countEl = document.getElementById('work-modal-count');
+      let activeIndex = -1;
       let originRect = null;
       let closing = false;
 
@@ -278,8 +281,11 @@
         setTimeout(done, 500);
       };
 
-      const open = (card) => {
-        if (modal.classList.contains('is-open')) return;
+      const open = (card, switching = false) => {
+        if (closing || (modal.classList.contains('is-open') && !switching)) return;
+        activeIndex = cards.indexOf(card);
+        if (countEl) countEl.textContent = (activeIndex + 1) + ' / ' + cards.length;
+        modal.querySelectorAll('[data-work-step]').forEach(button => { button.disabled = cards.length < 2; });
         const type = card.getAttribute('data-type') || '';
         const src = card.getAttribute('data-src') || '';
         const poster = card.getAttribute('data-poster') || '';
@@ -316,7 +322,7 @@
         modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
 
-        if (reduceMotion()) { clearDialogStyles(); return; }
+        if (switching || reduceMotion()) { clearDialogStyles(); return; }
 
         const end = dialog.getBoundingClientRect();
         const dx = originRect.left + originRect.width / 2 - (end.left + end.width / 2);
@@ -350,10 +356,24 @@
         });
       });
 
+      const step = (direction) => {
+        if (closing || !cards.length) return;
+        open(cards[(activeIndex + direction + cards.length) % cards.length], true);
+      };
+      modal.querySelectorAll('[data-work-step]').forEach(button => {
+        button.addEventListener('click', () => step(Number(button.dataset.workStep)));
+      });
       modal.addEventListener('click', (e) => {
         if (e.target.closest('[data-close-work]')) close();
       });
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
+        if (!modal.classList.contains('is-open')) return;
+        if (e.key === 'Escape') close();
+        // Leave video seek keys and editable controls to their native handlers.
+        if (e.target.closest('video, input, textarea, select, [contenteditable]')) return;
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          step(e.key === 'ArrowLeft' ? -1 : 1);
+        }
       });
     })();
