@@ -53,6 +53,8 @@
         </div>
       </div>
 
+    </section>
+
       <div class="work-modal" id="work-modal" aria-hidden="true">
         <div class="work-modal-backdrop" data-close-work></div>
         <div class="work-modal-dialog" role="dialog" aria-modal="true" aria-label="Project preview">
@@ -64,4 +66,3 @@
           </div>
         </div>
       </div>
-    </section>

@@ -6,9 +6,11 @@
       <div class="wrap section-grid">
         <h2>Contact</h2>
         <div class="section-body">
-          <!-- TODO: replace with your real email address (also update it in the script below). -->
           <a class="contact-mail" href="mailto:<?= e($site['email']) ?>"><?= e($site['email']) ?></a>
-          <p><?= e($contact['intro']) ?><!-- TODO: add your LinkedIn URL --><a href="<?= e($site['linkedin_url']) ?>">LinkedIn</a>.</p>
+          <p><?= e($contact['intro']) ?></p>
+          <?php if (!empty($site['linkedin_url'])): ?>
+          <a class="contact-linkedin" href="<?= e($site['linkedin_url']) ?>" target="_blank" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">&nbsp;↗</span></a>
+          <?php endif; ?>
 
           <form class="form" id="contact-form">
             <div class="field hp-field" aria-hidden="true">
