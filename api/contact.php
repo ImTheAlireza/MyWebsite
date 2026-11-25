@@ -1,6 +1,8 @@
 <?php
 
 header('Content-Type: application/json; charset=UTF-8');
+header('Cache-Control: no-store');
+require_once dirname(__DIR__) . '/includes/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -15,7 +17,6 @@ if (!rate_limit_check('contact:' . $ip, 5, 600)) {
     exit;
 }
 
-require_once dirname(__DIR__) . '/includes/functions.php';
 require_once dirname(__DIR__) . '/includes/env.php';
 load_env(dirname(__DIR__) . '/.env');
 
@@ -26,21 +27,32 @@ function json_response($ok, $message, $code)
     exit;
 }
 
+if (isset($_SERVER['CONTENT_LENGTH']) && (int) $_SERVER['CONTENT_LENGTH'] > 16384) {
+    json_response(false, 'Request too large.', 413);
+}
+$fields = $_POST;
+if (stripos(isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : '', 'application/json') === 0) {
+    $raw = file_get_contents('php://input', false, null, 0, 16385);
+    $fields = json_decode($raw, true);
+    if (strlen($raw) > 16384 || !is_array($fields)) json_response(false, 'Invalid request.', 400);
+}
 function get_field($key)
 {
-    if (isset($_POST[$key])) return trim((string) $_POST[$key]);
-    $raw = file_get_contents('php://input');
-    if ($raw) {
-        $data = json_decode($raw, true);
-        if (is_array($data) && isset($data[$key])) return trim((string) $data[$key]);
-    }
-    return '';
+    global $fields;
+    if (!isset($fields[$key])) return '';
+    if (!is_string($fields[$key])) json_response(false, 'Invalid field.', 422);
+    return trim($fields[$key]);
 }
 
 $name = get_field('name');
 $email = get_field('email');
 $type = get_field('type');
 $message = get_field('message');
+$company = get_field('company');
+
+if ($company !== '') {
+    json_response(true, 'Message sent successfully.', 200);
+}
 
 if ($name === '' || $email === '' || $message === '') {
     json_response(false, 'Please fill in all required fields.', 422);
@@ -55,7 +67,7 @@ if (strlen($name) > 200 || strlen($email) > 200 || strlen($type) > 200 || strlen
 $token = env_get('TELEGRAM_BOT_TOKEN', '');
 $chatId = env_get('TELEGRAM_CHAT_ID', '');
 if ($token === '' || $chatId === '') {
-    json_response(false, 'Telegram is not configured on the server.', 500);
+    json_response(false, 'Message service is temporarily unavailable.', 500);
 }
 
 $text = "New website message\n\n";
@@ -120,18 +132,5 @@ if ($ok) {
     json_response(true, 'Message sent successfully.', 200);
 }
 
-$detail = 'Failed to send message to Telegram.';
-if ($curlErr !== '') {
-    $detail .= ' Curl error: ' . $curlErr;
-}
-if ($httpCode) {
-    $detail .= ' HTTP ' . $httpCode;
-}
-if ($responseBody) {
-    $decoded = json_decode($responseBody, true);
-    if (is_array($decoded) && isset($decoded['description'])) {
-        $detail .= ' - ' . $decoded['description'];
-    }
-}
-error_log('[contact] Telegram send failed: ' . $detail . ' body=' . substr((string) $responseBody, 0, 500));
+error_log('[contact] Delivery failed; HTTP status=' . (int) $httpCode);
 json_response(false, 'Could not send your message right now. Please try again later.', 502);

@@ -12,7 +12,7 @@ function uploads_base_dir()
 
 function is_allowed_media_ext($ext)
 {
-    $allowed = array('jpg','jpeg','png','gif','webp','svg','mp4','webm','mov','m4v','pdf');
+    $allowed = array('jpg','jpeg','png','gif','webp','mp4','webm','mov','m4v','pdf');
     return in_array(strtolower($ext), $allowed, true);
 }
 
@@ -144,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(array('ok' => false, 'error' => 'Could not decode image.'));
             exit;
         }
-        if (strlen($raw) > 5 * 1024 * 1024) {
+        if (strlen($raw) > 5 * 1024 * 1024 || !($info = @getimagesizefromstring($raw)) || $info[0] * $info[1] > 24000000 || $info['mime'] !== 'image/' . ($ext === 'jpg' ? 'jpeg' : $ext)) {
             http_response_code(400);
             echo json_encode(array('ok' => false, 'error' => 'Image is too large.'));
             exit;
@@ -185,7 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $name = $_FILES['files']['name'][$i];
                 $tmp = $_FILES['files']['tmp_name'][$i];
                 $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-                if (!is_allowed_media_ext($ext)) continue;
+                if (!is_allowed_media_ext($ext) || !is_uploaded_file($tmp) || !valid_media_upload($tmp, $ext)) continue;
                 $baseName = pathinfo($name, PATHINFO_FILENAME);
                 $baseName = preg_replace('/[^a-zA-Z0-9._-]+/', '-', $baseName);
                 $baseName = trim($baseName, '-_.');
@@ -213,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $full = uploads_base_dir() . '/' . $rel;
             $realBase = realpath(uploads_base_dir());
             $realFull = realpath($full);
-            if ($realBase && $realFull && strpos($realFull, $realBase) === 0 && is_file($realFull)) {
+            if ($realBase && $realFull && strpos($realFull, $realBase . DIRECTORY_SEPARATOR) === 0 && is_file($realFull)) {
                 if (unlink($realFull)) {
                     foreach (image_variant_widths() as $vw) {
                         $vAbs = image_variant_path($realFull, $vw);
@@ -236,7 +236,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $full = uploads_base_dir() . '/' . $rel;
             $realBase = realpath(uploads_base_dir());
             $realFull = realpath($full);
-            if (!$realBase || !$realFull || strpos($realFull, $realBase) !== 0 || !is_file($realFull)) {
+            if (!$realBase || !$realFull || strpos($realFull, $realBase . DIRECTORY_SEPARATOR) !== 0 || !is_file($realFull)) {
                 $error = 'File not found.';
             } else {
                 $oldExt = strtolower(pathinfo($realFull, PATHINFO_EXTENSION));
@@ -255,7 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $newFilename = $newBase . '.' . $newExt;
                     $newFull = $dir . '/' . $newFilename;
                     $newRealDir = realpath($dir);
-                    if (!$newRealDir || strpos($newRealDir, $realBase) !== 0) {
+                    if (!$newRealDir || $newRealDir !== $realBase && strpos($newRealDir, $realBase . DIRECTORY_SEPARATOR) !== 0) {
                         $error = 'Invalid target path.';
                     } elseif (file_exists($newFull) && realpath($newFull) !== $realFull) {
                         $error = 'A file with this name already exists.';
@@ -296,7 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $full = $base . '/' . $rel;
             $realBase = realpath($base);
             $realFull = realpath($full);
-            if ($realBase && $realFull && strpos($realFull, $realBase) === 0 && is_file($realFull)) {
+            if ($realBase && $realFull && strpos($realFull, $realBase . DIRECTORY_SEPARATOR) === 0 && is_file($realFull)) {
                 if (unlink($realFull)) {
                     foreach (image_variant_widths() as $vw) {
                         $vAbs = image_variant_path($realFull, $vw);

@@ -186,6 +186,7 @@
     /* Contact form */
     .form { margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; max-width: 46rem; }
     .field { display: flex; flex-direction: column; gap: 0.4rem; }
+    .hp-field { position: absolute !important; left: -10000px !important; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
     .field.full { grid-column: 1 / -1; }
     .field label { font-weight: 600; font-size: 0.95rem; }
     .field input, .field select, .field textarea {

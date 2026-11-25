@@ -28,7 +28,7 @@ function handle_upload($fileKey, $subdir)
     $name = isset($f['name']) ? $f['name'] : 'upload';
     $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
     $allowed = array('jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm');
-    if (!in_array($ext, $allowed, true)) return '';
+    if (!in_array($ext, $allowed, true) || !is_uploaded_file($tmp) || !valid_media_upload($tmp, $ext)) return '';
     $baseDir = dirname(__DIR__) . '/uploads/' . $subdir;
     if (!is_dir($baseDir)) mkdir($baseDir, 0755, true);
     $filename = uniqid('file_', true) . '.' . $ext;
@@ -61,10 +61,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $admin = admin_load();
             $salt = isset($admin['salt']) ? $admin['salt'] : '';
             $hash = isset($admin['password_hash']) ? $admin['password_hash'] : '';
-            if (!hash_equals($hash, admin_hash_password($current, $salt))) {
+            if (!admin_verify($admin['username'], $current)) {
                 $error = 'Current password is incorrect.';
-            } elseif (strlen($new) < 8) {
-                $error = 'New password must be at least 8 characters.';
+            } elseif (strlen($new) < 12 || strlen($new) > 72) {
+                $error = 'New password must be between 12 and 72 characters.';
             } elseif ($new !== $confirm) {
                 $error = 'New password confirmation does not match.';
             } else {
@@ -532,8 +532,8 @@ require __DIR__ . '/partials/top.php';
           <input type="hidden" name="tab" value="password">
           <div class="grid-3">
             <label>Current password<input type="password" name="current_password" required></label>
-            <label>New password<input type="password" name="new_password" required minlength="8"></label>
-            <label>Confirm new password<input type="password" name="confirm_password" required minlength="8"></label>
+            <label>New password<input type="password" name="new_password" required minlength="12" maxlength="72"></label>
+            <label>Confirm new password<input type="password" name="confirm_password" required minlength="12" maxlength="72"></label>
           </div>
           <button type="submit" class="btn btn-primary">Update password</button>
         </form>

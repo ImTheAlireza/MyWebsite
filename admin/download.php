@@ -26,7 +26,7 @@ $full = $base . '/' . $rel;
 $realBase = realpath($base);
 $realFull = realpath($full);
 
-if (!$realBase || !$realFull || strpos($realFull, $realBase) !== 0 || !is_file($realFull)) {
+if (!$realBase || !$realFull || strpos($realFull, $realBase . DIRECTORY_SEPARATOR) !== 0 || !is_file($realFull)) {
     http_response_code(404);
     exit('File not found.');
 }

@@ -11,6 +11,10 @@
           <p><?= e($contact['intro']) ?><!-- TODO: add your LinkedIn URL --><a href="<?= e($site['linkedin_url']) ?>">LinkedIn</a>.</p>
 
           <form class="form" id="contact-form">
+            <div class="field hp-field" aria-hidden="true">
+              <label for="f-company">Company</label>
+              <input id="f-company" name="company" type="text" tabindex="-1" autocomplete="off">
+            </div>
             <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" type="text" autocomplete="name" required></div>
             <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
             <div class="field full">

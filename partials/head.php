@@ -3,7 +3,7 @@
 /** @var array $works */
 /** @var array $about */
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'alirezashabanzadeh.ir';
+$host = 'alirezashabanzadeh.ir';
 $requestUri = isset($_SERVER['REQUEST_URI']) ? strtok($_SERVER['REQUEST_URI'], '?') : '/';
 $canonicalUrl = $scheme . '://' . $host . $requestUri;
 $ogImage = '';

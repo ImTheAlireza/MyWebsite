@@ -14,7 +14,8 @@
             name: d.get('name') || '',
             email: d.get('email') || '',
             type: d.get('type') || '',
-            message: d.get('message') || ''
+            message: d.get('message') || '',
+            company: d.get('company') || ''
           };
           const res = await fetch('api/contact.php', {
             method: 'POST',

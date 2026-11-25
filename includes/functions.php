@@ -66,6 +66,7 @@ function generate_image_variants($absolutePath)
     if (!in_array($ext, $supported, true)) return array();
 
     $info = @getimagesize($absolutePath);
+    if ($info && ($info[0] * $info[1] > 24000000 || $info[0] > 12000 || $info[1] > 12000)) return array();
     if (!$info || empty($info[0]) || empty($info[1])) return array();
     $origW = (int) $info[0];
     $origH = (int) $info[1];
@@ -167,23 +168,46 @@ function responsive_img_attrs($src, $sizes)
 
 function rate_limit_check($key, $maxAttempts, $windowSeconds)
 {
-    $dir = dirname(__DIR__) . '/data';
-    if (!is_dir($dir)) return true;
-    $file = $dir . '/ratelimit-' . sha1($key) . '.json';
+    // Fixed bucket count bounds disk usage; lock covers the full read/modify/write.
+    $bucket = hexdec(substr(hash('sha256', $key), 0, 3));
+    $file = dirname(__DIR__) . '/data/ratelimit-' . $bucket . '.json';
+    $fp = @fopen($file, 'c+');
+    if (!$fp) return false;
+    if (!flock($fp, LOCK_EX)) { fclose($fp); return false; }
     $now = time();
-    $state = array('count' => 0, 'start' => $now);
-    if (is_file($file)) {
-        $raw = @file_get_contents($file);
-        $decoded = json_decode((string) $raw, true);
-        if (is_array($decoded) && isset($decoded['count'], $decoded['start'])) {
-            $state['count'] = (int) $decoded['count'];
-            $state['start'] = (int) $decoded['start'];
-        }
+    $state = json_decode(stream_get_contents($fp), true);
+    if (!is_array($state) || !isset($state['start'], $state['count']) || $now - $state['start'] >= $windowSeconds) {
+        $state = array('start' => $now, 'count' => 0);
     }
-    if (($now - $state['start']) >= $windowSeconds) {
-        $state = array('count' => 0, 'start' => $now);
+    $allowed = $state['count'] < $maxAttempts;
+    $state['count'] = min($maxAttempts, $state['count'] + 1);
+    rewind($fp);
+    $json = json_encode($state);
+    $written = fwrite($fp, $json);
+    $ok = $written === strlen($json) && ftruncate($fp, strlen($json)) && fflush($fp);
+    flock($fp, LOCK_UN);
+    fclose($fp);
+    return $allowed && $ok;
+}
+
+function valid_media_upload($path, $ext)
+{
+    $types = array(
+        'jpg' => array('image/jpeg'), 'jpeg' => array('image/jpeg'),
+        'png' => array('image/png'), 'gif' => array('image/gif'), 'webp' => array('image/webp'),
+        'mp4' => array('video/mp4', 'application/mp4'), 'm4v' => array('video/mp4', 'video/x-m4v'),
+        'webm' => array('video/webm'), 'mov' => array('video/quicktime'), 'pdf' => array('application/pdf')
+    );
+    if (!isset($types[$ext]) || !is_file($path) || !class_exists('finfo')) return false;
+    $size = filesize($path);
+    $isImage = in_array($ext, array('jpg', 'jpeg', 'png', 'gif', 'webp'), true);
+    $limit = $isImage || $ext === 'pdf' ? 10 * 1024 * 1024 : 100 * 1024 * 1024;
+    if ($size <= 0 || $size > $limit) return false;
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    if (!in_array($finfo->file($path), $types[$ext], true)) return false;
+    if ($isImage) {
+        $info = @getimagesize($path);
+        if (!$info || $info[0] < 1 || $info[1] < 1 || $info[0] > 12000 || $info[1] > 12000 || $info[0] * $info[1] > 24000000) return false;
     }
-    $state['count']++;
-    @file_put_contents($file, json_encode($state), LOCK_EX);
-    return $state['count'] <= $maxAttempts;
+    return true;
 }
