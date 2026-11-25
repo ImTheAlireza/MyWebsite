@@ -51,12 +51,8 @@ if ($ogImage !== '' && !preg_match('#^https?://#i', $ogImage)) {
   <?php endif; ?>
   <meta name="twitter:title" content="<?= e($site['title']) ?>">
   <meta name="twitter:description" content="<?= e($site['description']) ?>">
-  <!-- Tip: if Google Fonts is unreliable from Iran, self-host Bricolage Grotesque and replace this link. -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&display=swap">
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&display=swap" rel="stylesheet"></noscript>
+  <?php $fontUrl = ($basePath = rtrim(dirname(isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : ''), '/\\')) === '' ? '/assets/fonts/BricolageGrotesque-variable.woff2' : $basePath . '/assets/fonts/BricolageGrotesque-variable.woff2'; ?>
+  <link rel="preload" href="<?= e($fontUrl) ?>" as="font" type="font/woff2" crossorigin>
   <link rel="preload" as="style" href="<?= e(asset('css/style.css')) ?>">
   <link rel="stylesheet" href="<?= e(asset('css/style.css')) ?>">
 </head>

@@ -1,7 +1,16 @@
-    :root {
-      --paper: #e9e8e4;
-      --ink: #151514;
-      --muted: #55554f;
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('../fonts/BricolageGrotesque-variable.woff2') format('woff2');
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --paper: #e9e8e4;
+  --ink: #151514;
+  --muted: #55554f;
       --line: rgba(21, 21, 20, 0.18);
       --tile: #dcdad4;
       --accent: #2433d6;
@@ -84,6 +93,10 @@
 
     /* Sections */
     section { padding-block: clamp(3.5rem, 8vw, 6.5rem); }
+    #work, #services, #about, #experience, #education, #contact {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 600px;
+    }
     .section-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; }
     .section-grid > h2 {
       grid-column: 1 / span 3;
